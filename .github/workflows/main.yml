@@ -19,33 +19,35 @@ jobs:
 
       - name: Instalar e Construir
         run: |
-          # 1. Instala dependências limpas
+          # 1. Instala dependências e a ferramenta de assets
           npm install
+          npm install @capacitor/assets --save-dev
           
-          # 2. Adiciona plataforma e ativa o motor nativo
+          # 2. Adiciona plataforma
           npx cap add android || true
-          npx cap update
           
-          # 3. INJEÇÃO DE PERMISSÕES (AndroidManifest)
+          # 3. GERAR ÍCONES (Procura por icon.png na raiz)
+          # Se não houver icon.png, ele usa o padrão do Capacitor
+          if [ -f "icon.png" ]; then
+            npx capacitor-assets generate --android
+          fi
+
+          # 4. ATIVAR MOTOR E PERMISSÕES (AndroidManifest)
+          npx cap update
           MANIFEST="android/app/src/main/AndroidManifest.xml"
           
-          # Rede e Internet
           sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET" />' $MANIFEST
           sed -i '/<application/i \    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />' $MANIFEST
-          
-          # Segundo Plano e Notificações (Android 13+)
           sed -i '/<application/i \    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />' $MANIFEST
           sed -i '/<application/i \    <uses-permission android:name="android.permission.WAKE_LOCK" />' $MANIFEST
           sed -i '/<application/i \    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />' $MANIFEST
-          
-          # Armazenamento
           sed -i '/<application/i \    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />' $MANIFEST
           sed -i '/<application/i \    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />' $MANIFEST
           
-          # 4. Sincroniza arquivos do HTML/JS para o Android
+          # 5. Sincroniza arquivos
           npx cap sync
           
-          # 5. Build do APK final
+          # 6. Build do APK final
           cd android && chmod +x gradlew && ./gradlew assembleDebug
 
       - name: Subir APK
