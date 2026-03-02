@@ -5,6 +5,7 @@
     "discord.js": "^14.11.0",
     "@capacitor/android": "^5.0.0",
     "@capacitor/core": "^5.0.0",
+    "@capacitor/assets": "^3.0.0",
     "@capacitor/local-notifications": "^5.0.0",
     "@capacitor/app": "^5.0.0"
   },
