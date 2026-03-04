@@ -3,111 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <style>
+        /* Mantendo seu CSS original */
         body { margin: 0; padding: 20px; background: #0a0a0a; color: #fff; font-family: 'Segoe UI', sans-serif; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        
         #file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 15px; margin-top: 20px; }
-        .file-item { 
-            display: flex; flex-direction: column; align-items: center; gap: 8px; 
-            padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s;
-        }
-        .file-item:hover { background: #1a1a1a; border: 1px solid #333; }
+        .file-item { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px; border-radius: 8px; cursor: pointer; }
+        .file-item:hover { background: #1a1a1a; }
         .file-icon { font-size: 40px; }
         .file-name { font-size: 11px; text-align: center; color: #aaa; text-transform: uppercase; }
-
-        /* Preview de Arquivo */
-        #preview-modal {
-            position: fixed; inset: 0; background: #000; display: none;
-            flex-direction: column; padding: 20px; z-index: 100;
-        }
-        #file-content { 
-            flex: 1; background: #111; padding: 20px; border: 1px solid #333; 
-            border-radius: 8px; font-family: 'Consolas', monospace; color: #4ade80;
-            overflow-y: auto; white-space: pre-wrap; margin-top: 15px;
-        }
-        .btn-close { background: #ff5f57; border: none; color: #fff; padding: 5px 15px; border-radius: 4px; cursor: pointer; }
-
-        #loading { text-align: center; margin-top: 50px; color: #3b82f6; display: none; }
+        #preview-modal { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; padding: 20px; z-index: 100; }
+        #file-content { flex: 1; background: #111; padding: 20px; border: 1px solid #333; border-radius: 8px; font-family: monospace; color: #4ade80; overflow-y: auto; white-space: pre-wrap; margin-top: 15px; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <span style="font-size: 12px; letter-spacing: 2px;">FILE EXPLORER / NDJ-LIB</span>
-        <button onclick="fetchGitHubFiles()" style="background: #222; border: 1px solid #444; color: #fff; cursor: pointer; border-radius: 4px; padding: 5px 10px;">🔄 Atualizar</button>
+        <span style="font-size: 12px; letter-spacing: 2px;">FILE EXPLORER / DISPOSITIVO</span>
+        <button onclick="readDeviceFiles()" style="background: #222; border: 1px solid #444; color: #fff; border-radius: 4px; padding: 5px 10px;">🔄 SCAN</button>
     </div>
 
-    <div id="loading">Sincronizando com Repositório...</div>
     <div id="file-grid"></div>
 
     <div id="preview-modal">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 id="open-file-name" style="margin:0; font-weight: 300;"></h3>
-            <button class="btn-close" onclick="closePreview()">FECHAR</button>
+            <h3 id="open-file-name" style="margin:0;"></h3>
+            <button onclick="closePreview()" style="background:#ff5f57; border:none; color:#fff; padding:5px 15px; border-radius:4px;">FECHAR</button>
         </div>
         <div id="file-content"></div>
     </div>
 
+    <script src="capacitor.js"></script> 
     <script>
-        // Configurações do seu repositório [cite: 2026-01-31]
-        const USER = 'pitocoofc';
-        const REPO = 'WebOS';
-        const PATH = 'arquivos_do_sistema'; // Nome da pasta que você vai criar no GitHub
+        // Acessando o Plugin de Filesystem do Capacitor
+        const { Filesystem, Directory, Encoding } = Capacitor.Plugins;
 
-        async function fetchGitHubFiles() {
+        async function readDeviceFiles() {
             const grid = document.getElementById('file-grid');
-            const loader = document.getElementById('loading');
-            
-            grid.innerHTML = '';
-            loader.style.display = 'block';
+            grid.innerHTML = "Lendo diretório...";
 
             try {
-                // API do GitHub para listar conteúdo de uma pasta
-                const response = await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/${PATH}`);
-                const files = await response.json();
+                // Lê a pasta dentro do diretório de documentos do app
+                const result = await Filesystem.readdir({
+                    path: 'arquivos_do_sistema',
+                    directory: Directory.Documents // Ou Directory.Data dependendo de onde o Capacitor salva
+                });
 
-                loader.style.display = 'none';
+                grid.innerHTML = '';
 
-                if (files.message === "Not Found") {
-                    grid.innerHTML = "<p style='color:orange; text-align:center; width:100%'>Pasta 'arquivos_do_sistema' não encontrada no GitHub.</p>";
-                    return;
-                }
-
-                files.forEach(file => {
+                result.files.forEach(file => {
                     const item = document.createElement('div');
                     item.className = 'file-item';
                     
-                    let icon = '📄';
-                    if (file.type === 'dir') icon = '📁';
+                    // O Capacitor retorna objetos de arquivo com nome e tipo
+                    let icon = file.type === 'directory' ? '📁' : '📄';
                     
                     item.innerHTML = `
                         <div class="file-icon">${icon}</div>
                         <div class="file-name">${file.name}</div>
                     `;
 
-                    item.onclick = () => openGitHubFile(file.download_url, file.name);
+                    item.onclick = () => openLocalFile(file.name);
                     grid.appendChild(item);
                 });
 
             } catch (err) {
-                loader.innerText = "Erro ao conectar ao GitHub.";
+                grid.innerHTML = `<p style="color:red">Erro: Pasta não encontrada na memória do dispositivo.</p>`;
             }
         }
 
-        async function openGitHubFile(url, name) {
+        async function openLocalFile(fileName) {
             const modal = document.getElementById('preview-modal');
             const contentBox = document.getElementById('file-content');
             
             modal.style.display = 'flex';
-            document.getElementById('open-file-name').innerText = name;
-            contentBox.innerText = "Carregando conteúdo...";
+            document.getElementById('open-file-name').innerText = fileName;
 
             try {
-                const response = await fetch(url);
-                const text = await response.text();
-                contentBox.innerText = text;
+                const contents = await Filesystem.readFile({
+                    path: 'arquivos_do_sistema/' + fileName,
+                    directory: Directory.Documents,
+                    encoding: Encoding.UTF8
+                });
+                contentBox.innerText = contents.data;
             } catch (e) {
-                contentBox.innerText = "Erro ao ler o arquivo.";
+                contentBox.innerText = "Não foi possível ler o arquivo binário ou protegido.";
             }
         }
 
@@ -115,8 +94,8 @@
             document.getElementById('preview-modal').style.display = 'none';
         }
 
-        // Inicia a busca ao abrir o app
-        fetchGitHubFiles();
+        // Tenta ler assim que o Capacitor estiver pronto
+        window.onload = readDeviceFiles;
     </script>
 </body>
 </html>
