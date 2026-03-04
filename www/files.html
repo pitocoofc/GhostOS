@@ -3,127 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        /* Mantendo seu CSS original exatamente como entregue */
+        /* Sua interface original mantida */
         body { margin: 0; padding: 20px; background: #0a0a0a; color: #fff; font-family: 'Segoe UI', sans-serif; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
         #file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 15px; margin-top: 20px; }
-        .file-item { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px; border-radius: 8px; cursor: pointer; }
-        .file-item:hover { background: #1a1a1a; }
+        .file-item { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .file-item:hover { background: #1a1a1a; border: 1px solid #333; }
         .file-icon { font-size: 40px; }
         .file-name { font-size: 11px; text-align: center; color: #aaa; text-transform: uppercase; }
         #preview-modal { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; padding: 20px; z-index: 100; }
-        #file-content { flex: 1; background: #111; padding: 20px; border: 1px solid #333; border-radius: 8px; font-family: monospace; color: #4ade80; overflow-y: auto; white-space: pre-wrap; margin-top: 15px; }
+        #file-content { flex: 1; background: #111; padding: 20px; border: 1px solid #333; border-radius: 8px; font-family: 'Consolas', monospace; color: #4ade80; overflow-y: auto; white-space: pre-wrap; margin-top: 15px; }
+        .btn-close { background: #ff5f57; border: none; color: #fff; padding: 5px 15px; border-radius: 4px; cursor: pointer; }
+        #loading { text-align: center; margin-top: 50px; color: #3b82f6; display: none; }
+        
+        /* Novo botão estilo Ndj */
+        .btn-sync { background: #1a1a1a; border: 1px solid #3b82f6; color: #3b82f6; cursor: pointer; border-radius: 4px; padding: 5px 10px; font-size: 10px; transition: 0.3s; }
+        .btn-sync:hover { background: #3b82f6; color: #fff; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <span style="font-size: 12px; letter-spacing: 2px;">FILE EXPLORER / DISPOSITIVO</span>
-        <button onclick="readDeviceFiles()" style="background: #222; border: 1px solid #444; color: #fff; border-radius: 4px; padding: 5px 10px; cursor: pointer;">🔄 SCAN</button>
+        <span style="font-size: 12px; letter-spacing: 2px;">FILE EXPLORER / NDJ-LIB</span>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-sync" onclick="syncOffline()">📥 DOWNLOAD OFFLINE</button>
+            <button onclick="fetchGitHubFiles()" style="background: #222; border: 1px solid #444; color: #fff; cursor: pointer; border-radius: 4px; padding: 5px 10px;">🔄 Atualizar</button>
+        </div>
     </div>
 
+    <div id="loading">Sincronizando com Repositório...</div>
     <div id="file-grid"></div>
 
     <div id="preview-modal">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 id="open-file-name" style="margin:0;"></h3>
-            <button onclick="closePreview()" style="background:#ff5f57; border:none; color:#fff; padding:5px 15px; border-radius:4px; cursor: pointer;">FECHAR</button>
+            <h3 id="open-file-name" style="margin:0; font-weight: 300;"></h3>
+            <button class="btn-close" onclick="closePreview()">FECHAR</button>
         </div>
         <div id="file-content"></div>
     </div>
 
-    <script src="capacitor.js"></script> 
     <script>
-        // Ajuste na detecção do Plugin para garantir compatibilidade com o APK
-        const getFilesystem = () => {
-            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) {
-                return window.Capacitor.Plugins.Filesystem;
-            }
-            return null;
-        };
+        const USER = 'pitocoofc';
+        const REPO = 'WebOS';
+        const PATH = 'arquivos_do_sistema';
+        let currentFiles = []; // Cache temporário
 
-        async function readDeviceFiles() {
+        async function fetchGitHubFiles() {
             const grid = document.getElementById('file-grid');
-            const Filesystem = getFilesystem();
-
-            if (!Filesystem) {
-                grid.innerHTML = `<p style="color:#ef4444">Erro: Plugin Filesystem não detectado no Kernel.</p>`;
-                return;
-            }
-
-            grid.innerHTML = "Lendo diretório...";
+            const loader = document.getElementById('loading');
+            grid.innerHTML = '';
+            loader.style.display = 'block';
 
             try {
-                // Tenta ler a pasta na raiz definida pelo Capacitor
-                const result = await Filesystem.readdir({
-                    path: 'arquivos_do_sistema',
-                    directory: 'DOCUMENTS' // Usando string direta para evitar erro de variável indefinida
-                });
+                const response = await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/${PATH}`);
+                const files = await response.json();
+                currentFiles = files;
+                loader.style.display = 'none';
 
-                grid.innerHTML = '';
+                if (!Array.isArray(files)) throw new Error();
 
-                // No Capacitor 3+, os arquivos podem vir dentro de result.files como objetos ou strings
-                const files = result.files || [];
-
-                files.forEach(file => {
-                    const item = document.createElement('div');
-                    item.className = 'file-item';
-                    
-                    // Tratando se 'file' é objeto (nome e type) ou apenas o nome
-                    const fileName = typeof file === 'string' ? file : file.name;
-                    const isDir = file.type === 'directory';
-                    
-                    let icon = isDir ? '📁' : '📄';
-                    
-                    item.innerHTML = `
-                        <div class="file-icon">${icon}</div>
-                        <div class="file-name">${fileName}</div>
-                    `;
-
-                    item.onclick = () => openLocalFile(fileName);
-                    grid.appendChild(item);
-                });
-
+                renderFiles(files, false);
             } catch (err) {
-                console.error(err);
-                grid.innerHTML = `<p style="color:orange">Caminho 'arquivos_do_sistema' vazio ou inacessível.</p>`;
+                loader.innerText = "Modo Offline: Carregando arquivos salvos...";
+                loadOfflineFiles();
             }
         }
 
-        async function openLocalFile(fileName) {
-            const modal = document.getElementById('preview-modal');
-            const contentBox = document.getElementById('file-content');
-            const Filesystem = getFilesystem();
+        function renderFiles(files, isOffline) {
+            const grid = document.getElementById('file-grid');
+            grid.innerHTML = '';
+            files.forEach(file => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `<div class="file-icon">${file.type === 'dir' ? '📁' : '📄'}</div><div class="file-name">${file.name} ${isOffline ? '🔒' : ''}</div>`;
+                
+                item.onclick = () => {
+                    if(isOffline) openOfflineFile(file.name);
+                    else openGitHubFile(file.download_url, file.name);
+                };
+                grid.appendChild(item);
+            });
+        }
+
+        // Lógica de "Sete Chaves" - Salva tudo no Storage Local
+        async function syncOffline() {
+            if (currentFiles.length === 0) return alert("Atualize a lista primeiro!");
+            const loader = document.getElementById('loading');
+            loader.innerText = "Guardando arquivos a sete chaves...";
+            loader.style.display = 'block';
+
+            const offlineStorage = {};
+
+            for (const file of currentFiles) {
+                if (file.type === 'file') {
+                    const resp = await fetch(file.download_url);
+                    const text = await resp.text();
+                    offlineStorage[file.name] = text;
+                }
+            }
+
+            localStorage.setItem('ndj_offline_data', JSON.stringify(offlineStorage));
+            localStorage.setItem('ndj_file_list', JSON.stringify(currentFiles));
             
-            modal.style.display = 'flex';
-            document.getElementById('open-file-name').innerText = fileName;
-            contentBox.innerText = "Lendo...";
+            loader.style.display = 'none';
+            alert("Sincronização concluída! Arquivos disponíveis offline.");
+        }
 
+        function loadOfflineFiles() {
+            const list = JSON.parse(localStorage.getItem('ndj_file_list'));
+            if (list) renderFiles(list, true);
+            else document.getElementById('loading').innerText = "Nenhum arquivo offline encontrado.";
+        }
+
+        async function openGitHubFile(url, name) {
+            showModal(name, "Carregando...");
             try {
-                const contents = await Filesystem.readFile({
-                    path: 'arquivos_do_sistema/' + fileName,
-                    directory: 'DOCUMENTS',
-                    encoding: 'utf8'
-                });
-                contentBox.innerText = contents.data;
-            } catch (e) {
-                contentBox.innerText = "Erro ao abrir: Verifique as permissões de leitura do Ghost OS.";
-            }
+                const response = await fetch(url);
+                const text = await response.text();
+                document.getElementById('file-content').innerText = text;
+            } catch (e) { openOfflineFile(name); }
         }
 
-        function closePreview() {
-            document.getElementById('preview-modal').style.display = 'none';
+        function openOfflineFile(name) {
+            const storage = JSON.parse(localStorage.getItem('ndj_offline_data'));
+            showModal(name, storage && storage[name] ? storage[name] : "Arquivo não sincronizado para offline.");
         }
 
-        // Aguarda o Capacitor estar pronto antes de rodar o primeiro scan
-        document.addEventListener('deviceready', () => {
-            readDeviceFiles();
-        });
+        function showModal(name, content) {
+            document.getElementById('preview-modal').style.display = 'flex';
+            document.getElementById('open-file-name').innerText = name;
+            document.getElementById('file-content').innerText = content;
+        }
 
-        // Fallback caso não esteja em ambiente deviceready imediato
-        window.onload = () => {
-            setTimeout(readDeviceFiles, 500);
-        };
+        function closePreview() { document.getElementById('preview-modal').style.display = 'none'; }
+
+        fetchGitHubFiles();
     </script>
 </body>
 </html>
