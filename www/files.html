@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        /* Mantendo seu CSS original */
+        /* Mantendo seu CSS original exatamente como entregue */
         body { margin: 0; padding: 20px; background: #0a0a0a; color: #fff; font-family: 'Segoe UI', sans-serif; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
         #file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 15px; margin-top: 20px; }
@@ -19,7 +19,7 @@
 
     <div class="header">
         <span style="font-size: 12px; letter-spacing: 2px;">FILE EXPLORER / DISPOSITIVO</span>
-        <button onclick="readDeviceFiles()" style="background: #222; border: 1px solid #444; color: #fff; border-radius: 4px; padding: 5px 10px;">🔄 SCAN</button>
+        <button onclick="readDeviceFiles()" style="background: #222; border: 1px solid #444; color: #fff; border-radius: 4px; padding: 5px 10px; cursor: pointer;">🔄 SCAN</button>
     </div>
 
     <div id="file-grid"></div>
@@ -27,66 +27,87 @@
     <div id="preview-modal">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h3 id="open-file-name" style="margin:0;"></h3>
-            <button onclick="closePreview()" style="background:#ff5f57; border:none; color:#fff; padding:5px 15px; border-radius:4px;">FECHAR</button>
+            <button onclick="closePreview()" style="background:#ff5f57; border:none; color:#fff; padding:5px 15px; border-radius:4px; cursor: pointer;">FECHAR</button>
         </div>
         <div id="file-content"></div>
     </div>
 
     <script src="capacitor.js"></script> 
     <script>
-        // Acessando o Plugin de Filesystem do Capacitor
-        const { Filesystem, Directory, Encoding } = Capacitor.Plugins;
+        // Ajuste na detecção do Plugin para garantir compatibilidade com o APK
+        const getFilesystem = () => {
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) {
+                return window.Capacitor.Plugins.Filesystem;
+            }
+            return null;
+        };
 
         async function readDeviceFiles() {
             const grid = document.getElementById('file-grid');
+            const Filesystem = getFilesystem();
+
+            if (!Filesystem) {
+                grid.innerHTML = `<p style="color:#ef4444">Erro: Plugin Filesystem não detectado no Kernel.</p>`;
+                return;
+            }
+
             grid.innerHTML = "Lendo diretório...";
 
             try {
-                // Lê a pasta dentro do diretório de documentos do app
+                // Tenta ler a pasta na raiz definida pelo Capacitor
                 const result = await Filesystem.readdir({
                     path: 'arquivos_do_sistema',
-                    directory: Directory.Documents // Ou Directory.Data dependendo de onde o Capacitor salva
+                    directory: 'DOCUMENTS' // Usando string direta para evitar erro de variável indefinida
                 });
 
                 grid.innerHTML = '';
 
-                result.files.forEach(file => {
+                // No Capacitor 3+, os arquivos podem vir dentro de result.files como objetos ou strings
+                const files = result.files || [];
+
+                files.forEach(file => {
                     const item = document.createElement('div');
                     item.className = 'file-item';
                     
-                    // O Capacitor retorna objetos de arquivo com nome e tipo
-                    let icon = file.type === 'directory' ? '📁' : '📄';
+                    // Tratando se 'file' é objeto (nome e type) ou apenas o nome
+                    const fileName = typeof file === 'string' ? file : file.name;
+                    const isDir = file.type === 'directory';
+                    
+                    let icon = isDir ? '📁' : '📄';
                     
                     item.innerHTML = `
                         <div class="file-icon">${icon}</div>
-                        <div class="file-name">${file.name}</div>
+                        <div class="file-name">${fileName}</div>
                     `;
 
-                    item.onclick = () => openLocalFile(file.name);
+                    item.onclick = () => openLocalFile(fileName);
                     grid.appendChild(item);
                 });
 
             } catch (err) {
-                grid.innerHTML = `<p style="color:red">Erro: Pasta não encontrada na memória do dispositivo.</p>`;
+                console.error(err);
+                grid.innerHTML = `<p style="color:orange">Caminho 'arquivos_do_sistema' vazio ou inacessível.</p>`;
             }
         }
 
         async function openLocalFile(fileName) {
             const modal = document.getElementById('preview-modal');
             const contentBox = document.getElementById('file-content');
+            const Filesystem = getFilesystem();
             
             modal.style.display = 'flex';
             document.getElementById('open-file-name').innerText = fileName;
+            contentBox.innerText = "Lendo...";
 
             try {
                 const contents = await Filesystem.readFile({
                     path: 'arquivos_do_sistema/' + fileName,
-                    directory: Directory.Documents,
-                    encoding: Encoding.UTF8
+                    directory: 'DOCUMENTS',
+                    encoding: 'utf8'
                 });
                 contentBox.innerText = contents.data;
             } catch (e) {
-                contentBox.innerText = "Não foi possível ler o arquivo binário ou protegido.";
+                contentBox.innerText = "Erro ao abrir: Verifique as permissões de leitura do Ghost OS.";
             }
         }
 
@@ -94,8 +115,15 @@
             document.getElementById('preview-modal').style.display = 'none';
         }
 
-        // Tenta ler assim que o Capacitor estiver pronto
-        window.onload = readDeviceFiles;
+        // Aguarda o Capacitor estar pronto antes de rodar o primeiro scan
+        document.addEventListener('deviceready', () => {
+            readDeviceFiles();
+        });
+
+        // Fallback caso não esteja em ambiente deviceready imediato
+        window.onload = () => {
+            setTimeout(readDeviceFiles, 500);
+        };
     </script>
 </body>
 </html>
