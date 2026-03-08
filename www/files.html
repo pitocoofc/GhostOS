@@ -3,41 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        /* Sua interface original mantida */
-        body { margin: 0; padding: 20px; background: #0a0a0a; color: #fff; font-family: 'Segoe UI', sans-serif; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        #file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 15px; margin-top: 20px; }
-        .file-item { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        /* Mantendo sua interface original */
+        body { margin: 0; padding: 20px; background: #0a0a0a; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; flex-shrink: 0; }
+        
+        #file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 15px; margin-top: 20px; overflow-y: auto; flex: 1; align-content: start; }
+        .file-item { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
         .file-item:hover { background: #1a1a1a; border: 1px solid #333; }
         .file-icon { font-size: 40px; }
-        .file-name { font-size: 11px; text-align: center; color: #aaa; text-transform: uppercase; }
+        .file-name { font-size: 11px; text-align: center; color: #aaa; text-transform: uppercase; max-width: 80px; text-overflow: ellipsis; overflow: hidden; }
+
+        /* Preview e Editor */
         #preview-modal { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; padding: 20px; z-index: 100; }
-        #file-content { flex: 1; background: #111; padding: 20px; border: 1px solid #333; border-radius: 8px; font-family: 'Consolas', monospace; color: #4ade80; overflow-y: auto; white-space: pre-wrap; margin-top: 15px; }
-        .btn-close { background: #ff5f57; border: none; color: #fff; padding: 5px 15px; border-radius: 4px; cursor: pointer; }
-        #loading { text-align: center; margin-top: 50px; color: #3b82f6; display: none; }
+        #file-content { flex: 1; background: #111; padding: 20px; border: 1px solid #333; border-radius: 8px; font-family: 'Consolas', monospace; color: #4ade80; overflow-y: auto; white-space: pre-wrap; margin-top: 15px; outline: none; }
         
-        /* Novo botão estilo Ndj */
-        .btn-sync { background: #1a1a1a; border: 1px solid #3b82f6; color: #3b82f6; cursor: pointer; border-radius: 4px; padding: 5px 10px; font-size: 10px; transition: 0.3s; }
-        .btn-sync:hover { background: #3b82f6; color: #fff; }
+        .btn-group { display: flex; gap: 8px; }
+        button { background: #222; border: 1px solid #444; color: #fff; cursor: pointer; border-radius: 4px; padding: 5px 12px; font-size: 11px; }
+        .btn-back { background: #3b82f6; border: none; display: none; } /* Botão de voltar azul estilo Ghost */
+        .btn-exit { background: #444; border: 1px solid #666; }
+        
+        #status-bar { font-size: 10px; color: #555; margin-top: 10px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <span style="font-size: 12px; letter-spacing: 2px;">FILE EXPLORER / NDJ-LIB</span>
-        <div style="display: flex; gap: 10px;">
-            <button class="btn-sync" onclick="syncOffline()">📥 DOWNLOAD OFFLINE</button>
-            <button onclick="fetchGitHubFiles()" style="background: #222; border: 1px solid #444; color: #fff; cursor: pointer; border-radius: 4px; padding: 5px 10px;">🔄 Atualizar</button>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn-back" id="back-btn" onclick="renderHome()">← VOLTAR</button>
+            <span style="font-size: 12px; letter-spacing: 2px;">FILE EXPLORER</span>
+        </div>
+        <div class="btn-group">
+            <button onclick="openEditor()">➕ NOVO</button>
+            <button class="btn-exit" onclick="exitApp()">SAIR</button>
         </div>
     </div>
 
-    <div id="loading">Sincronizando com Repositório...</div>
+    <div id="status-bar">Root /</div>
+    
     <div id="file-grid"></div>
 
     <div id="preview-modal">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 id="open-file-name" style="margin:0; font-weight: 300;"></h3>
-            <button class="btn-close" onclick="closePreview()">FECHAR</button>
+            <h3 id="open-file-name" style="margin:0; font-weight: 300; font-size: 14px;"></h3>
+            <div class="btn-group">
+                <button style="background:#34a853; border:none; display:none;" id="save-btn" onclick="saveFile()">GRAVAR</button>
+                <button onclick="closePreview()">FECHAR</button>
+            </div>
         </div>
         <div id="file-content"></div>
     </div>
@@ -46,98 +57,119 @@
         const USER = 'pitocoofc';
         const REPO = 'WebOS';
         const PATH = 'arquivos_do_sistema';
-        let currentFiles = []; // Cache temporário
+        
+        let gitFiles = []; // Armazena o que vem do GitHub
 
-        async function fetchGitHubFiles() {
+        // 1. TELA INICIAL: Mostra apenas as Pastas
+        function renderHome() {
             const grid = document.getElementById('file-grid');
-            const loader = document.getElementById('loading');
+            const backBtn = document.getElementById('back-btn');
+            const statusBar = document.getElementById('status-bar');
+            
             grid.innerHTML = '';
-            loader.style.display = 'block';
+            backBtn.style.display = 'none';
+            statusBar.innerText = "Root /";
 
-            try {
-                const response = await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/${PATH}`);
-                const files = await response.json();
-                currentFiles = files;
-                loader.style.display = 'none';
+            const folders = [
+                { name: 'SISTEMA', icon: '📁', action: () => enterFolder('SISTEMA') },
+                { name: 'IMAGENS', icon: '🖼️', action: () => alert('Pasta vazia.') },
+                { name: 'DOWNLOADS', icon: '📥', action: () => alert('Sem downloads.') }
+            ];
 
-                if (!Array.isArray(files)) throw new Error();
-
-                renderFiles(files, false);
-            } catch (err) {
-                loader.innerText = "Modo Offline: Carregando arquivos salvos...";
-                loadOfflineFiles();
-            }
-        }
-
-        function renderFiles(files, isOffline) {
-            const grid = document.getElementById('file-grid');
-            grid.innerHTML = '';
-            files.forEach(file => {
+            folders.forEach(f => {
                 const item = document.createElement('div');
                 item.className = 'file-item';
-                item.innerHTML = `<div class="file-icon">${file.type === 'dir' ? '📁' : '📄'}</div><div class="file-name">${file.name} ${isOffline ? '🔒' : ''}</div>`;
-                
-                item.onclick = () => {
-                    if(isOffline) openOfflineFile(file.name);
-                    else openGitHubFile(file.download_url, file.name);
-                };
+                item.innerHTML = `<div class="file-icon">${f.icon}</div><div class="file-name">${f.name}</div>`;
+                item.onclick = f.action;
                 grid.appendChild(item);
             });
+
+            // Mostra arquivos criados pelo usuário na raiz também
+            loadUserFiles();
         }
 
-        // Lógica de "Sete Chaves" - Salva tudo no Storage Local
-        async function syncOffline() {
-            if (currentFiles.length === 0) return alert("Atualize a lista primeiro!");
-            const loader = document.getElementById('loading');
-            loader.innerText = "Guardando arquivos a sete chaves...";
-            loader.style.display = 'block';
+        // 2. ENTRAR NA PASTA: Filtra e mostra os arquivos do GitHub
+        async function enterFolder(folderName) {
+            const grid = document.getElementById('file-grid');
+            const backBtn = document.getElementById('back-btn');
+            const statusBar = document.getElementById('status-bar');
 
-            const offlineStorage = {};
+            grid.innerHTML = "Carregando arquivos de " + folderName + "...";
+            backBtn.style.display = 'block';
+            statusBar.innerText = "Root / " + folderName;
 
-            for (const file of currentFiles) {
-                if (file.type === 'file') {
-                    const resp = await fetch(file.download_url);
-                    const text = await resp.text();
-                    offlineStorage[file.name] = text;
+            if (folderName === 'SISTEMA') {
+                try {
+                    // Busca do GitHub (ou cache offline)
+                    const response = await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/${PATH}`);
+                    const files = await response.json();
+                    
+                    grid.innerHTML = '';
+                    if (Array.isArray(files)) {
+                        files.forEach(file => {
+                            if(file.type === 'file') renderFileItem(file.name, '📄', () => openGitHubFile(file.download_url, file.name));
+                        });
+                    }
+                } catch (e) {
+                    grid.innerHTML = "Erro ao acessar GitHub. Verifique a conexão.";
                 }
             }
-
-            localStorage.setItem('ndj_offline_data', JSON.stringify(offlineStorage));
-            localStorage.setItem('ndj_file_list', JSON.stringify(currentFiles));
-            
-            loader.style.display = 'none';
-            alert("Sincronização concluída! Arquivos disponíveis offline.");
         }
 
-        function loadOfflineFiles() {
-            const list = JSON.parse(localStorage.getItem('ndj_file_list'));
-            if (list) renderFiles(list, true);
-            else document.getElementById('loading').innerText = "Nenhum arquivo offline encontrado.";
+        function renderFileItem(name, icon, action) {
+            const grid = document.getElementById('file-grid');
+            const item = document.createElement('div');
+            item.className = 'file-item';
+            item.innerHTML = `<div class="file-icon">${icon}</div><div class="file-name">${name}</div>`;
+            item.onclick = action;
+            grid.appendChild(item);
+        }
+
+        // Lógica de Editor e Arquivos Locais
+        function openEditor() {
+            const name = prompt("Nome do arquivo:");
+            if (!name) return;
+            showModal(name, "", true);
+        }
+
+        function saveFile() {
+            const name = document.getElementById('open-file-name').innerText;
+            const content = document.getElementById('file-content').innerText;
+            let userFiles = JSON.parse(localStorage.getItem('ndj_user_files') || '{}');
+            userFiles[name] = content;
+            localStorage.setItem('ndj_user_files', JSON.stringify(userFiles));
+            closePreview();
+            renderHome();
+        }
+
+        function loadUserFiles() {
+            let userFiles = JSON.parse(localStorage.getItem('ndj_user_files') || '{}');
+            for (let name in userFiles) {
+                renderFileItem(name, '📄', () => showModal(name, userFiles[name], true));
+            }
         }
 
         async function openGitHubFile(url, name) {
-            showModal(name, "Carregando...");
-            try {
-                const response = await fetch(url);
-                const text = await response.text();
-                document.getElementById('file-content').innerText = text;
-            } catch (e) { openOfflineFile(name); }
+            showModal(name, "Lendo dados do servidor...", false);
+            const response = await fetch(url);
+            const text = await response.text();
+            document.getElementById('file-content').innerText = text;
         }
 
-        function openOfflineFile(name) {
-            const storage = JSON.parse(localStorage.getItem('ndj_offline_data'));
-            showModal(name, storage && storage[name] ? storage[name] : "Arquivo não sincronizado para offline.");
-        }
-
-        function showModal(name, content) {
+        function showModal(name, content, editable) {
             document.getElementById('preview-modal').style.display = 'flex';
-            document.getElementById('open-file-name').innerText = name;
-            document.getElementById('file-content').innerText = content;
+            document.getElementById('open-file-name').innerText = name.toUpperCase();
+            const c = document.getElementById('file-content');
+            c.innerText = content;
+            c.contentEditable = editable;
+            document.getElementById('save-btn').style.display = editable ? "block" : "none";
         }
 
         function closePreview() { document.getElementById('preview-modal').style.display = 'none'; }
+        function exitApp() { window.parent.postMessage({ type: 'CLOSE_WINDOW' }, "*"); }
 
-        fetchGitHubFiles();
+        // Inicializa na Home
+        renderHome();
     </script>
 </body>
 </html>
