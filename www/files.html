@@ -57,10 +57,10 @@
         const USER = 'pitocoofc';
         const REPO = 'WebOS';
         const PATH = 'arquivos_do_sistema';
+        const CACHE_KEY = 'ndj_git_cache'; // Chave para o sistema híbrido
         
-        let gitFiles = []; // Armazena o que vem do GitHub
+        let gitFiles = []; 
 
-        // 1. TELA INICIAL: Mostra apenas as Pastas
         function renderHome() {
             const grid = document.getElementById('file-grid');
             const backBtn = document.getElementById('back-btn');
@@ -84,11 +84,9 @@
                 grid.appendChild(item);
             });
 
-            // Mostra arquivos criados pelo usuário na raiz também
             loadUserFiles();
         }
 
-        // 2. ENTRAR NA PASTA: Filtra e mostra os arquivos do GitHub
         async function enterFolder(folderName) {
             const grid = document.getElementById('file-grid');
             const backBtn = document.getElementById('back-btn');
@@ -100,18 +98,35 @@
 
             if (folderName === 'SISTEMA') {
                 try {
-                    // Busca do GitHub (ou cache offline)
                     const response = await fetch(`https://api.github.com/repos/${USER}/${REPO}/contents/${PATH}`);
                     const files = await response.json();
                     
                     grid.innerHTML = '';
                     if (Array.isArray(files)) {
+                        let cache = {};
                         files.forEach(file => {
-                            if(file.type === 'file') renderFileItem(file.name, '📄', () => openGitHubFile(file.download_url, file.name));
+                            if(file.type === 'file') {
+                                renderFileItem(file.name, '📄', () => openGitHubFile(file.download_url, file.name));
+                                // Salva apenas o nome e url no índice do cache
+                                cache[file.name] = file.download_url;
+                            }
                         });
+                        localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
                     }
                 } catch (e) {
-                    grid.innerHTML = "Erro ao acessar GitHub. Verifique a conexão.";
+                    // SE DER ERRO (OFFLINE), CARREGA DO CACHE
+                    grid.innerHTML = '';
+                    const offlineFiles = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
+                    const fileNames = Object.keys(offlineFiles);
+                    
+                    if (fileNames.length > 0) {
+                        fileNames.forEach(name => {
+                            renderFileItem(name, '📄', () => openOfflineFile(name));
+                        });
+                        statusBar.innerText = "Root / SISTEMA (OFFLINE)";
+                    } else {
+                        grid.innerHTML = "Offline e sem cache disponível.";
+                    }
                 }
             }
         }
@@ -125,7 +140,6 @@
             grid.appendChild(item);
         }
 
-        // Lógica de Editor e Arquivos Locais
         function openEditor() {
             const name = prompt("Nome do arquivo:");
             if (!name) return;
@@ -150,10 +164,21 @@
         }
 
         async function openGitHubFile(url, name) {
-            showModal(name, "Lendo dados do servidor...", false);
-            const response = await fetch(url);
-            const text = await response.text();
-            document.getElementById('file-content').innerText = text;
+            showModal(name, "Lendo dados...", false);
+            try {
+                const response = await fetch(url);
+                const text = await response.text();
+                // Salva o conteúdo no cache offline individual
+                localStorage.setItem('cache_content_' + name, text);
+                document.getElementById('file-content').innerText = text;
+            } catch (e) {
+                openOfflineFile(name);
+            }
+        }
+
+        function openOfflineFile(name) {
+            const content = localStorage.getItem('cache_content_' + name) || "Conteúdo offline não disponível para este arquivo.";
+            showModal(name, content, false);
         }
 
         function showModal(name, content, editable) {
@@ -168,7 +193,6 @@
         function closePreview() { document.getElementById('preview-modal').style.display = 'none'; }
         function exitApp() { window.parent.postMessage({ type: 'CLOSE_WINDOW' }, "*"); }
 
-        // Inicializa na Home
         renderHome();
     </script>
 </body>
