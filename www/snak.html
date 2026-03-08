@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake</title>
+
+<style>
+
+body{
+margin:0;
+background:#111;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+height:100vh;
+color:white;
+font-family:Arial;
+}
+
+canvas{
+background:#000;
+}
+
+.controls{
+margin-top:15px;
+display:grid;
+grid-template-columns:80px 80px 80px;
+gap:10px;
+}
+
+button{
+height:60px;
+font-size:20px;
+background:#333;
+color:white;
+border:none;
+border-radius:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h2>Snake</h2>
+
+<canvas id="game" width="300" height="300"></canvas>
+
+<div class="controls">
+<div></div>
+<button onclick="setDir('up')">⬆️</button>
+<div></div>
+
+<button onclick="setDir('left')">⬅️</button>
+<button onclick="setDir('down')">⬇️</button>
+<button onclick="setDir('right')">➡️</button>
+</div>
+
+<script>
+
+const canvas = document.getElementById("game")
+const ctx = canvas.getContext("2d")
+
+let grid = 15
+let snake = [{x:10,y:10}]
+let food = {x:5,y:5}
+let dir = "right"
+let score = 0
+
+function spawnFood(){
+
+food.x = Math.floor(Math.random()*20)
+food.y = Math.floor(Math.random()*20)
+
+}
+
+function setDir(d){
+dir = d
+}
+
+function update(){
+
+let head = {...snake[0]}
+
+if(dir=="right") head.x++
+if(dir=="left") head.x--
+if(dir=="up") head.y--
+if(dir=="down") head.y++
+
+snake.unshift(head)
+
+if(head.x==food.x && head.y==food.y){
+score++
+spawnFood()
+}else{
+snake.pop()
+}
+
+if(
+head.x<0 || head.y<0 ||
+head.x>=20 || head.y>=20 ||
+snake.slice(1).some(s=>s.x==head.x && s.y==head.y)
+){
+alert("Game Over | Score: "+score)
+snake=[{x:10,y:10}]
+dir="right"
+score=0
+}
+
+}
+
+function draw(){
+
+ctx.fillStyle="black"
+ctx.fillRect(0,0,canvas.width,canvas.height)
+
+ctx.fillStyle="red"
+ctx.fillRect(food.x*grid,food.y*grid,grid,grid)
+
+ctx.fillStyle="lime"
+snake.forEach(s=>{
+ctx.fillRect(s.x*grid,s.y*grid,grid,grid)
+})
+
+}
+
+function loop(){
+
+update()
+draw()
+
+}
+
+spawnFood()
+
+setInterval(loop,120)
+
+</script>
+
+</body>
+</html>
