@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flappy Bird Simples</title>
+
+<style>
+
+body{
+margin:0;
+overflow:hidden;
+background:#70c5ce;
+font-family:Arial;
+}
+
+canvas{
+display:block;
+margin:auto;
+background:#70c5ce;
+}
+
+#gameOver{
+position:absolute;
+top:40%;
+width:100%;
+text-align:center;
+font-size:30px;
+color:white;
+display:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="gameOver">Game Over<br>Toque para reiniciar</div>
+<canvas id="game" width="400" height="600"></canvas>
+
+<script>
+
+const canvas = document.getElementById("game")
+const ctx = canvas.getContext("2d")
+
+let bird = {
+x:80,
+y:200,
+gravity:0.6,
+lift:-10,
+velocity:0
+}
+
+let pipes = []
+let frame = 0
+let score = 0
+let gameOver = false
+
+function createPipe(){
+
+let gap = 150
+let top = Math.random()*250+50
+
+pipes.push({
+x:canvas.width,
+top:top,
+bottom:top+gap
+})
+
+}
+
+function drawBird(){
+
+ctx.fillStyle="yellow"
+ctx.beginPath()
+ctx.arc(bird.x,bird.y,12,0,Math.PI*2)
+ctx.fill()
+
+}
+
+function drawPipes(){
+
+ctx.fillStyle="green"
+
+pipes.forEach(p=>{
+
+ctx.fillRect(p.x,0,60,p.top)
+ctx.fillRect(p.x,p.bottom,60,canvas.height)
+
+})
+
+}
+
+function updatePipes(){
+
+pipes.forEach(p=>{
+
+p.x-=3
+
+if(
+bird.x+12>p.x &&
+bird.x-12<p.x+60 &&
+(bird.y-12<p.top || bird.y+12>p.bottom)
+){
+endGame()
+}
+
+if(p.x+60===bird.x){
+score++
+}
+
+})
+
+pipes = pipes.filter(p=>p.x>-60)
+
+}
+
+function drawScore(){
+
+ctx.fillStyle="white"
+ctx.font="30px Arial"
+ctx.fillText(score,20,40)
+
+}
+
+function endGame(){
+
+gameOver=true
+document.getElementById("gameOver").style.display="block"
+
+}
+
+function resetGame(){
+
+bird.y=200
+bird.velocity=0
+pipes=[]
+score=0
+frame=0
+gameOver=false
+
+document.getElementById("gameOver").style.display="none"
+
+loop()
+
+}
+
+function updateBird(){
+
+bird.velocity+=bird.gravity
+bird.y+=bird.velocity
+
+if(bird.y>canvas.height || bird.y<0){
+endGame()
+}
+
+}
+
+function loop(){
+
+if(gameOver) return
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+frame++
+
+if(frame%90===0){
+createPipe()
+}
+
+updateBird()
+updatePipes()
+
+drawPipes()
+drawBird()
+drawScore()
+
+requestAnimationFrame(loop)
+
+}
+
+function flap(){
+
+if(gameOver){
+resetGame()
+return
+}
+
+bird.velocity=bird.lift
+
+}
+
+document.addEventListener("keydown",e=>{
+if(e.code==="Space"){
+flap()
+}
+})
+
+document.addEventListener("touchstart",flap)
+document.addEventListener("click",flap)
+
+loop()
+
+</script>
+
+</body>
+</html>
