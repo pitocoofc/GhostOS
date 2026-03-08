@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ndj-Lib Advanced</title>
+
+<style>
+
+:root{
+--orange:#ff6b35;
+--bg:#ffffff;
+--text:#333;
+--gray:#888;
+--light-gray:#f7f7f7;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:sans-serif;
+}
+
+body{
+background:#ddd;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.calc-app{
+width:360px;
+height:740px;
+background:var(--bg);
+border-radius:30px;
+display:flex;
+flex-direction:column;
+overflow:hidden;
+}
+
+.nav{
+display:flex;
+justify-content:space-around;
+padding:20px 0;
+border-bottom:1px solid #eee;
+}
+
+.nav-btn{
+background:none;
+border:none;
+font-size:24px;
+color:#ccc;
+cursor:pointer;
+}
+
+.nav-btn.active{
+color:var(--orange);
+}
+
+.section{
+display:none;
+flex:1;
+flex-direction:column;
+}
+
+.section.active{
+display:flex;
+}
+
+.display{
+flex:1;
+display:flex;
+flex-direction:column;
+justify-content:flex-end;
+align-items:flex-end;
+padding:25px;
+}
+
+.main-res{
+font-size:3.5rem;
+color:var(--text);
+}
+
+.history{
+font-size:14px;
+color:#999;
+}
+
+.menu-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+padding:20px;
+gap:10px;
+}
+
+.menu-item{
+display:flex;
+flex-direction:column;
+align-items:center;
+padding:15px;
+cursor:pointer;
+border-radius:15px;
+}
+
+.menu-item:hover{
+background:var(--light-gray);
+}
+
+.menu-item i{
+font-size:28px;
+margin-bottom:8px;
+font-style:normal;
+}
+
+.menu-item span{
+font-size:13px;
+color:var(--gray);
+}
+
+.conv-header{
+padding:15px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+font-weight:bold;
+}
+
+.back-btn{
+border:none;
+background:none;
+font-size:20px;
+cursor:pointer;
+}
+
+.swap-btn{
+border:none;
+background:none;
+font-size:18px;
+cursor:pointer;
+color:var(--orange);
+}
+
+.conv-body{
+padding:20px;
+flex:1;
+}
+
+.conv-row{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:30px;
+cursor:pointer;
+}
+
+.conv-label{
+color:var(--gray);
+font-size:14px;
+}
+
+.conv-val{
+font-size:24px;
+color:var(--orange);
+font-weight:bold;
+}
+
+.keypad{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+background:#eee;
+gap:1px;
+}
+
+.keypad button{
+height:80px;
+border:none;
+background:var(--bg);
+font-size:1.5rem;
+cursor:pointer;
+}
+
+.keypad button:active{
+background:#f0f0f0;
+}
+
+.orange-txt{
+color:var(--orange);
+}
+
+.eq-btn{
+background:var(--orange)!important;
+color:white;
+border-radius:50%;
+margin:8px;
+height:64px!important;
+}
+
+#imc-msg{
+text-align:center;
+color:var(--orange);
+font-weight:bold;
+margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="calc-app">
+
+<nav class="nav">
+<button class="nav-btn active" onclick="go('standard')">＝</button>
+<button class="nav-btn" onclick="go('menu')">▦</button>
+</nav>
+
+<section id="standard" class="section active">
+
+<div class="display">
+<div class="history" id="history"></div>
+<div class="main-res" id="std-res">0</div>
+</div>
+
+<div class="keypad">
+
+<button class="orange-txt" onclick="stdClear()">AC</button>
+<button class="orange-txt" onclick="stdDel()">⌫</button>
+<button class="orange-txt" onclick="stdIn('%')">%</button>
+<button class="orange-txt" onclick="stdIn('/')">÷</button>
+
+<button onclick="stdIn('7')">7</button>
+<button onclick="stdIn('8')">8</button>
+<button onclick="stdIn('9')">9</button>
+<button class="orange-txt" onclick="stdIn('*')">×</button>
+
+<button onclick="stdIn('4')">4</button>
+<button onclick="stdIn('5')">5</button>
+<button onclick="stdIn('6')">6</button>
+<button class="orange-txt" onclick="stdIn('-')">-</button>
+
+<button onclick="stdIn('1')">1</button>
+<button onclick="stdIn('2')">2</button>
+<button onclick="stdIn('3')">3</button>
+<button class="orange-txt" onclick="stdIn('+')">+</button>
+
+<button onclick="stdInvert()">⇄</button>
+<button onclick="stdIn('0')">0</button>
+<button onclick="stdIn('.')">.</button>
+<button class="eq-btn" onclick="stdCalc()">=</button>
+
+</div>
+</section>
+
+<section id="menu" class="section">
+<div class="menu-grid" id="converters-list"></div>
+</section>
+
+<section id="converter-ui" class="section">
+
+<div class="conv-header">
+<button class="back-btn" onclick="go('menu')">←</button>
+<span id="ui-title"></span>
+<button class="swap-btn" onclick="swapConv()">↔</button>
+</div>
+
+<div class="conv-body" id="ui-fields"></div>
+
+<div id="imc-msg"></div>
+
+<div class="keypad" id="conv-keypad">
+
+<button onclick="convIn(7)">7</button>
+<button onclick="convIn(8)">8</button>
+<button onclick="convIn(9)">9</button>
+<button class="orange-txt" onclick="convClear()">AC</button>
+
+<button onclick="convIn(4)">4</button>
+<button onclick="convIn(5)">5</button>
+<button onclick="convIn(6)">6</button>
+<button class="orange-txt" onclick="convDel()">⌫</button>
+
+<button onclick="convIn(1)">1</button>
+<button onclick="convIn(2)">2</button>
+<button onclick="convIn(3)">3</button>
+<button class="orange-txt" id="special-btn" onclick="convToggle()">GO</button>
+
+<button onclick="convIn(0)" style="grid-column:span 2;">0</button>
+<button onclick="convIn('.')">.</button>
+
+</div>
+</section>
+
+</div>
+
+<script>
+
+const state={
+currentType:'',
+activeField:0,
+values:[0,0,0],
+reverse:false
+}
+
+const configs={
+
+'Área':{
+fields:['Metro quadrado','Centímetro quadrado'],
+calc:v=>v*10000,
+rev:v=>v/10000
+},
+
+'IMC':{
+fields:['Peso (kg)','Altura (cm)'],
+isIMC:true
+},
+
+'Dados':{
+fields:['MB','KB'],
+calc:v=>v*1024,
+rev:v=>v/1024
+},
+
+'Desconto':{
+fields:['Preço','Desconto %'],
+isDiscount:true
+},
+
+'Peso':{
+fields:['Tonelada','Grama'],
+calc:v=>v*1000000,
+rev:v=>v/1000000
+},
+
+'Tempo':{
+fields:['Ano','Minuto'],
+calc:v=>v*525600,
+rev:v=>v/525600
+},
+
+'Velocidade':{
+fields:['Velocidade da luz (c)','km/h'],
+calc:v=>v*1079252848.8,
+rev:v=>v/1079252848.8
+},
+
+'Temperatura':{
+fields:['Celsius','Fahrenheit'],
+calc:v=>(v*9/5)+32,
+rev:v=>(v-32)*5/9
+},
+
+'Sistema':{
+fields:['Decimal','Binário'],
+calc:v=>(parseInt(v)||0).toString(2),
+rev:v=>parseInt(v,2)||0
+},
+
+'Comprimento':{
+fields:['Metro','Centímetro'],
+calc:v=>v*100,
+rev:v=>v/100
+}
+
+}
+
+function initMenu(){
+
+const grid=document.getElementById("converters-list")
+
+const icons={
+'Área':'📐',
+'IMC':'⚖️',
+'Dados':'💾',
+'Desconto':'🏷️',
+'Comprimento':'📏',
+'Peso':'🏋️',
+'Tempo':'🕒',
+'Velocidade':'🚀',
+'Temperatura':'🌡️',
+'Sistema':'🔢'
+}
+
+Object.keys(configs).forEach(k=>{
+
+grid.innerHTML+=`
+<div class="menu-item" onclick="openConv('${k}')">
+<i>${icons[k]}</i>
+<span>${k}</span>
+</div>`
+
+})
+
+}
+
+function openConv(type){
+
+state.currentType=type
+state.values=[0,0,0]
+state.activeField=0
+state.reverse=false
+
+document.getElementById("ui-title").innerText=type
+
+renderFields()
+go("converter-ui")
+
+}
+
+function renderFields(){
+
+const container=document.getElementById("ui-fields")
+container.innerHTML=""
+
+configs[state.currentType].fields.forEach((label,i)=>{
+
+container.innerHTML+=`
+
+<div class="conv-row" onclick="state.activeField=${i}">
+<span class="conv-label">${label}</span>
+<span class="conv-val">${state.values[i]}</span>
+</div>`
+
+})
+
+if(configs[state.currentType].isDiscount){
+
+container.innerHTML+=`
+<div class="conv-row">
+<span class="conv-label">Preço Final</span>
+<span class="conv-val">${state.values[2]||0}</span>
+</div>`
+
+}
+
+}
+
+function convIn(n){
+
+let cur=state.values[state.activeField].toString()
+
+state.values[state.activeField]=cur==="0"?n:cur+n
+
+processAuto()
+
+renderFields()
+
+}
+
+function processAuto(){
+
+const conf=configs[state.currentType]
+
+if(conf.calc && conf.rev){
+
+if(state.activeField===0){
+
+state.values[1]=conf.calc(parseFloat(state.values[0])||0)
+
+}else{
+
+state.values[0]=conf.rev(parseFloat(state.values[1])||0)
+
+}
+
+}
+
+}
+
+function swapConv(){
+
+state.values=[state.values[1],state.values[0]]
+
+renderFields()
+
+}
+
+function convToggle(){
+
+if(state.currentType==="IMC"){
+
+let kg=parseFloat(state.values[0])
+let m=parseFloat(state.values[1])/100
+
+let res=(kg/(m*m)).toFixed(1)
+
+document.getElementById("imc-msg").innerText="IMC: "+res
+
+}
+
+if(state.currentType==="Desconto"){
+
+let p=parseFloat(state.values[0])
+let d=parseFloat(state.values[1])
+
+state.values[2]=p-(p*(d/100))
+
+renderFields()
+
+}
+
+}
+
+function convClear(){
+
+state.values=[0,0,0]
+document.getElementById("imc-msg").innerText=""
+renderFields()
+
+}
+
+function convDel(){
+
+let s=state.values[state.activeField].toString()
+
+state.values[state.activeField]=s.length>1?s.slice(0,-1):0
+
+processAuto()
+
+renderFields()
+
+}
+
+function go(id){
+
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"))
+
+document.getElementById(id).classList.add("active")
+
+document.querySelectorAll(".nav-btn").forEach((b,i)=>{
+
+b.classList.toggle("active",(id==="standard"&&i===0)||(id==="menu"&&i===1))
+
+})
+
+}
+
+let stdVal="0"
+
+function stdIn(n){
+
+stdVal=stdVal==="0"?n:stdVal+n
+document.getElementById("std-res").innerText=stdVal
+
+}
+
+function stdClear(){
+
+stdVal="0"
+document.getElementById("std-res").innerText="0"
+document.getElementById("history").innerText=""
+
+}
+
+function stdDel(){
+
+stdVal=stdVal.length>1?stdVal.slice(0,-1):"0"
+document.getElementById("std-res").innerText=stdVal
+
+}
+
+function stdInvert(){
+
+if(stdVal.startsWith("-")){
+stdVal=stdVal.slice(1)
+}else{
+stdVal="-"+stdVal
+}
+
+document.getElementById("std-res").innerText=stdVal
+
+}
+
+function stdCalc(){
+
+try{
+
+let exp=stdVal
+let res=eval(exp)
+
+document.getElementById("history").innerText=exp+" ="
+stdVal=res.toString()
+
+}catch{
+
+stdVal="Erro"
+
+}
+
+document.getElementById("std-res").innerText=stdVal
+
+}
+
+initMenu()
+
+</script>
+
+</body>
+</html>
