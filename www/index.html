@@ -1,150 +1,272 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Booting System...</title>
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            background: #050505; color: #fff; margin: 0;
-            height: 100vh; display: flex; align-items: center; justify-content: center;
-            font-family: 'Consolas', 'Monaco', monospace; overflow: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Booting System...</title>
 
-        .screen { display: none; flex-direction: column; align-items: center; width: 90%; max-width: 400px; }
-        .active { display: flex; }
+<style>
+* { box-sizing: border-box; }
 
-        /* Spinner Cinza */
-        .spinner {
-            width: 14px; height: 14px; border: 2px solid #333;
-            border-top: 2px solid #fff; border-radius: 50%;
-            display: inline-block; animation: spin 1s linear infinite;
-            vertical-align: middle; margin-right: 10px;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+body {
+background: #050505; color: #fff; margin: 0;
+height: 100vh; display: flex; align-items: center; justify-content: center;
+font-family: 'Consolas', 'Monaco', monospace; overflow: hidden;
+}
 
-        /* Estilo dos Logs */
-        #log-container { text-align: left; width: 100%; font-size: 13px; line-height: 1.8; }
-        .log-entry { color: #555; transition: color 0.4s; margin-bottom: 5px; }
-        .log-entry.done { color: #eee; }
-        .log-entry.done .spinner { display: none; }
-        .log-entry.done::before { content: '[ OK ] '; color: #0f0; margin-right: 5px; }
+.screen { display: none; flex-direction: column; align-items: center; width: 90%; max-width: 400px; }
+.active { display: flex; }
 
-        /* Input de Nome */
-        input {
-            background: transparent; border: none; border-bottom: 2px solid #3b82f6;
-            color: #fff; padding: 10px; font-size: 18px; text-align: center;
-            outline: none; width: 100%; margin-top: 20px;
-        }
+/* Spinner Cinza */
+.spinner {
+width: 14px; height: 14px; border: 2px solid #333;
+border-top: 2px solid #fff; border-radius: 50%;
+display: inline-block; animation: spin 1s linear infinite;
+vertical-align: middle; margin-right: 10px;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* Barra de Progresso Final */
-        .progress-bar { width: 100%; height: 2px; background: #222; margin-top: 20px; overflow: hidden; }
-        .fill { height: 100%; background: #3b82f6; width: 0%; transition: width 0.1s; }
-    </style>
+/* Estilo dos Logs */
+#log-container { text-align: left; width: 100%; font-size: 13px; line-height: 1.8; }
+.log-entry { color: #555; transition: color 0.4s; margin-bottom: 5px; }
+.log-entry.done { color: #eee; }
+.log-entry.done .spinner { display: none; }
+.log-entry.done::before { content: '[ OK ] '; color: #0f0; margin-right: 5px; }
+
+/* Input */
+input {
+background: transparent; border: none; border-bottom: 2px solid #3b82f6;
+color: #fff; padding: 10px; font-size: 18px; text-align: center;
+outline: none; width: 100%; margin-top: 20px;
+}
+
+/* Barra */
+.progress-bar { width: 100%; height: 2px; background: #222; margin-top: 20px; overflow: hidden; }
+.fill { height: 100%; background: #3b82f6; width: 0%; transition: width 0.1s; }
+
+/* BOTÃO CACHE */
+#cacheBtn{
+position:fixed;
+top:10px;
+right:10px;
+background:#00c853;
+border:none;
+color:#000;
+font-size:10px;
+padding:6px 8px;
+border-radius:4px;
+cursor:pointer;
+font-weight:bold;
+}
+
+</style>
 </head>
+
 <body>
 
-    <div id="phase1" class="screen active">
-        <div style="font-size: 24px; letter-spacing: 5px; margin-bottom: 20px;">SYSTEM</div>
-        <div class="progress-bar"><div id="fill1" class="fill"></div></div>
-    </div>
+<button id="cacheBtn">CHECK CACHE</button>
 
-    <div id="phase2" class="screen">
-        <label>IDENTIFIQUE-SE NO TERMINAL:</label>
-        <input type="text" id="username" autocomplete="off" placeholder="Digite seu nome..." autofocus>
-        <p style="font-size: 10px; color: #444; margin-top: 10px;">PRESSIONE ENTER PARA CONFIRMAR</p>
-    </div>
+<div id="phase1" class="screen active">
+<div style="font-size: 24px; letter-spacing: 5px; margin-bottom: 20px;">SYSTEM</div>
+<div class="progress-bar"><div id="fill1" class="fill"></div></div>
+</div>
 
-    <div id="phase3" class="screen">
-        <div id="log-container"></div>
-    </div>
+<div id="phase2" class="screen">
+<label>IDENTIFIQUE-SE NO TERMINAL:</label>
+<input type="text" id="username" autocomplete="off" placeholder="Digite seu nome..." autofocus>
+<p style="font-size: 10px; color: #444; margin-top: 10px;">PRESSIONE ENTER PARA CONFIRMAR</p>
+</div>
 
-    <div id="phase4" class="screen">
-        <div id="user-welcome" style="margin-bottom: 10px; font-size: 14px;"></div>
-        <div class="status-text" style="font-size: 10px; color: #888;">FINALIZANDO SETUP...</div>
-        <div class="progress-bar"><div id="fill2" class="fill"></div></div>
-    </div>
+<!-- NOVA FASE TRANSIÇÃO -->
+<div id="phase2b" class="screen">
+<label>VALIDANDO IDENTIDADE...</label>
+<div class="progress-bar"><div id="fillMid" class="fill"></div></div>
+</div>
 
-    <script>
-        const phase1 = document.getElementById('phase1');
-        const phase2 = document.getElementById('phase2');
-        const phase3 = document.getElementById('phase3');
-        const phase4 = document.getElementById('phase4');
+<!-- NOVA FASE SENHA -->
+<div id="phase2c" class="screen">
+<label>DIGITE SUA SENHA:</label>
+<input type="password" id="password" placeholder="Senha...">
+<p style="font-size: 10px; color: #444; margin-top: 10px;">PRESSIONE ENTER PARA CONFIRMAR</p>
+</div>
 
-        // Inicia Fase 1
-        let p1 = 0;
-        const int1 = setInterval(() => {
-            p1 += 2;
-            document.getElementById('fill1').style.width = p1 + "%";
-            if(p1 >= 100) {
-                clearInterval(int1);
-                phase1.classList.remove('active');
-                phase2.classList.add('active');
-                document.getElementById('username').focus();
-            }
-        }, 30);
+<div id="phase3" class="screen">
+<div id="log-container"></div>
+</div>
 
-        // Lógica de Input
-        document.getElementById('username').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && this.value.length > 2) {
-                localStorage.setItem('os_user', this.value);
-                phase2.classList.remove('active');
-                startLogs();
-            }
-        });
+<div id="phase4" class="screen">
+<div id="user-welcome" style="margin-bottom: 10px; font-size: 14px;"></div>
+<div class="status-text" style="font-size: 10px; color: #888;">FINALIZANDO SETUP...</div>
+<div class="progress-bar"><div id="fill2" class="fill"></div></div>
+</div>
 
-        // FASE 3: Logs Dinâmicos
-        const logData = [
-            "Conectando ao servidor de nuvem...",
-            "Autenticando credenciais via SSL...",
-            "Montando diretórios temporários...",
-            "Iniciando subsistema de interface...",
-            "Carregando drivers de vídeo mobile...",
-            "Limpando registros de cache antigos...",
-            "Estabelecendo conexão persistente..."
-        ];
+<script>
 
-        function startLogs() {
-            phase3.classList.add('active');
-            const container = document.getElementById('log-container');
-            let current = 0;
+const phase1 = document.getElementById('phase1');
+const phase2 = document.getElementById('phase2');
+const phase2b = document.getElementById('phase2b');
+const phase2c = document.getElementById('phase2c');
+const phase3 = document.getElementById('phase3');
+const phase4 = document.getElementById('phase4');
 
-            function addLog() {
-                if (current < logData.length) {
-                    const entry = document.createElement('div');
-                    entry.className = 'log-entry';
-                    entry.innerHTML = `<span class="spinner"></span>${logData[current]}`;
-                    container.appendChild(entry);
+/* BOTÃO CACHE */
 
-                    setTimeout(() => {
-                        entry.classList.add('done');
-                        current++;
-                        addLog();
-                    }, 700);
-                } else {
-                    setTimeout(startFinalPhase, 500);
-                }
-            }
-            addLog();
-        }
+document.getElementById("cacheBtn").onclick=function(){
 
-        // FASE 4: Finalização
-        function startFinalPhase() {
-            phase3.classList.remove('active');
-            phase4.classList.add('active');
-            document.getElementById('user-welcome').innerText = "BEM-VINDO, " + localStorage.getItem('os_user').toUpperCase();
-            
-            let p2 = 0;
-            const int2 = setInterval(() => {
-                p2 += 1;
-                document.getElementById('fill2').style.width = p2 + "%";
-                if(p2 >= 100) {
-                    clearInterval(int2);
-                    window.location.href = "os.html";
-                }
-            }, 40); // Um pouco mais lento como pedido
-        }
-    </script>
+const u = localStorage.getItem("os_user");
+const p = localStorage.getItem("os_pass");
+
+if(u && p){
+window.location.href="os.html";
+}else{
+alert("Nenhum cache encontrado");
+}
+
+}
+
+/* FASE 1 */
+
+let p1 = 0;
+const int1 = setInterval(() => {
+
+p1 += 2;
+document.getElementById('fill1').style.width = p1 + "%";
+
+if(p1 >= 100) {
+clearInterval(int1);
+phase1.classList.remove('active');
+phase2.classList.add('active');
+document.getElementById('username').focus();
+}
+
+}, 30);
+
+/* NOME */
+
+document.getElementById('username').addEventListener('keypress', function(e) {
+
+if (e.key === 'Enter' && this.value.length > 2) {
+
+localStorage.setItem('os_user', this.value);
+
+phase2.classList.remove('active');
+phase2b.classList.add('active');
+
+let p=0;
+
+const mid=setInterval(()=>{
+
+p+=5;
+document.getElementById("fillMid").style.width=p+"%";
+
+if(p>=100){
+
+clearInterval(mid);
+
+phase2b.classList.remove('active');
+phase2c.classList.add('active');
+
+document.getElementById("password").focus();
+
+}
+
+},30);
+
+}
+
+});
+
+/* SENHA */
+
+document.getElementById('password').addEventListener('keypress', function(e){
+
+if(e.key==="Enter" && this.value.length>1){
+
+localStorage.setItem('os_pass', this.value);
+
+phase2c.classList.remove('active');
+
+startLogs();
+
+}
+
+});
+
+/* LOGS */
+
+const logData = [
+"Conectando ao servidor de nuvem...",
+"Autenticando credenciais via SSL...",
+"Montando diretórios temporários...",
+"Iniciando subsistema de interface...",
+"Carregando drivers de vídeo mobile...",
+"Limpando registros de cache antigos...",
+"Estabelecendo conexão persistente..."
+];
+
+function startLogs() {
+
+phase3.classList.add('active');
+
+const container = document.getElementById('log-container');
+let current = 0;
+
+function addLog() {
+
+if (current < logData.length) {
+
+const entry = document.createElement('div');
+entry.className = 'log-entry';
+entry.innerHTML = `<span class="spinner"></span>${logData[current]}`;
+container.appendChild(entry);
+
+setTimeout(() => {
+
+entry.classList.add('done');
+current++;
+addLog();
+
+}, 700);
+
+} else {
+
+setTimeout(startFinalPhase, 500);
+
+}
+
+}
+
+addLog();
+
+}
+
+/* FINAL */
+
+function startFinalPhase() {
+
+phase3.classList.remove('active');
+phase4.classList.add('active');
+
+document.getElementById('user-welcome').innerText =
+"BEM-VINDO, " + localStorage.getItem('os_user').toUpperCase();
+
+let p2 = 0;
+
+const int2 = setInterval(() => {
+
+p2 += 1;
+document.getElementById('fill2').style.width = p2 + "%";
+
+if(p2 >= 100) {
+clearInterval(int2);
+window.location.href = "os.html";
+}
+
+}, 40);
+
+}
+
+</script>
+
 </body>
 </html>
