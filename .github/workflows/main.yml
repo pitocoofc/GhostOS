@@ -1,9 +1,6 @@
+
 name: Gerar APK Ndj-lib Reborn
-
-on:
-  push:
-    branches: [ "principal" ] # Ajustado para sua branch 'principal' conforme as imagens
-
+on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,43 +20,35 @@ jobs:
 
       - name: Instalar e Construir
         run: |
-          # 1. Instala dependências do package.json (incluindo @capacitor/camera)
+          # 1. Instala dependências e a ferramenta de assets
           npm install
           npm install @capacitor/assets --save-dev
           
-          # 2. Adiciona plataforma Android se não existir
+          # 2. Adiciona plataforma
           npx cap add android || true
           
-          # 3. GERAR ÍCONES (Se houver icon.png na raiz)
+          # 3. GERAR ÍCONES (Procura por icon.png na raiz)
+          # Se não houver icon.png, ele usa o padrão do Capacitor
           if [ -f "icon.png" ]; then
             npx capacitor-assets generate --android
           fi
 
           # 4. ATIVAR MOTOR E PERMISSÕES (AndroidManifest)
-          # Atualiza as dependências nativas
           npx cap update
-          
           MANIFEST="android/app/src/main/AndroidManifest.xml"
           
-          # Inserindo permissões de sistema e rede
           sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET" />' $MANIFEST
           sed -i '/<application/i \    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />' $MANIFEST
           sed -i '/<application/i \    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />' $MANIFEST
           sed -i '/<application/i \    <uses-permission android:name="android.permission.WAKE_LOCK" />' $MANIFEST
-          
-          # Permissões de Arquivos (Essencial para a Galeria salvar imagens)
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />' $MANIFEST
           sed -i '/<application/i \    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />' $MANIFEST
           sed -i '/<application/i \    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />' $MANIFEST
           
-          # --- PERMISSÕES DE CÂMERA (BIO-CAM) ---
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.CAMERA" />' $MANIFEST
-          sed -i '/<application/i \    <uses-feature android:name="android.hardware.camera" android:required="false" />' $MANIFEST
-          sed -i '/<application/i \    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />' $MANIFEST
-
-          # 5. Sincroniza o código web (www) com o projeto Android
+          # 5. Sincroniza arquivos
           npx cap sync
           
-          # 6. Build do APK final via Gradle
+          # 6. Build do APK final
           cd android && chmod +x gradlew && ./gradlew assembleDebug
 
       - name: Subir APK
@@ -67,4 +56,3 @@ jobs:
         with:
           name: ndj-reborn-apk
           path: android/app/build/outputs/apk/debug/*.apk
-          
