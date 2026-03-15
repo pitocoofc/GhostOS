@@ -1,12 +1,60 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    /* This project uses the Portugol executable by Erick Weil.
     <meta charset="UTF-8">
-    <title>Executor made by erickweil </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Reset para garantir que o WebOS controle o preenchimento */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* Evita barra de rolagem dupla */
+            background-color: #1a1a1a; /* Cor de fundo padrão do seu sistema */
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* O crédito discreto no topo ou rodapé */
+        .credits-bar {
+            background: #222;
+            color: #0f0;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        iframe {
+            flex-grow: 1;
+            width: 100%;
+            border: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>All rights reserved to https://erickweil.github.io/portugolweb/</h1>
-    <!-- Exemplo de como incorporar outra página (iframe) -->
-    <iframe src="https://erickweil.github.io/portugolweb/" width="100%" height="500px"></iframe>
+
+<div class="app-container">
+    <header class="credits-bar">
+        <span>Engine by:</span>
+        <span>erickweil.github.io</span>
+    </header>
+
+    <iframe 
+        src="https://erickweil.github.io/portugolweb/" 
+        title="Portugol Executor"
+        loading="lazy">
+    </iframe>
+</div>
+
 </body>
 </html>
+
+
