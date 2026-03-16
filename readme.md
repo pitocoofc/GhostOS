@@ -5,13 +5,38 @@ erick weil (Portugol Executor)
 
 onecompile (Lua Executor)
 
-animesonlinecc (streaming)
-
 lordofsunshine (Click game (You are a quality programmer. ) https://github.com/lordofsunshine/clicker-game-html.git)
 
 
-# This project is completely illogical. 
+# WebOS
 
-Basically, I had the idea to create a web-based operating system and I created...
+WebOS is an experimental mobile-oriented operating system built entirely with web technologies.
 
-I draw inspiration from the windowing logic of computer operating systems and focus heavily on optimization.
+The system runs on top of Android using a web runtime and aims to simulate a lightweight operating system environment with applications, window logic and system utilities.
+
+## Features
+
+- App system
+- File manager
+- Terminal simulation
+- Games
+- App store concept
+- Windowing logic inspired by desktop operating systems
+
+## Technologies
+
+- HTML
+- CSS
+- JavaScript
+- Capacitor
+- Android WebView / Chromium
+
+## Credits
+
+This project utilizes several other open-source projects:
+
+- Erick Weil — Portugol Executor
+- OneCompiler — Lua Executor
+- animesonlinecc — streaming source
+- lordofsunshine — clicker game  
+  https://github.com/lordofsunshine/clicker-game-html.git
