@@ -5,6 +5,8 @@ erick weil (Portugol Executor)
 
 onecompile (Lua Executor)
 
+FlipTalaga (Tetris game)
+
 lordofsunshine (Click game (You are a quality programmer. ) https://github.com/lordofsunshine/clicker-game-html.git)
 
 
@@ -38,5 +40,6 @@ This project utilizes several other open-source projects:
 - Erick Weil — Portugol Executor
 - OneCompiler — Lua Executor
 - animesonlinecc — streaming source
-- lordofsunshine — clicker game  
+- lordofsunshine — clicker game
+- FlipTalaga - tetris game
   https://github.com/lordofsunshine/clicker-game-html.git
