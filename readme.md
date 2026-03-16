@@ -2,8 +2,12 @@
 This project utilizes several other projects...Such as:
 
 erick weil (Portugol Executor)
+
 onecompile (Lua Executor)
+
 animesonlinecc (streaming)
+
+lordofsunshine (Click game (You are a quality programmer. ) https://github.com/lordofsunshine/clicker-game-html.git)
 
 
 # This project is completely illogical. 
