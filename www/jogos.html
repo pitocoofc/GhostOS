@@ -58,6 +58,7 @@
             "jogos/calculadora.html", // Sim, você pode tratar como "jogo" se quiser testar
             "jogos/snake.html",
             "jogos/click.html"
+            "jogos/tetris.html"
         ];
 
         const listContainer = document.getElementById('game-list');
@@ -76,6 +77,9 @@
                 if(file.includes("doom")) icon = "💀";
                 if(file.includes("ball")) icon = "🔵";
                 if(file.includes("calc")) icon = "🔢";
+                if(file.includes("tetris")) icon = "🟦";
+                if(file.includes("click")) icon = "☝️";
+                if(file.includes("snake")) icon = "🐍";
 
                 btn.innerHTML = `
                     <div class="icon">${icon}</div>
