@@ -2,6 +2,8 @@
 This project utilizes several other projects...Such as:
 
 erick weil (Portugol Executor)
+onecompile (Lua Executor)
+animesonlinecc (streaming)
 
 
 # This project is completely illogical. 
