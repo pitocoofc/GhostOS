@@ -3,6 +3,8 @@ This project utilizes several other projects...Such as:
 
 erick weil (Portugol Executor)
 
+Brenda (pokedex interativa (https://github.com/Brenda-A-S/Pokedex-HTML-CSS-JS.git)
+
 onecompile (Lua Executor)
 
 FlipTalaga (Tetris game)
@@ -43,3 +45,4 @@ This project utilizes several other open-source projects:
 - lordofsunshine — clicker game
 - FlipTalaga - tetris game
   https://github.com/lordofsunshine/clicker-game-html.git
+- Brenda - pokedex
