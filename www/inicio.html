@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GhostOS - Final Convergence v3</title>
+    <script src="sys_config.js"></script>
+    <style>
+        body, html {
+            margin: 0; padding: 0; height: 100vh;
+            background: #000; overflow: hidden;
+            font-family: 'Consolas', 'Courier New', monospace;
+            user-select: none;
+        }
+        canvas { display: block; }
+        
+        /* Tremor mantido, mas aplicado ao canvas agora */
+        .shake-impact { animation: impact 0.5s ease-out; }
+        @keyframes impact {
+            0% { transform: scale(1.1); filter: blur(5px); }
+            10% { transform: translate(-10px, 5px); }
+            30% { transform: translate(10px, -5px); }
+            100% { transform: scale(1); filter: blur(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="stage"></canvas>
+
+    <script>
+        let s = (typeof GHOST_SYS !== 'undefined') ? GHOST_SYS : { version: "v3.0" };
+        
+        const canvas = document.getElementById('stage');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height, particles = [], textPixels = [];
+        let frame = 0, stage = 0; // Começa no 0 (Delay)
+        let scanY = -100;
+        let scanActive = false;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            if(stage >= 3) mapText(); 
+        }
+
+        function mapText() {
+            textPixels = [];
+            const fontSize = Math.min(width * 0.22, 130); // Texto maior
+            ctx.font = `900 ${fontSize}px sans-serif`;
+            const text = "GHOSTOS";
+            
+            const tempCanvas = document.createElement('canvas');
+            const tCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            tCtx.font = ctx.font;
+            tCtx.fillStyle = "white";
+            tCtx.textAlign = "center";
+            tCtx.fillText(text, width/2, height/2 + fontSize/3);
+
+            const data = tCtx.getImageData(0, 0, width, height).data;
+            // Densidade máxima: passo de 2px
+            for (let y = 0; y < height; y += 2) { 
+                for (let x = 0; x < width; x += 2) {
+                    if (data[(y * width + x) * 4] > 128) {
+                        textPixels.push({x, y});
+                    }
+                }
+            }
+        }
+
+        class Particle {
+            constructor(group) {
+                this.group = group;
+                this.init();
+            }
+
+            init() {
+                this.size = this.group === 'white' ? 2 : 5; 
+                this.color = {red:'#f00', blue:'#00f', green:'#0f0', yellow:'#ff0', white:'#fff'}[this.group];
+                this.glow = false;
+
+                if(this.group==='red') { this.x = width+50; this.y = Math.random()*height; }
+                else if(this.group==='blue') { this.x = -50; this.y = Math.random()*height; }
+                else if(this.group==='green') { this.x = Math.random()*width; this.y = -50; }
+                else if(this.group==='yellow') { this.x = Math.random()*width; this.y = height+50; }
+                else { this.x = width/2; this.y = height/2; }
+
+                this.target = null;
+                this.angle = Math.random() * Math.PI * 2;
+            }
+
+            update() {
+                if (stage === 1) { // Entrada
+                    let speed = 20;
+                    if(this.group==='red') this.x -= speed;
+                    else if(this.group==='blue') this.x += speed;
+                    else if(this.group==='green') this.y += speed;
+                    else if(this.group==='yellow') this.y -= speed;
+                    else { this.x += Math.cos(this.angle)*6; this.y += Math.sin(this.angle)*6; }
+                } 
+                else if (stage === 2) { // Vórtice
+                    this.angle += 0.15;
+                    let radius = (frame - 360) * 3;
+                    this.x = width/2 + Math.cos(this.angle) * radius;
+                    this.y = height/2 + Math.sin(this.angle) * radius;
+                }
+                else if (stage === 3) { // Convergência Alinhada
+                    if (!this.target && textPixels.length > 0) {
+                        this.target = textPixels[Math.floor(Math.random() * textPixels.length)];
+                    }
+                    if (this.target) {
+                        this.x += (this.target.x - this.x) * 0.18;
+                        this.y += (this.target.y - this.y) * 0.18;
+                        
+                        // Lógica do Scanner: Brilha quando a linha passa
+                        if (Math.abs(this.y - scanY) < 15) {
+                            this.glow = true;
+                            this.currentSize = 4;
+                        } else {
+                            this.glow = false;
+                            this.currentSize = 2.5;
+                        }
+                    }
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = this.glow ? '#fff' : this.color;
+                if(this.glow) {
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = this.color;
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.glow ? 4 : this.size, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+
+        function createParticles() {
+            particles = [];
+            // Aumentado para 150 por cor + 600 brancos = 1200 partículas totais
+            ['red','blue','green','yellow'].forEach(c => {
+                for(let i=0; i<150; i++) particles.push(new Particle(c));
+            });
+            for(let i=0; i<600; i++) particles.push(new Particle('white'));
+        }
+
+        function run() {
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(0,0,width,height);
+            frame++;
+
+            // TIMELINE
+            if(frame < 300) stage = 0; // DELAY 5 SEG (60fps * 5)
+            else if(frame < 360) stage = 1; // Entrada
+            else if(frame < 480) stage = 2; // Vórtice
+            else if(frame >= 480) {
+                if(stage !== 3) {
+                    stage = 3;
+                    mapText();
+                    canvas.classList.add('shake-impact');
+                }
+                
+                // Ativa Scanner
+                scanY += 5;
+                if(scanY > height + 200) {
+                    scanY = -100;
+                    // Redireciona após completar um scan completo no final
+                    if(frame > 800) window.location.href = "login.html";
+                }
+            }
+
+            if(stage > 0) {
+                particles.forEach(p => { p.update(); p.draw(); });
+            }
+
+            requestAnimationFrame(run);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        createParticles();
+        run();
+    </script>
+</body>
+</html>
