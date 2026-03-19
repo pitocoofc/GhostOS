@@ -4,116 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GhostOS - Kernel Overclock</title>
-    <script src="sys_config.js"></script>
+    <script src="sys_config.js" onerror="console.log('Modo de teste: sys_config não encontrado')"></script>
     <style>
         * { box-sizing: border-box; }
         body, html {
             margin: 0; padding: 0; height: 100vh;
-            background: #000; color: #0f0; /* Fundo Preto, Texto Verde Hacker */
-            font-family: 'Consolas', 'Courier New', monospace; /* Fonte Mono-espaçada */
+            background: #000; color: #0f0;
+            font-family: 'Consolas', 'Courier New', monospace;
             overflow: hidden; user-select: none;
         }
 
-        /* --- TELA 1: INTRO 3D FORMANDO --- */
+        /* TELA 1: INTRO */
         #stage-intro {
             position: fixed; inset: 0;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100;
+            z-index: 100; background: #000;
         }
         .text-3d {
             font-size: 50px; font-weight: bold; text-transform: uppercase;
-            letter-spacing: 5px; color: #0f0;
-            /* Efeito 3D Fake com Text Shadow */
-            text-shadow: 
-                0 1px 0 #0a0, 0 2px 0 #090, 0 3px 0 #080, 0 4px 0 #070,
-                0 5px 0 #060, 0 6px 1px rgba(0,0,0,.1), 0 0 5px rgba(0,255,0,.3),
-                0 1px 3px rgba(0,0,0,.3), 0 3px 5px rgba(0,0,0,.2),
-                0 5px 10px rgba(0,0,0,.25), 0 10px 10px rgba(0,0,0,.2),
-                0 20px 20px rgba(0,0,0,.15);
-            animation: formText 3s steps(30) forwards;
-            opacity: 0;
+            text-align: center; letter-spacing: 5px; color: #0f0;
+            text-shadow: 0 1px 0 #0a0, 0 5px 0 #060, 0 0 5px rgba(0,255,0,0.5);
+            animation: formText 2s forwards; opacity: 0;
         }
         @keyframes formText {
-            0% { opacity: 0; transform: scale(0.5) translateY(50px); filter: blur(10px); }
-            100% { opacity: 1; transform: scale(1) translateY(0) filter: blur(0); }
+            from { opacity: 0; transform: scale(0.8); filter: blur(10px); }
+            to { opacity: 1; transform: scale(1); filter: blur(0); }
         }
 
         .center-btn {
             margin-top: 50px; padding: 15px 40px;
             background: #000; border: 2px solid #0f0; color: #0f0;
-            font-family: monospace; font-size: 18px; text-transform: uppercase;
             cursor: pointer; transition: 0.3s;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
-            opacity: 0; animation: fadeIn 1s 2.5s forwards;
+            opacity: 0; animation: fadeIn 1s 1.5s forwards;
         }
-        .center-btn:active { background: #0f0; color: #000; }
+        @keyframes fadeIn { to { opacity: 1; } }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* --- TELA 2: MENU PRINCIPAL DE OVERCLOCK --- */
-        #stage-menu {
-            display: none; padding: 30px; height: 100%;
-            flex-direction: column; align-items: center; justify-content: center; gap: 20px;
-        }
-        .menu-title { font-size: 12px; color: #555; text-transform: uppercase; letter-spacing: 2px; }
+        /* TELA 2: MENU */
+        #stage-menu { display: none; padding: 30px; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
         .ovr-btn {
             width: 80%; max-width: 300px; padding: 20px;
             background: #050505; border: 1px solid #1a1a1a;
-            color: #0f0; font-family: monospace; font-size: 16px;
-            text-transform: uppercase; cursor: pointer; transition: 0.2s;
-            display: flex; justify-content: space-between; align-items: center;
+            color: #0f0; cursor: pointer; display: flex; justify-content: space-between;
         }
-        .ovr-btn:hover { border-color: #0f0; background: #0a0a0a; }
-        .ovr-btn .icon { font-size: 20px; }
 
-        /* --- TELA 3: SELEÇÃO DE LISTA (RAM/CPU) --- */
+        /* TELA 3: SELEÇÃO */
         #stage-select { display: none; padding: 20px; height: 100%; flex-direction: column; }
-        .select-header { font-size: 14px; margin-bottom: 10px; color: #888; border-bottom: 1px solid #222; padding-bottom: 10px;}
+        .list-container { flex: 1; overflow-y: auto; border: 1px solid #1a1a1a; background: #050505; margin: 10px 0; }
+        .list-item { padding: 15px; border-bottom: 1px solid #1a1a1a; color: #aaa; }
+        .list-item.selected { background: #0f0; color: #000; }
+
+        /* TELA 4: CÓDIGOS */
+        #stage-codes { display: none; position: fixed; inset: 0; padding: 20px; font-size: 11px; background: #000; overflow: hidden; }
         
-        .list-container {
-            flex: 1; overflow-y: auto;
-            border: 1px solid #1a1a1a; background: #050505;
-        }
-        .list-item {
-            padding: 15px; border-bottom: 1px solid #1a1a1a;
-            cursor: pointer; transition: 0.2s; color: #aaa;
-        }
-        .list-item:hover { background: #0f0; color: #000; }
-        .list-item.selected { background: #0f0; color: #000; border-color: #0f0; }
-
-        .confirm-btn {
-            margin-top: 20px; padding: 15px; width: 100%;
-            background: #000; border: 1px solid #0f0; color: #0f0;
-            text-transform: uppercase; font-family: monospace; cursor: pointer;
-        }
-        .confirm-btn:disabled { opacity: 0.3; cursor: not-allowed; border-color: #333; color: #333;}
-
-        /* --- TELA 4: CÓDIGOS DE FUNDO (TERMINAL) --- */
-        #stage-codes {
-            display: none; position: fixed; inset: 0;
-            padding: 20px; font-size: 12px; color: #0c0; overflow: hidden;
-            background: rgba(0,0,0,0.95);
-        }
-        .code-line { margin-bottom: 3px; white-space: nowrap; }
-
-        /* --- TELA 5: PROGRESSO & CONTRASTE (10-100 ou logs) --- */
-        #stage-progress {
-            display: none; position: fixed; inset: 0;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: #000; z-index: 200;
-        }
-        .prog-title { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: #333; margin-bottom: 10px; }
-        .prog-number { font-size: 80px; font-weight: bold; color: #0f0; font-family: monospace; text-shadow: 0 0 10px #0f0; }
-        
-        /* Estilo Log de CPU */
-        .log-container {
-            width: 90%; height: 70%; background: #050505; border: 1px solid #1a1a1a;
-            padding: 15px; overflow-y: auto; font-size: 11px; color: #6e6;
-        }
-        .log-line.error { color: #f00; }
-        .log-line.warn { color: #ff0; }
-        .log-line.success { color: #0f0; font-weight: bold; }
-
+        /* TELA 5: PROGRESSO */
+        #stage-progress { display: none; position: fixed; inset: 0; flex-direction: column; align-items: center; justify-content: center; background: #000; }
+        .prog-number { font-size: 80px; text-shadow: 0 0 15px #0f0; }
+        .log-container { width: 90%; height: 70%; background: #050505; border: 1px solid #1a1a1a; padding: 10px; overflow-y: auto; font-size: 10px; }
+        .success { color: #0f0; } .error { color: #f00; }
     </style>
 </head>
 <body>
@@ -124,218 +71,121 @@
     </div>
 
     <div id="stage-menu">
-        <div class="menu-title">SYS/KERNEL/OVR_MODE</div>
-        <button class="ovr-btn" onclick="goToSelect('RAM')"><span>RAM UNLOCK</span><span class="icon">🔢</span></button>
-        <button class="ovr-btn" onclick="goToSelect('CPU')"><span>CPU BOOST</span><span class="icon">⚡</span></button>
+        <div style="font-size:12px;color:#555">SYS/KERNEL/OVR_MODE</div>
+        <button class="ovr-btn" onclick="goToSelect('RAM')">RAM UNLOCK <span>🔢</span></button>
+        <button class="ovr-btn" onclick="goToSelect('CPU')">CPU BOOST <span>⚡</span></button>
     </div>
 
     <div id="stage-select">
-        <div class="select-header">Selecione o valor de <span id="select-type">---</span>:</div>
-        <div class="list-container" id="list-container">
-            </div>
-        <button id="confirm-selection" class="confirm-btn" onclick="confirmOverclock()" disabled>Confirmar</button>
+        <div id="select-title">Selecione o valor:</div>
+        <div class="list-container" id="list-container"></div>
+        <button id="confirm-selection" class="ovr-btn" style="width:100%; max-width:none" onclick="confirmOverclock()" disabled>Confirmar</button>
     </div>
 
-    <div id="stage-codes">
-        <div id="code-terminal"></div>
-    </div>
+    <div id="stage-codes"><div id="code-terminal"></div></div>
 
     <div id="stage-progress">
-        <div class="prog-title" id="prog-title">---</div>
-        <div class="prog-number" id="prog-number" style="display:none;">10</div>
-        
-        <div class="log-container" id="log-container" style="display:none;"></div>
+        <div id="prog-title" style="margin-bottom:20px">Processando...</div>
+        <div class="prog-number" id="prog-number">10</div>
+        <div class="log-container" id="log-container" style="display:none"></div>
     </div>
 
     <script>
-        // --- DADOS E REFERÊNCIAS ---
-        const s = GHOST_SYS; // Lê as especificações do kernel
-        let currentType = ''; // 'RAM' ou 'CPU'
+        // FAIL-SAFE: Se não houver sys_config, usa valores padrão
+        let s = (typeof GHOST_SYS !== 'undefined') ? GHOST_SYS : { version: "1.0-TEST", specs: { ram: 8 } };
+        let currentType = '';
         let selectedValue = null;
 
-        const terminalData = [
-            `> Initializing Kernel Sandboxing... OK`,
-            `> GHOST_VM v${s.version} loaded`,
-            `> Attaching to process PID: ${Math.floor(Math.random()*9000)+1000}`,
-            `> MemMap: ${Math.random().toString(16).slice(2,10).toUpperCase()} -> ${Math.random().toString(16).slice(2,10).toUpperCase()}`,
-            `> Bypassing signature verification... [DONE]`,
-            `> Injecting shellcode at 0x00401000...`,
-            `> Hooking syscall: sys_mem_unlock`,
-            `> Modifying RAM registers...`,
-            `> Kernel panic prevention ACTIVE`,
-            `> Waiting for sync...`
-        ];
-
-        // --- MÁQUINA DE ESTADOS (Troca de telas) ---
         function setStage(id) {
-            // Esconde todas as telas
             document.querySelectorAll('body > div').forEach(div => div.style.display = 'none');
-            // Mostra a tela solicitada (se for intro ou progress, usa flex)
             const target = document.getElementById(id);
-            if(id === 'stage-intro' || id === 'stage-menu' || id === 'stage-progress') target.style.display = 'flex';
-            else target.style.display = 'block';
+            target.style.display = (id.includes('intro') || id.includes('menu') || id.includes('progress')) ? 'flex' : 'block';
         }
 
-        // --- LÓGICA DE INTRO -> MENU ---
         function goToMenu() { setStage('stage-menu'); }
 
-        // --- LÓGICA DE SELEÇÃO DE LISTA ---
         function goToSelect(type) {
             currentType = type;
             setStage('stage-select');
-            document.getElementById('select-type').innerText = type;
-            
             const container = document.getElementById('list-container');
-            container.innerHTML = ''; // Limpa a lista
-            selectedValue = null;
+            container.innerHTML = '';
             document.getElementById('confirm-selection').disabled = true;
 
-            if(type === 'RAM') {
-                // Lista de desbloqueio de RAM (GB virtuais)
-                const options = [1, 2, 4, 8, 12, 16];
-                options.forEach(opt => createListItem(opt + " GB (Virtual)", opt));
-            } else {
-                // Lista de Boost de CPU (%)
-                for(let i=10; i<=125; i+=5) {
-                    createListItem(i + "%", i);
-                }
-            }
+            const options = (type === 'RAM') ? [4, 8, 16, 32] : [25, 50, 75, 100, 125];
+            options.forEach(opt => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerText = type === 'RAM' ? opt + " GB Virtual" : opt + "% Boost";
+                div.onclick = () => {
+                    document.querySelectorAll('.list-item').forEach(i => i.classList.remove('selected'));
+                    div.classList.add('selected');
+                    selectedValue = opt;
+                    document.getElementById('confirm-selection').disabled = false;
+                };
+                container.appendChild(div);
+            });
         }
 
-        function createListItem(text, value) {
-            const div = document.createElement('div');
-            div.className = 'list-item';
-            div.innerText = text;
-            div.onclick = function() {
-                // Remove seleção anterior
-                document.querySelectorAll('.list-item').forEach(el => el.classList.remove('selected'));
-                // Adiciona nova seleção
-                div.classList.add('selected');
-                selectedValue = value;
-                document.getElementById('confirm-selection').disabled = false;
-            };
-            document.getElementById('list-container').appendChild(div);
-        }
-
-        // --- LÓGICA DE CONFIRMAÇÃO DO OVERCLOCK ---
         function confirmOverclock() {
-            if(currentType === 'RAM') startRamUnlock();
-            else startCpuBoost();
+            if(currentType === 'RAM') startRamFlow();
+            else startCpuFlow();
         }
 
-        // --- FLUXO RAM: CÓDIGOS -> CONTRASTE ---
-        function startRamUnlock() {
+        function startRamFlow() {
             setStage('stage-codes');
             const term = document.getElementById('code-terminal');
-            term.innerHTML = '';
-            let lineIndex = 0;
-
-            // Mostra os códigos de fundo com delay significativo (300ms)
+            let lines = 0;
             const interval = setInterval(() => {
-                const line = document.createElement('div');
-                line.className = 'code-line';
-                line.innerText = terminalData[lineIndex % terminalData.length];
-                term.appendChild(line);
-                window.scrollTo(0, document.body.scrollHeight); // Auto-scroll
-                lineIndex++;
-
-                if(lineIndex >= terminalData.length + 5) { // Espera um pouco mais
+                term.innerHTML += `> EXECUTING_MEM_PATCH_0x${Math.random().toString(16).slice(2,8)}... OK<br>`;
+                lines++;
+                if(lines > 15) {
                     clearInterval(interval);
-                    startRamCounter();
+                    runCounter();
                 }
-            }, 300); 
+            }, 200);
         }
 
-        function startRamCounter() {
+        function runCounter() {
             setStage('stage-progress');
-            document.getElementById('prog-title').innerText = "Unlocking Virtual RAM...";
-            const numEl = document.getElementById('prog-number');
-            numEl.style.display = 'block';
-            document.getElementById('log-container').style.display = 'none';
-
+            document.getElementById('prog-title').innerText = "Unlocking RAM...";
             let count = 10;
-            // Contagem de 10 a 100 que dura 15 segundos (15000ms / 90 steps = ~166ms)
             const interval = setInterval(() => {
                 count++;
-                numEl.innerText = count;
+                document.getElementById('prog-number').innerText = count;
                 if(count >= 100) {
                     clearInterval(interval);
-                    completeOverclock('RAM');
+                    finish();
                 }
-            }, 166); 
+            }, 100);
         }
 
-        // --- FLUXO CPU: LOGS ---
-        function startCpuBoost() {
+        function startCpuFlow() {
             setStage('stage-progress');
-            document.getElementById('prog-title').innerText = `Boosting CPU to ${selectedValue}%...`;
             document.getElementById('prog-number').style.display = 'none';
-            const logCon = document.getElementById('log-container');
-            logCon.innerHTML = '';
-            logCon.style.display = 'block';
-
-            const cpuLogs = [
-                `GHOST_KERNEL v${s.version} initializing boost module...`,
-                `Detecting SnapCobra 690 topology... [OK]`,
-                `Core 0..7 attached.`,
-                `Warning: Thermal throttle disabled. [SYS_RISK]`,
-                `Injecting voltage increase: +0.025V`,
-                `Overriding CPU clock multiplier to ${selectedValue / 10}x`,
-                `Checking core stability... [WAIT]`,
-                `Core 0 stability: 98%`,
-                `Core 1 stability: 95%`,
-                `Core 3 stability: ERROR`,
-                `> Retrying injection on Core 3...`,
-                `Core 3 stability: 97%`,
-                `System wide synchronization...`,
-                `Writing permanent changes to NDJ BIOS...`,
-                `COMPLETE: System is running at ${selectedValue}% boost.`
-            ];
-
-            let logIndex = 0;
-            // Mostra os logs com delay (500ms)
-            const interval = setInterval(() => {
-                const line = document.createElement('div');
-                line.className = 'log-line';
-                
-                // Formatação simples de log hacker
-                if(cpuLogs[logIndex].includes('OK')) line.classList.add('success');
-                if(cpuLogs[logIndex].includes('Warning')) line.classList.add('warn');
-                if(cpuLogs[logIndex].includes('ERROR') || cpuLogs[logIndex].includes('Retrying')) line.classList.add('error');
-                if(cpuLogs[logIndex].includes('COMPLETE')) line.classList.add('success');
-
-                line.innerText = `[${new Date().toISOString().slice(11,19)}] ${cpuLogs[logIndex]}`;
-                logCon.appendChild(line);
-                logCon.scrollTop = logCon.scrollHeight; // Auto-scroll
-                logIndex++;
-
-                if(logIndex >= cpuLogs.length) {
-                    clearInterval(interval);
-                    completeOverclock('CPU');
-                }
-            }, 500); 
-        }
-
-        // --- FINALIZAÇÃO E REDIRECIONAMENTO ---
-        function completeOverclock(type) {
-            document.getElementById('prog-title').innerText = `${type} OVERCLOCK COMPLETE!`;
-            document.getElementById('prog-title').style.color = "#0f0";
+            const log = document.getElementById('log-container');
+            log.style.display = 'block';
+            let step = 0;
+            const logs = ["Initializing...", "Core 0 OC...", "Voltage check...", "Syncing...", "Boost Applied!"];
             
-            // Sincroniza com o Kernel (Janela pai)
-            if(type === 'RAM') {
-                parent.GHOST_SYS.specs.ram_virtual = selectedValue;
-            } else {
-                parent.GHOST_SYS.specs.cpu_boost = selectedValue;
-            }
-
-            // Redireciona para o index.html ou os.html do seu OS após 3 segundos
-            setTimeout(() => {
-                // Você pode mudar para 'os.html' se for para a área de trabalho
-                window.location.href = 'index.html'; 
-            }, 3000);
+            const interval = setInterval(() => {
+                log.innerHTML += `<div class="success">> ${logs[step]}</div>`;
+                step++;
+                if(step >= logs.length) {
+                    clearInterval(interval);
+                    finish();
+                }
+            }, 800);
         }
 
+        function finish() {
+            document.getElementById('prog-title').innerText = "OVERCLOCK CONCLUÍDO!";
+            setTimeout(() => {
+                alert("Sistema reiniciado com novas specs!");
+                // Se estiver no WebOS, tenta voltar, senão apenas recarrega
+                if(window.parent && window.parent !== window) window.parent.postMessage('close_ovr', '*');
+                else location.reload();
+            }, 2000);
+        }
     </script>
 </body>
-  </html>
-  
+</html>
