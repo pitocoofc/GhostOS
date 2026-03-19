@@ -2,6 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <script src="sys_config.js"></script>
     <style>
         body {
             margin: 0; padding: 20px;
@@ -35,9 +36,9 @@
             height: 12px; width: 100%; background: #444; border-radius: 6px; 
             display: flex; overflow: hidden; margin-bottom: 8px;
         }
-        .bar-os { background: #eab308; width: 18.75%; } /* 24GB */
-        .bar-apps { background: #a855f7; width: 0.8%; }   /* 1GB */
-        .bar-files { background: #3b82f6; width: 0.2%; }  /* 135MB */
+        .bar-os { background: #eab308; } 
+        .bar-apps { background: #a855f7; }   
+        .bar-files { background: #3b82f6; }  
         
         .storage-legend { display: flex; gap: 10px; font-size: 10px; color: #888; flex-wrap: wrap; }
         .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; }
@@ -65,19 +66,19 @@
         <span class="label">Sobre o Dispositivo</span>
         <h2>Especificações</h2>
         <div class="info-card">
-            <div class="info-line"><span>Processador:</span> <span class="info-value">SnapCobra 690</span></div>
-            <div class="info-line"><span>Memória RAM:</span> <span>8GB<span class="ram-virtual">+5</span></span></div>
+            <div class="info-line"><span>Processador:</span> <span class="info-value" id="cpu-name">---</span></div>
+            <div class="info-line"><span>Memória RAM:</span> <span><span id="ram-base">0</span>GB<span class="ram-virtual" id="ram-v">+0</span></span></div>
             
             <div class="storage-container">
-                <div class="info-line"><span>Armazenamento:</span> <span>25.1GB / 128GB</span></div>
+                <div class="info-line"><span>Armazenamento:</span> <span><span id="storage-used">0</span>GB / <span id="storage-total">0</span>GB</span></div>
                 <div class="storage-bar">
-                    <div class="bar-os"></div>
-                    <div class="bar-apps"></div>
-                    <div class="bar-files"></div>
+                    <div class="bar-os" id="bar-os-w"></div>
+                    <div class="bar-apps" id="bar-apps-w"></div>
+                    <div class="bar-files" id="bar-files-w"></div>
                 </div>
                 <div class="storage-legend">
-                    <span><i class="dot" style="background:#eab308"></i>OS (24GB)</span>
-                    <span><i class="dot" style="background:#a855f7"></i>Apps (1GB)</span>
+                    <span><i class="dot" style="background:#eab308"></i>OS (<span id="txt-os">0</span>GB)</span>
+                    <span><i class="dot" style="background:#a855f7"></i>Apps (<span id="txt-apps">0</span>MB)</span>
                     <span><i class="dot" style="background:#3b82f6"></i>Arquivos (135MB)</span>
                 </div>
             </div>
@@ -128,6 +129,31 @@
     </div>
 
     <script>
+        function applyConfig() {
+            if (typeof GHOST_SYS !== 'undefined') {
+                const s = GHOST_SYS;
+                const fileW = 0.135; // 135MB em GB
+                
+                // Aplicar Textos
+                document.getElementById('cpu-name').innerText = s.cpu;
+                document.getElementById('ram-base').innerText = s.ram;
+                document.getElementById('ram-v').innerText = "+" + s.ram_virtual;
+                document.getElementById('storage-total').innerText = s.storage_total;
+                document.getElementById('txt-os').innerText = s.os_weight;
+                document.getElementById('txt-apps').innerText = s.apps_weight * 1000;
+                
+                const totalUsed = (s.os_weight + s.apps_weight + fileW).toFixed(1);
+                document.getElementById('storage-used').innerText = totalUsed;
+
+                // Aplicar Barras (Calculo de %)
+                document.getElementById('bar-os-w').style.width = (s.os_weight / s.storage_total * 100) + "%";
+                document.getElementById('bar-apps-w').style.width = (s.apps_weight / s.storage_total * 100) + "%";
+                document.getElementById('bar-files-w').style.width = (fileW / s.storage_total * 100) + "%";
+            }
+        }
+
+        window.onload = applyConfig;
+
         function changeWP(url) {
             window.parent.postMessage({ type: 'SET_WALLPAPER', url: url }, '*');
         }
@@ -180,4 +206,5 @@
         }
     </script>
 </body>
-</html>
+                </html>
+                
