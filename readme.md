@@ -11,6 +11,7 @@ FlipTalaga (Tetris game)
 
 lordofsunshine (Click game (You are a quality programmer. ) https://github.com/lordofsunshine/clicker-game-html.git)
 
+www.online-python.com (Python executor)
 
 # WebOS
 
@@ -46,3 +47,4 @@ This project utilizes several other open-source projects:
 - FlipTalaga - tetris game
   https://github.com/lordofsunshine/clicker-game-html.git
 - Brenda - pokedex
+- www.online-python.com - python executor
