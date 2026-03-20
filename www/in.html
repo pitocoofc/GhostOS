@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GhostOS - System Boot</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; height: 100vh;
+            background: #000; color: #fff;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            font-family: 'Consolas', 'Courier New', monospace;
+            overflow: hidden; user-select: none;
+        }
+
+        /* LOGO GHOSTOS 3D (Vindo do Overclock) */
+        .text-3d {
+            font-size: 65px; font-weight: bold; text-transform: uppercase;
+            text-align: center; letter-spacing: 8px; 
+            color: #f00; /* Vermelhão que você pediu */
+            /* Efeito 3D Fake */
+            text-shadow: 
+                0 1px 0 #a00, 0 2px 0 #900, 0 3px 0 #800, 0 4px 0 #700,
+                0 5px 0 #600, 0 0 20px rgba(255, 0, 0, 0.4);
+            animation: pulse3D 2s infinite ease-in-out, formText 1.5s forwards;
+            line-height: 0.9;
+            margin-bottom: 40px;
+        }
+
+        @keyframes formText {
+            from { opacity: 0; transform: scale(0.5); filter: blur(15px); }
+            to { opacity: 1; transform: scale(1); filter: blur(0); }
+        }
+
+        @keyframes pulse3D {
+            0%, 100% { transform: scale(1); text-shadow: 0 1px 0 #a00, 0 5px 0 #600, 0 0 20px rgba(255,0,0,0.4); }
+            50% { transform: scale(1.05); text-shadow: 0 1px 0 #f00, 0 8px 0 #900, 0 0 40px rgba(255,0,0,0.7); }
+        }
+
+        /* MENSAGEM POWERED BY (LETRA MAIOR) */
+        #powered-container {
+            position: relative;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .powered-text {
+            font-size: 24px; /* Aumentei aqui como você pediu */
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            white-space: nowrap;
+            animation: slideIn 0.4s cubic-bezier(0.17, 0.84, 0.44, 1) forwards;
+        }
+
+        @keyframes slideIn {
+            0% { transform: translateX(200vw); }
+            100% { transform: translateX(0); }
+        }
+
+        /* SHAKE DA TELA */
+        .body-shake { animation: screenShake 0.4s linear; }
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0,0); }
+            20% { transform: translate(-5px, 5px); }
+            40% { transform: translate(5px, -5px); }
+            60% { transform: translate(-5px, -5px); }
+            80% { transform: translate(5px, 5px); }
+        }
+
+        /* ANIMAÇÃO DAS LETRAS CAINDO */
+        .letter {
+            display: inline-block;
+            transition: transform 0.8s ease-in, opacity 0.8s;
+        }
+        .fall {
+            transform: translateY(120vh) rotate(110deg) scale(0.5);
+            opacity: 0;
+        }
+    </style>
+</head>
+<body id="main-body">
+
+    <div class="text-3d">Ghost<br>OS</div>
+
+    <div id="powered-container">
+        <div class="powered-text" id="target-text">Powered by GhostOS</div>
+    </div>
+
+    <script>
+        const textElement = document.getElementById('target-text');
+        const body = document.getElementById('main-body');
+        const content = textElement.innerText;
+        
+        // Preparar letras
+        textElement.innerHTML = content.split('').map(char => 
+            `<span class="letter">${char === ' ' ? '&nbsp;' : char}</span>`
+        ).join('');
+
+        const letters = document.querySelectorAll('.letter');
+        const colors = ['#0ff', '#f0f', '#0f0', '#ff0', '#f00', '#fff']; // Neon vibes
+
+        function startGlitchCycle() {
+            // Tremor de impacto
+            body.classList.add('body-shake');
+            setTimeout(() => body.classList.remove('body-shake'), 400);
+
+            // Queda das letras
+            setTimeout(() => {
+                letters.forEach((span, index) => {
+                    setTimeout(() => {
+                        span.style.color = colors[Math.floor(Math.random() * colors.length)];
+                        span.classList.add('fall');
+                    }, index * 40);
+                });
+
+                // Reset para o próximo ciclo
+                setTimeout(() => {
+                    letters.forEach(span => {
+                        span.classList.remove('fall');
+                        span.style.color = '#fff';
+                    });
+                }, 2500);
+
+            }, 2500); // Espera 2.5s lendo antes de cair
+        }
+
+        // Delay inicial para a entrada triunfal
+        setTimeout(startGlitchCycle, 500);
+        setInterval(startGlitchCycle, 5500);
+
+        // Redirecionamento em 15s
+        setTimeout(() => {
+            window.location.href = "inicio.html";
+        }, 15000);
+    </script>
+</body>
+</html>
