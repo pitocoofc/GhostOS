@@ -112,6 +112,11 @@
     </div>
 
     <script>
+        if(localStorage.getItem('adv_graphics') === 'off') {
+    // Pula a animação pesada e vai direto pro OS
+    window.location.href = "login.html";
+        }
+        
         const textElement = document.getElementById('target-text');
         const body = document.getElementById('main-body');
         const hexDisplay = document.getElementById('hex-loader');
