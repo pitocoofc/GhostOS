@@ -1,0 +1,68 @@
+{
+  "html_attributes": [
+    "onclick",
+    "onerror",
+    "onload",
+    "onmouseover",
+    "onfocus",
+    "onmouseenter",
+    "onmouseleave",
+    "onkeydown",
+    "onkeyup",
+    "onsubmit",
+    "onchange",
+    "oninput"
+  ],
+
+  "js_functions": [
+    "eval(",
+    "Function(",
+
+    "setTimeout(",
+    "setInterval(",
+
+    "document.write(",
+    "document.writeln(",
+
+    "innerHTML",
+    "outerHTML",
+    "insertAdjacentHTML",
+
+    "location.href",
+    "location.replace(",
+    "location.assign(",
+
+    "fetch(",
+    "XMLHttpRequest",
+    "WebSocket(",
+    "navigator.sendBeacon(",
+
+    "document.cookie",
+
+    "localStorage",
+    "sessionStorage",
+
+    "window.open(",
+
+    "atob(",
+    "btoa(",
+
+    "unescape(",
+
+    "Function(atob",
+    "eval(atob",
+    "setTimeout(eval"
+  ],
+
+  "obfuscation_patterns": [
+    "\\\\x[0-9a-fA-F]{2}",
+    "\\\\u[0-9a-fA-F]{4}",
+
+    "String\\.fromCharCode",
+    "atob\\(",
+    "btoa\\(",
+    "unescape\\(",
+
+    "[A-Za-z0-9+/]{40,}={0,2}"
+  ]
+}
