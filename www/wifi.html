@@ -2,135 +2,73 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Configurações de Wi-Fi</title>
     <style>
         body {
-            margin: 0;
-            padding: 20px;
+            margin: 0; padding: 20px 20px 40px;
             background-color: #ffffff;
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: #000;
+            color: #000; overflow-x: hidden;
         }
 
-        header {
-            margin-bottom: 40px;
-        }
-
-        h1 {
-            font-size: 32px;
-            font-weight: 400;
-            margin: 0;
-            color: #333;
-        }
+        header { margin-bottom: 30px; }
+        h1 { font-size: 32px; font-weight: 400; margin: 0; color: #333; }
 
         /* --- Switch Wi-Fi --- */
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            font-weight: 600;
-            font-size: 18px;
-        }
-
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 26px;
-        }
-
+        .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; font-weight: 600; font-size: 18px; }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 26px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            inset: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: #007aff; }
         input:checked + .slider:before { transform: translateX(24px); }
 
         /* --- Card de Conexão Ativa --- */
         .active-network {
-            background-color: #007aff;
-            color: white;
-            padding: 20px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            background-color: #007aff; color: white;
+            padding: 20px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: space-between;
             box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
-            margin-bottom: 40px;
+            margin-bottom: 30px; transition: 0.3s;
         }
-
         .network-info { display: flex; align-items: center; gap: 15px; }
         .wifi-icon { font-size: 24px; }
         .network-name { font-size: 18px; font-weight: 600; }
         .network-status { font-size: 13px; opacity: 0.8; display: block; }
+        .lock-icon { font-size: 16px; margin-right: 5px; opacity: 0.7; }
         .arrow-right { font-size: 18px; background: rgba(255,255,255,0.2); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
 
-        /* --- Lista de Redes --- */
-        .section-title {
-            color: #888;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* --- Lista de Redes (AUTO-ALINHAMENTO ATÉ 5) --- */
+        .section-title { color: #888; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        #available-list {
+            display: flex; flex-direction: column; gap: 5px;
+            min-height: 50px; max-height: 250px; /* Alinhamento para até 5 redes */
+            overflow-y: auto;
         }
 
-        .empty-list {
-            text-align: center;
-            padding: 20px;
-            color: #aaa;
-            font-size: 16px;
+        .network-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 10px; border-radius: 12px;
+            cursor: pointer; transition: 0.2s;
         }
+        .network-item:active { background-color: #f0f0f0; }
+        .network-item-name { font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+        .item-icons { display: flex; align-items: center; gap: 10px; color: #888; }
 
-        hr { border: 0; border-top: 1px solid #eee; margin: 30px 0; }
+        hr { border: 0; border-top: 1px solid #eee; margin: 25px 0; }
 
-        /* --- Detalhes Adicionais (conforme imagem) --- */
-        .additional-info {
-            margin-top: 40px;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #000;
-        }
+        /* --- Detalhes Adicionais --- */
+        .additional-info { margin-top: 30px; font-size: 14px; line-height: 1.6; color: #000; }
+        .info-title { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;}
+        .info-grid { display: flex; justify-content: space-between; border-top: 1px solid #eee; padding-top: 20px; align-items: flex-start;}
+        .info-column { width: 55%; }
+        .info-column.right { width: 40%; text-align: right; font-weight: 600;}
+        .stat-value { font-weight: bold; color: #007aff; } /* Destaque para números mudando */
 
-        .info-title {
-            text-align: center;
-            font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
-
-        .info-grid {
-            display: flex;
-            justify-content: space-between;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-        }
-
-        .info-column { width: 45%; }
-        .info-column.right { text-align: right; display: flex; align-items: center; justify-content: flex-end; }
+        /* Linha divisória vertical solicitada */
+        .vertical-line { width: 1px; background: #000; height: 160px; margin: 0 15px; align-self: center;}
 
     </style>
 </head>
@@ -143,31 +81,47 @@
     <div class="setting-row">
         <span>Wi-Fi</span>
         <label class="toggle-switch">
-            <input type="checkbox" checked>
+            <input type="checkbox" checked id="wifi-toggle" onchange="toggleWifiList(this.checked)">
             <span class="slider"></span>
         </label>
     </div>
 
-    <div class="active-network">
+    <div class="active-network" id="active-net-card">
         <div class="network-info">
             <div class="wifi-icon">📶</div>
             <div>
-                <span class="network-name">GhostPhone 5G</span>
-                <span class="network-status">Toque para partilhar palavra-passe</span>
+                <span class="network-name" id="active-net-name">GhostPhone 5G</span>
+                <span class="network-status">Conectado</span>
             </div>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <span>🔒</span>
+            <span class="lock-icon">🔒</span>
             <div class="arrow-right">›</div>
         </div>
     </div>
 
-    <div class="section-title">
-        <span>Redes disponíveis</span>
-        <span style="cursor: pointer;">🔄</span>
+    <div id="wifi-list-area">
+        <div class="section-title">
+            <span>Redes disponíveis</span>
+            <span style="cursor: pointer;" onclick="location.reload()">🔄</span>
+        </div>
+        
+        <div id="available-list">
+            <div class="network-item" onclick="connectToNetwork('SkillForge_2.4G', '192.168.1.105')">
+                <div class="network-item-name">📶 SkillForge_2.4G</div>
+                <div class="item-icons">🔒 <span>›</span></div>
+            </div>
+            
+            <div class="network-item">
+                <div class="network-item-name">📶 Vizinho_Guest</div>
+                <div class="item-icons">🔒 <span>›</span></div>
+            </div>
+            <div class="network-item">
+                <div class="network-item-name">📶 Linksys_0042</div>
+                <div class="item-icons">🔒 <span>›</span></div>
+            </div>
+        </div>
     </div>
-    
-    <div class="empty-list">Vazio</div>
 
     <hr>
     <div style="color: #aaa; font-size: 12px; text-transform: uppercase;">Mais definições</div>
@@ -177,23 +131,134 @@
         
         <div class="info-grid">
             <div class="info-column">
-                IP: 192.168.0.101<br>
-                Segurança: WPA<br>
+                IP: <span id="stat-ip">192.168.0.1</span><br>
+                Segurança: WPA2-PSK<br>
                 Tipo de Rede: Movel<br>
-                Upload: 75MB/s<br>
-                Download: 80MB/s<br>
+                Upload: <span class="stat-value" id="stat-upload">--</span> MB/s<br>
+                Download: <span class="stat-value" id="stat-download">--</span> MB/s<br>
                 Usuários: 01<br>
                 Frequência: 2.4/5G<br>
-                Limite/Gasto: 25/75GB
+                Limite/Gasto: <span id="stat-gasto">25</span>/75GB
             </div>
             
-            <div style="width: 1px; background: #000; height: 150px; margin: 0 10px;"></div>
+            <div class="vertical-line"></div>
 
             <div class="info-column right">
-                Operadora: GhostNet
+                Operadora:<br>GhostNet
             </div>
         </div>
     </div>
 
+    <script>
+        const CORRECT_PASSWORD = "1234"; // Defina a senha aqui
+        let currentGasto = 25;
+
+        // --- LÓGICA DE CONEXÃO INTERATIVA ---
+        function connectToNetwork(newName, newIp) {
+            // Se já for a rede ativa, não faz nada
+            if (newName === document.getElementById('active-net-name').innerText) return;
+
+            const password = prompt(`Insira a senha para "${newName}":`);
+
+            if (password === CORRECT_PASSWORD) {
+                alert("Conectando...");
+                
+                // 1. Pega os dados antigos
+                const oldName = document.getElementById('active-net-name').innerText;
+
+                // 2. Atualiza o Card Principal (Animação simples de troca)
+                const card = document.getElementById('active-net-card');
+                card.style.opacity = '0.5';
+                
+                setTimeout(() => {
+                    document.getElementById('active-net-name').innerText = newName;
+                    document.getElementById('stat-ip').innerText = newIp;
+                    
+                    // Reseta o gasto ao trocar de rede (simulação)
+                    currentGasto = 0;
+                    document.getElementById('stat-gasto').innerText = currentGasto;
+
+                    // 3. Move a rede antiga para a lista
+                    addNetworkToList(oldName);
+
+                    // 4. Remove a nova rede da lista
+                    removeNetworkFromList(newName);
+
+                    card.style.opacity = '1';
+                }, 1000);
+
+            } else if (password !== null) {
+                alert("Senha incorreta. Tente novamente.");
+            }
+        }
+
+        // --- GESTÃO DINÂMICA DA LISTA ---
+        function addNetworkToList(name) {
+            const list = document.getElementById('available-list');
+            
+            // Cria o elemento HTML da rede antiga
+            const item = document.createElement('div');
+            item.className = 'network-item';
+            // Se for a rede principal antiga, ela mantém o IP original simulado
+            item.onclick = () => connectToNetwork(name, '192.168.0.1');
+            item.innerHTML = `
+                <div class="network-item-name">📶 ${name}</div>
+                <div class="item-icons">🔒 <span>›</span></div>
+            `;
+            
+            list.appendChild(item);
+        }
+
+        function removeNetworkFromList(name) {
+            const list = document.getElementById('available-list');
+            const items = list.getElementsByClassName('network-item');
+            
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].innerText.includes(name)) {
+                    list.removeChild(items[i]);
+                    break;
+                }
+            }
+        }
+
+        // --- VELOCIDADES ALEATÓRIAS (CONSTANTE) ---
+        function updateSpeeds() {
+            // Gera número aleatório entre 50 e 125
+            const up = Math.floor(Math.random() * (125 - 50 + 1)) + 50;
+            const down = Math.floor(Math.random() * (125 - 50 + 1)) + 50;
+
+            document.getElementById('stat-upload').innerText = up;
+            document.getElementById('stat-download').innerText = down;
+
+            // Simula aumento de gasto de dados (pequeno acréscimo)
+            if (currentGasto < 75) {
+                currentGasto += (up + down) / 20000; // Simulação proporcional à velocidade
+                document.getElementById('stat-gasto').innerText = currentGasto.toFixed(2);
+            }
+        }
+        // Inicia o loop de velocidade (a cada 1 segundo)
+        setInterval(updateSpeeds, 1000);
+        updateSpeeds(); // Executa a primeira vez instantaneamente
+
+        // --- FUNÇÃO DO SWITCH ---
+        function toggleWifiList(enabled) {
+            const listArea = document.getElementById('wifi-list-area');
+            const activeCard = document.getElementById('active-net-card');
+            
+            if (enabled) {
+                listArea.style.opacity = '1';
+                listArea.style.pointerEvents = 'auto';
+                activeCard.style.opacity = '1';
+                activeCard.style.background = '#007aff';
+                document.getElementById('active-net-name').innerText = "GhostPhone 5G";
+            } else {
+                listArea.style.opacity = '0.3';
+                listArea.style.pointerEvents = 'none';
+                activeCard.style.background = '#ccc'; // Cor de desativado
+                activeCard.style.opacity = '0.8';
+                document.getElementById('active-net-name').innerText = "Desativado";
+            }
+        }
+    </script>
 </body>
 </html>
