@@ -8,6 +8,28 @@
         * { box-sizing: border-box; outline: none; }
         body, html { margin: 0; padding: 0; height: 100vh; background: #000; font-family: 'Segoe UI', sans-serif; overflow: hidden; color: #fff; }
 
+        /* --- NOVO: STATUS BAR --- */
+        #status-bar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 25px;
+            background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 15px; font-size: 12px; font-weight: bold; z-index: 600;
+            cursor: pointer;
+        }
+
+        /* --- NOVO: QUICK PANEL --- */
+        #quick-panel {
+            position: fixed; top: -110%; left: 0; width: 100%; height: 100vh;
+            background: rgba(255,255,255,0.95); color: #000; z-index: 700;
+            transition: top 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column; padding: 60px 20px;
+        }
+        #quick-panel.active { top: 0; }
+        .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
+        .panel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .panel-item { background: #eee; padding: 25px; border-radius: 20px; text-align: center; cursor: pointer; }
+        .panel-item span { font-size: 30px; display: block; }
+
         /* --- FASE 1: Intro das Bolas --- */
         #intro-screen {
             position: fixed; inset: 0; background: #000; z-index: 500;
@@ -49,7 +71,7 @@
 
         /* --- BOTÃO DE MENU SUPERIOR DIREITO --- */
         #top-launcher {
-            position: fixed; top: 15px; right: 15px; z-index: 460;
+            position: fixed; top: 35px; right: 15px; z-index: 460;
             width: 45px; height: 45px; background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
             border-radius: 12px; display: none; align-items: center; justify-content: center;
@@ -121,9 +143,44 @@
         }
         .nav-btn { font-size: 22px; cursor: pointer; opacity: 0.6; transition: 0.3s; }
         .nav-btn:active { opacity: 1; transform: scale(0.8); }
+
+        /* Estilo do App Falso de Data */
+        .date-icon {
+            background: #ffffff !important;
+            color: #000 !important;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: none !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        #icon-day-name { font-size: 10px; font-weight: 800; color: #ff3b30; text-transform: uppercase; margin-top: -5px; }
+        #icon-day-num { font-size: 32px; font-weight: 700; line-height: 1; margin-top: 2px; }
     </style>
 </head>
 <body>
+
+    <div id="status-bar" onclick="toggleQuickPanel(true)">
+        <div id="status-time">00:00</div>
+        <div style="display:flex; gap:10px;">
+            <span>📶</span><span>98%🔋</span>
+        </div>
+    </div>
+
+    <div id="quick-panel">
+        <div class="panel-header">
+            <h2 style="margin:0">Painel de Controle</h2>
+            <button onclick="toggleQuickPanel(false)" style="border:none; background:none; font-size:20px;">✕</button>
+        </div>
+        <div class="panel-grid">
+            <div class="panel-item"><span>📡</span><p>Wi-Fi</p></div>
+            <div class="panel-item"><span>🌙</span><p>Foco</p></div>
+            <div class="panel-item" onclick="location.reload()"><span>🔄</span><p>Reiniciar</p></div>
+            <div class="panel-item" onclick="toggleQuickPanel(false)"><span>⚙️</span><p>Ajustes</p></div>
+        </div>
+    </div>
 
     <div id="intro-screen">
         <div id="typewriter">Bem vindo ao Futuro</div>
@@ -144,26 +201,31 @@
             <input type="text" id="search-input" class="search-box" placeholder="Procurar aplicativos..." oninput="searchApp(this.value)">
             <div class="close-drawer" onclick="toggleDrawer(false)">✕</div>
         </div>
-        <div id="drawer-list" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-            </div>
+        <div id="drawer-list" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;"></div>
     </div>
 
     <div id="main-desktop">
         <div id="app-grid">
+            <div class="app-card fake-date-app" id="date-app">
+                <div class="app-icon-box date-icon">
+                    <span id="icon-day-name">DOM</span>
+                    <span id="icon-day-num">00</span>
+                </div>
+                <span>Calendário</span>
+            </div>
             <div class="app-card" style="transition-delay: 0.1s;" onclick="openApp('Ajustes', 'ajustes.html')">
                 <div class="app-icon-box">⚙️</div><span>Ajustes</span>
             </div>
-
             <div class="app-card" style="transition-delay: 0.2s;" onclick="openApp('Browser', 'browser.html')">
                 <div class="app-icon-box">🌐</div><span>Browser</span>
             </div>
             <div class="app-card" style="transition-delay: 0.2s;" onclick="openApp('Calculadora', 'jogos/calculadora.html')">
                 <div class="app-icon-box">🔢</div><span>Calculadora</span>
             </div>
-    <div class="app-card" style="transition-delay: 0.2s;" onclick="openApp('Animes', 'animes.html')">
+            <div class="app-card" style="transition-delay: 0.2s;" onclick="openApp('Animes', 'animes.html')">
                 <div class="app-icon-box">🗨️</div><span>Animes</span>
             </div>
-    <div class="app-card" style="transition-delay: 0.2s;" onclick="openApp('Galeria', 'galeria.html')">
+            <div class="app-card" style="transition-delay: 0.2s;" onclick="openApp('Galeria', 'galeria.html')">
                 <div class="app-icon-box">📷</div><span>Galeria</span>
             </div>
             <div class="app-card" style="transition-delay: 0.3s;" onclick="openApp('Arquivos', 'files.html')">
@@ -189,32 +251,24 @@
     </div>
 
     <script>
-// Variáveis Globais de Hardware
-var driver_video = "off";
-var driver_ndj = "off";
-var driver_files = "off";
-var driver_audio = "off";
-var driver_system = "off";
-var driver_camera = "off";
-var driver_user_erro = "off";
-var driver_touch_advanced = "off";
-var driver_cloud_conect = "off";
-var driver_all_conect = "off";
-var driver_security_internal = "off";
-var driver_optimization = "off";
-var driver_failed = "off";
-var driver_beta = "off";
+        // Variáveis Globais de Hardware
+        var driver_video = "off";
+        var driver_ndj = "off";
+        var driver_files = "off";
+        var driver_audio = "off";
+        var driver_system = "off";
+        var driver_camera = "off";
+        var driver_user_erro = "off";
+        var driver_touch_advanced = "off";
+        var driver_cloud_conect = "off";
+        var driver_all_conect = "off";
+        var driver_security_internal = "off";
+        var driver_optimization = "off";
+        var driver_failed = "off";
+        var driver_beta = "off";
 
-        
-// Função para os aplicativos consultarem o status (Opcional, mas ajuda)
-function checkDriver(name) {
-    return window[name]; 
-}
-        
+        function checkDriver(name) { return window[name]; }
 
-
-        
-        // Lista de Aplicativos (Base de dados para a busca)
         const ALL_APPS = [
             { name: 'Ajustes', icon: '⚙️', url: 'ajustes.html' },
             { name: 'Browser ADv', icon: '🌐', url: 'beta/browser2.html'},
@@ -226,7 +280,6 @@ function checkDriver(name) {
             { name: 'Galeria', icon: '📸', url: 'galeria.html' },
             { name: 'Animes', icon: '🗨️', url: 'animes.html' },
             { name: 'debug', icon: '🔐', url: 'debug.html' },
-            { name: 'Bússola', icon: '🧭', url: 'bussola.html'},
             { name: 'Extras', icon: '📁', url: 'extra.html'},
             { name: 'Programação', icon: '🖥️', url: 'programacao.html'}
         ];
@@ -249,7 +302,9 @@ function checkDriver(name) {
 
         function updateClock() {
             const now = new Date();
-            document.getElementById('clock').innerText = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            document.getElementById('clock').innerText = timeStr;
+            document.getElementById('status-time').innerText = timeStr;
             const options = { weekday: 'long', day: 'numeric', month: 'long' };
             document.getElementById('date').innerText = now.toLocaleDateString('pt-BR', options).toUpperCase();
         }
@@ -283,6 +338,7 @@ function checkDriver(name) {
         function goHome() {
             closeApp();
             toggleDrawer(false);
+            toggleQuickPanel(false);
         }
 
         function toggleDrawer(force) {
@@ -290,46 +346,49 @@ function checkDriver(name) {
             if(force === false) {
                 d.classList.remove('open');
                 document.getElementById('search-input').value = '';
-                searchApp(''); // Limpa os resultados
+                searchApp('');
             } else {
                 d.classList.toggle('open');
-                if(d.classList.contains('open')) searchApp(''); // Mostra todos ao abrir
+                if(d.classList.contains('open')) searchApp('');
             }
         }
 
-        // --- SISTEMA DE BUSCA FUNCIONAL ---
         function searchApp(val) {
             const list = document.getElementById('drawer-list');
-            list.innerHTML = ''; // Limpa atual
-            
-            const filtered = ALL_APPS.filter(app => 
-                app.name.toLowerCase().includes(val.toLowerCase())
-            );
-
+            list.innerHTML = '';
+            const filtered = ALL_APPS.filter(app => app.name.toLowerCase().includes(val.toLowerCase()));
             filtered.forEach(app => {
                 const card = document.createElement('div');
                 card.className = 'app-card';
                 card.onclick = () => openApp(app.name, app.url);
-                card.innerHTML = `
-                    <div class="app-icon-box">${app.icon}</div>
-                    <span>${app.name}</span>
-                `;
+                card.innerHTML = `<div class="app-icon-box">${app.icon}</div><span>${app.name}</span>`;
                 list.appendChild(card);
             });
         }
 
-// Adicione isso dentro do <script> do os.html
-window.addEventListener('message', (event) => {
-    if (event.data.type === 'SET_WALLPAPER') {
-        const url = event.data.url;
-        document.getElementById('main-desktop').style.backgroundImage = `url('${url}')`;
-        document.getElementById('lock-screen').style.backgroundImage = `url('${url}')`;
-    }
-});
-        
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'SET_WALLPAPER') {
+                const url = event.data.url;
+                document.getElementById('main-desktop').style.backgroundImage = `url('${url}')`;
+                document.getElementById('lock-screen').style.backgroundImage = `url('${url}')`;
+            }
+        });
 
+        function updateFakeDateApp() {
+            const now = new Date();
+            const daysShort = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
+            document.getElementById('icon-day-name').innerText = daysShort[now.getDay()];
+            document.getElementById('icon-day-num').innerText = now.getDate();
+        }
+        updateFakeDateApp();
+        setInterval(updateFakeDateApp, 3600000);
 
-        
+        // FUNÇÃO DO PAINEL
+        function toggleQuickPanel(show) {
+            const panel = document.getElementById('quick-panel');
+            if(show) panel.classList.add('active');
+            else panel.classList.remove('active');
+        }
     </script>
 </body>
 </html>
