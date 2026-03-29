@@ -177,7 +177,7 @@
         <div class="panel-grid">
             <div class="panel-item" onclick="openApp('Wi-Fi', 'wifi.html')"><span>📡</span><p>Wi-Fi</p></div>
             <div class="panel-item"><span>🌙</span><p>Foco</p></div>
-            <div class="panel-item" onclick="location.reload()"><span>🔄</span><p>Reiniciar</p></div>
+            <div class="panel-item" onclick="openApp('Wi-Fi', 'wifi.html')"><span>🔄</span><p>Reiniciar</p></div>
             <div class="panel-item" onclick="toggleQuickPanel(false)"><span>⚙️</span><p>Ajustes</p></div>
         </div>
     </div>
@@ -228,6 +228,9 @@
             <div class="app-card" style="transition-delay: 0.2s;" onclick="openApp('Galeria', 'galeria.html')">
                 <div class="app-icon-box">📷</div><span>Galeria</span>
             </div>
+            <div class="app-card" style="transition-delay: 0.2s;" onclick="openApp('Bússola', 'bussola.html')">
+                <div class="app-icon-box">🧭</div><span>Bússola</span>
+            </div>
             <div class="app-card" style="transition-delay: 0.3s;" onclick="openApp('Arquivos', 'files.html')">
                 <div class="app-icon-box">📂</div><span>Arquivos</span>
             </div>
@@ -273,6 +276,7 @@
             { name: 'Ajustes', icon: '⚙️', url: 'ajustes.html' },
             { name: 'Browser ADv', icon: '🌐', url: 'beta/browser2.html'},
             { name: 'Jogos', icon: '📱', url: 'jogos.html' },
+            { name: 'Bússola', icon: '🧭', url: 'bussola.html' },
             { name: 'Browser', icon: '🌐', url: 'browser.html' },
             { name: 'Arquivos', icon: '📂', url: 'files.html' },
             { name: 'Calculadora', icon: '🔢', url: 'jogos/calculadora.html' },
