@@ -304,14 +304,45 @@
             }, 1000);
         }, 5000);
 
-        function updateClock() {
-            const now = new Date();
-            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-            document.getElementById('clock').innerText = timeStr;
-            document.getElementById('status-time').innerText = timeStr;
-            const options = { weekday: 'long', day: 'numeric', month: 'long' };
-            document.getElementById('date').innerText = now.toLocaleDateString('pt-BR', options).toUpperCase();
-        }
+        // Substitua sua função updateClock atual por esta:
+
+function updateClock() {
+    // 1. Puxa a região do cache (se não existir, usa Brasil como padrão)
+    const savedRegion = localStorage.getItem('ghost_clock_region') || 'pt-BR';
+    
+    // 2. Mapeamento de fusos (deve ser igual ao do relogio.html)
+    const timeZones = {
+        "pt-BR": "America/Sao_Paulo",
+        "zh-CN": "Asia/Shanghai",
+        "fr-FR": "Europe/Paris",
+        "en-US": "America/New_York",
+        "en-AU": "Australia/Sydney"
+    };
+
+    const now = new Date();
+    const timeZone = timeZones[savedRegion];
+
+    // 3. Formata o Horário (HH:MM)
+    const timeStr = now.toLocaleTimeString('pt-BR', { 
+        timeZone: timeZone, 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+
+    // 4. Formata a Data da Lockscreen baseada na localidade salva
+    const dateOptions = { weekday: 'long', day: 'numeric', month: 'long', timeZone: timeZone };
+    const dateStr = now.toLocaleDateString(savedRegion, dateOptions).toUpperCase();
+
+    // 5. Aplica nos elementos
+    document.getElementById('clock').innerText = timeStr;
+    document.getElementById('status-time').innerText = timeStr;
+    document.getElementById('date').innerText = dateStr;
+}
+
+// Mantém o intervalo para atualizar todo segundo
+setInterval(updateClock, 1000); 
+updateClock();
+
         setInterval(updateClock, 1000); updateClock();
 
         function unlockSystem() {
