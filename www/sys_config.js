@@ -4,5 +4,5 @@ const GHOST_SYS = {
     ram_virtual: 5,
     storage_total: 128,
     os_weight: 24,
-    apps_weight: 0.75 // Seus 750MB padrão
+    apps_weight: 1.75 // Seus 750MB padrão
 };
