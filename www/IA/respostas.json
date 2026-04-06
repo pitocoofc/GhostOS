@@ -1,0 +1,17 @@
+{
+  "keywords": {
+    "economia": {
+      "texto": "Com o módulo de economia da Ndj-lib v1.1.0, você gerencia saldos facilmente. Veja o exemplo de implementação:",
+      "codigo": "const { Economy } = require('ndj-lib');\n\nconst eco = new Economy();\n\n// Adicionando 500 moedas ao usuário\neco.addMoney('user_id_123', 500);\nconsole.log('Transação concluída com sucesso!');"
+    
+      "v15": {
+      "texto": "O erro na v15 do Discord geralmente ocorre por falta de Intents. Use este boilerplate para corrigir:",
+      "codigo": "const { Client, GatewayIntentBits } = require('discord.js');\n\nconst client = new Client({\n  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]\n});\n\nclient.login('SEU_TOKEN');"
+    },
+    "ajuda": {
+      "texto": "Eu sou a Ndj-AI v0.1. Posso te ajudar com códigos de economia, moderação e erros comuns da lib. O que você precisa?",
+      "codigo": "// Digite 'economia', 'bot' ou 'v15' para exemplos práticos.\nconsole.log('Aguardando comando...');"
+    }
+  },
+  "fallback": "Desculpe, Programador. Não encontrei essa função no meu banco de dados. Tente perguntar sobre outro assunto. Eu sou um modelo teste da Ndj-lib para facilitar sua programação e progressão no mundo do terminal e estou disposto a melhorar para te ajudar com o tempo."
+}
