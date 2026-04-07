@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ndj-AI Premium | Evolution</title>
+    <title>Ndj-AI Premium | Evolution v0.2</title>
     <style>
         :root {
             --bg-primary: #0a0a0a;
             --accent-color: #ffffff;
             --glass-bg: rgba(255, 255, 255, 0.05);
             --text-main: #e0e0e0;
+            --ai-bubble: #1a1a1a;
+            --user-bubble: #ffffff;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
@@ -31,9 +33,9 @@
             50% { opacity: 1; transform: scale(1.02); }
         }
 
-        /* UI SUAVE */
+        /* UI PRINCIPAL */
         #main-chat-screen {
-            position: fixed; inset: 0; display: flex; flex-direction: column;
+            position: fixed; inset: 0; display: none; flex-direction: column;
             background: linear-gradient(180deg, #111 0%, #000 100%);
             opacity: 0; transform: translateY(10px);
             transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
@@ -44,7 +46,7 @@
         #chat-header {
             padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
             display: flex; flex-direction: column; align-items: center; gap: 5px;
-            cursor: pointer; position: relative;
+            cursor: pointer; position: relative; z-index: 3000;
         }
         #app-name { color: #fff; font-weight: 600; font-size: 1.1rem; letter-spacing: 1px; }
         #current-model-tag { 
@@ -52,54 +54,58 @@
             background: var(--glass-bg); padding: 2px 8px; border-radius: 4px;
         }
 
-        /* MINI PAINEL DE MODELOS */
+        /* PAINEL DE MODELOS */
         #model-panel {
-            position: absolute; top: 70px; width: 200px;
-            background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
-            padding: 10px; display: none; flex-direction: column; gap: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 2000;
+            position: absolute; top: 75px; width: 220px;
+            background: #161616; border: 1px solid #333; border-radius: 12px;
+            padding: 8px; display: none; flex-direction: column; gap: 5px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
         }
         .model-option {
-            padding: 10px; border-radius: 8px; color: #ccc; font-size: 0.85rem;
+            padding: 12px; border-radius: 8px; color: #aaa; font-size: 0.85rem;
             transition: 0.2s; cursor: pointer; border-left: 3px solid transparent;
         }
-        .model-option:hover { background: #252525; color: #fff; }
-        .model-option.selected { border-left-color: #fff; background: #252525; color: #fff; }
+        .model-option:hover { background: #222; color: #fff; }
+        .model-option.selected { border-left-color: #fff; background: #222; color: #fff; }
 
-        /* CHAT AREA */
-        #chat-box { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 20px; }
+        /* ÁREA DE CHAT */
+        #chat-box { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
         
-        .msg { max-width: 80%; padding: 14px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; transition: 0.3s; }
-        .user-msg { align-self: flex-end; background: #fff; color: #000; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
-        .ai-msg { align-self: flex-start; background: #1a1a1a; color: #e0e0e0; border: 1px solid #333; border-bottom-left-radius: 4px; }
+        .msg { max-width: 85%; padding: 14px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* FOOTER */
+        .user-msg { align-self: flex-end; background: var(--user-bubble); color: #000; border-bottom-right-radius: 4px; }
+        .ai-msg { align-self: flex-start; background: var(--ai-bubble); color: var(--text-main); border: 1px solid #333; border-bottom-left-radius: 4px; }
+
+        /* FOOTER INPUT */
         #chat-footer { padding: 20px; background: transparent; }
         .input-wrapper { 
             display: flex; align-items: center; background: #161616; 
-            border-radius: 16px; padding: 8px 16px; border: 1px solid #222;
+            border-radius: 18px; padding: 6px 16px; border: 1px solid #252525;
             transition: 0.3s;
         }
-        .input-wrapper:focus-within { border-color: #444; background: #1a1a1a; }
-        #chatInput { flex: 1; border: none; background: transparent; color: #fff; padding: 10px; font-size: 0.95rem; }
+        .input-wrapper:focus-within { border-color: #555; background: #1a1a1a; }
+        #chatInput { flex: 1; border: none; background: transparent; color: #fff; padding: 12px; font-size: 0.95rem; }
         
         #sendBtn { 
             background: transparent; color: #fff; border: none; 
-            cursor: pointer; opacity: 0.6; transition: 0.3s;
+            cursor: pointer; padding: 5px; transition: 0.2s;
         }
-        #sendBtn:hover { opacity: 1; transform: scale(1.1); }
+        #sendBtn:hover { transform: scale(1.1); color: #00ff88; }
 
-        /* UTILS */
+        /* BOTÃO DE CÓDIGO */
         .view-code-btn { 
-            background: #333; color: #fff; border: none; padding: 6px 12px; 
-            border-radius: 6px; margin-top: 10px; cursor: pointer; font-size: 0.75rem; 
+            background: #333; color: #fff; border: none; padding: 8px 14px; 
+            border-radius: 8px; margin-top: 12px; cursor: pointer; font-size: 0.75rem; 
+            display: block; width: fit-content; transition: 0.2s;
         }
+        .view-code-btn:hover { background: #444; }
 
-        /* MODAL (Simplificado) */
-        #code-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 6000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { background: #111; border: 1px solid #333; border-radius: 15px; width: 100%; max-width: 500px; padding: 20px; }
-        #modal-code-text { font-family: monospace; color: #0f0; font-size: 0.8rem; white-space: pre-wrap; margin-bottom: 15px; }
-        .close-btn { background: #fff; color: #000; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; }
+        /* MODAL DE CÓDIGO */
+        #code-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: #111; border: 1px solid #333; border-radius: 15px; width: 100%; max-width: 600px; padding: 25px; box-shadow: 0 0 50px rgba(0,0,0,1); }
+        #modal-code-text { font-family: 'Consolas', monospace; color: #a9ffaf; font-size: 0.85rem; white-space: pre-wrap; margin-bottom: 20px; max-height: 400px; overflow-y: auto; }
+        .close-btn { background: #fff; color: #000; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body onload="startSequence()">
@@ -124,9 +130,9 @@
 
         <div id="chat-footer">
             <div class="input-wrapper">
-                <input type="text" id="chatInput" placeholder="Digite sua mensagem..." onkeypress="if(event.key==='Enter') sendMessage()">
+                <input type="text" id="chatInput" placeholder="Pergunte algo..." onkeypress="if(event.key==='Enter') sendMessage()">
                 <button id="sendBtn" onclick="sendMessage()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                 </button>
             </div>
         </div>
@@ -140,10 +146,10 @@
     </div>
 
     <script>
-        let currentPath = "v1"; // Pasta inicial
+        let currentPath = "v1";
 
+        // Inicia a sequência de Boot
         function startSequence() {
-            // Simula o pulso e redireciona
             setTimeout(() => {
                 const splash = document.getElementById('splash-wrapper');
                 const main = document.getElementById('main-chat-screen');
@@ -153,65 +159,93 @@
                     splash.style.display = 'none';
                     main.style.display = 'flex';
                     setTimeout(() => main.classList.add('active'), 50);
-                    addMsg("Sistema carregado. Como posso ajudar hoje?", "ai-msg");
+                    addMsg("Conexão estável. Sou a Ndj-AI, como posso te ajudar hoje?", "ai-msg");
                 }, 800);
-            }, 2500); // 2 segundos e meio de splash
+            }, 2500); // 2 segundos de pulso + transição
         }
 
+        // Abre/Fecha o painel de modelos
         function toggleModelPanel() {
             const panel = document.getElementById('model-panel');
             panel.style.display = (panel.style.display === 'flex') ? 'none' : 'flex';
         }
 
+        // Seleciona a pasta do modelo
         function selectModel(path, label) {
             currentPath = path;
             document.getElementById('current-model-tag').textContent = `Modelo: ${label}`;
-            
-            // Atualiza visual das opções
             document.querySelectorAll('.model-option').forEach(opt => {
                 opt.classList.remove('selected');
                 if(opt.textContent.includes(label)) opt.classList.add('selected');
             });
-            
-            addMsg(`Alternado para o diretório de modelos: /${path}`, 'ai-msg');
+            addMsg(`Modelo alterado para: ${label}. Buscando em /${path}`, 'ai-msg');
         }
 
+        // LÓGICA DE MENSAGENS E MATCH
         async function sendMessage() {
             const input = document.getElementById('chatInput');
-            const text = input.value.trim();
-            if (!text) return;
+            const rawText = input.value.trim();
+            if (!rawText) return;
 
-            addMsg(text, 'user-msg');
+            addMsg(rawText, 'user-msg');
             input.value = "";
 
+            // Limpeza básica para o match
+            const userText = rawText.toLowerCase().replace(/[?.,!]/g, "").trim();
+
             try {
-                // A mágica acontece aqui: ele busca na pasta do modelo selecionado
-                const response = await fetch(`https://raw.githubusercontent.com/pitocoofc/Ia.ndj/main/modelos/${currentPath}/respostas.json`);
+                // Busca o JSON na pasta do modelo selecionado
+                const response = await fetch(`https://raw.githubusercontent.com/pitocoofc/jt/main/modelos/${currentPath}/respostas.json`);
                 const data = await response.json();
                 
+                let responseToUser = "";
+                let codeToUser = null;
                 let found = false;
-                const lowText = text.toLowerCase();
 
-                for (let key in data.keywords) {
-                    if (lowText.includes(key)) {
-                        const item = data.keywords[key];
-                        setTimeout(() => {
-                            if (item.codigo) {
-                                addMsgWithCode(item.texto, item.codigo);
-                            } else {
-                                addMsg(item.texto, 'ai-msg');
-                            }
-                        }, 500);
+                // Percorre as keywords do JSON
+                for (let keyGroup in data.keywords) {
+                    // Divide as chaves por vírgula
+                    const keys = keyGroup.split(',').map(k => k.trim().toLowerCase());
+
+                    // Verifica se o texto do usuário bate com alguma chave
+                    if (keys.some(k => userText === k || userText.includes(k))) {
+                        const item = data.keywords[keyGroup];
+                        
+                        // Sorteia resposta se houver ";"
+                        if (item.texto.includes(';')) {
+                            const frases = item.texto.split(';').map(f => f.trim());
+                            responseToUser = frases[Math.floor(Math.random() * frases.length)];
+                        } else {
+                            responseToUser = item.texto;
+                        }
+                        
+                        codeToUser = item.codigo || null;
                         found = true;
-                        break;
+                        break; 
                     }
                 }
 
+                // Resposta caso nada seja encontrado
                 if (!found) {
-                    setTimeout(() => addMsg(data.fallback || "Não encontrei nada sobre isso neste modelo.", 'ai-msg'), 500);
+                    if (data.fallback.includes(';')) {
+                        const fbs = data.fallback.split(';').map(f => f.trim());
+                        responseToUser = fbs[Math.floor(Math.random() * fbs.length)];
+                    } else {
+                        responseToUser = data.fallback;
+                    }
                 }
+
+                // Envia a mensagem da IA com um pequeno delay
+                setTimeout(() => {
+                    if (codeToUser) {
+                        addMsgWithCode(responseToUser, codeToUser);
+                    } else {
+                        addMsg(responseToUser, 'ai-msg');
+                    }
+                }, 550);
+
             } catch (err) {
-                addMsg(`Erro ao acessar base de dados /${currentPath}. Verifique se o arquivo existe no GitHub.`, 'ai-msg');
+                addMsg("Erro crítico: Base de dados offline ou inexistente.", 'ai-msg');
             }
         }
 
@@ -228,7 +262,7 @@
             const box = document.getElementById('chat-box');
             const m = document.createElement('div');
             m.className = 'msg ai-msg';
-            m.innerHTML = `<div>${text}</div><button class="view-code-btn" onclick="openCodeModal(\`${code}\`)">Visualizar Script</button>`;
+            m.innerHTML = `<div>${text}</div><button class="view-code-btn" onclick="openCodeModal(\`${code}\`)">Ver Código</button>`;
             box.appendChild(m);
             box.scrollTop = box.scrollHeight;
         }
@@ -243,5 +277,4 @@
         }
     </script>
 </body>
-                      </html>
-                      
+</html>
