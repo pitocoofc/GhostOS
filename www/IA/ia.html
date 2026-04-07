@@ -146,135 +146,187 @@
     </div>
 
     <script>
-        let currentPath = "v1";
+let currentPath = "v1";
 
-        // Inicia a sequência de Boot
-        function startSequence() {
+// MAPAS INTELIGENTES
+const mapaNumeros = {
+    "zero": 0, "um": 1, "dois": 2, "tres": 3, "quatro": 4,
+    "cinco": 5, "seis": 6, "sete": 7, "oito": 8, "nove": 9, "dez": 10
+};
+
+const mapaOperadores = {
+    "mais": "+", "+": "+",
+    "menos": "-", "-": "-",
+    "vezes": "*", "x": "*", "×": "*", "multiplicado": "*",
+    "dividido": "/", "/": "/"
+};
+
+// NORMALIZA TEXTO
+function normalizar(texto) {
+    return texto
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/(.)\1+/g, "$1")
+        .replace(/[^\w\s]/g, "")
+        .trim();
+}
+
+// TRADUZ FRASE → EXPRESSÃO
+function traduzirCalculo(texto) {
+    texto = normalizar(texto);
+    let palavras = texto.split(" ");
+    let resultado = [];
+
+    for (let p of palavras) {
+        if (mapaNumeros[p] !== undefined) {
+            resultado.push(mapaNumeros[p]);
+        } else if (mapaOperadores[p]) {
+            resultado.push(mapaOperadores[p]);
+        } else if (!isNaN(p)) {
+            resultado.push(p);
+        }
+    }
+
+    return resultado.join(" ");
+}
+
+// BOOT
+function startSequence() {
+    setTimeout(() => {
+        const splash = document.getElementById('splash-wrapper');
+        const main = document.getElementById('main-chat-screen');
+        
+        splash.style.opacity = '0';
+        setTimeout(() => {
+            splash.style.display = 'none';
+            main.style.display = 'flex';
+            setTimeout(() => main.classList.add('active'), 50);
+            addMsg("Conexão estável. Sou a Ndj-AI, como posso te ajudar hoje?", "ai-msg");
+        }, 800);
+    }, 2500);
+}
+
+// UI
+function toggleModelPanel() {
+    const panel = document.getElementById('model-panel');
+    panel.style.display = (panel.style.display === 'flex') ? 'none' : 'flex';
+}
+
+function selectModel(path, label) {
+    currentPath = path;
+    document.getElementById('current-model-tag').textContent = `Modelo: ${label}`;
+    document.querySelectorAll('.model-option').forEach(opt => {
+        opt.classList.remove('selected');
+        if(opt.textContent.includes(label)) opt.classList.add('selected');
+    });
+    addMsg(`Modelo alterado para: ${label}. Buscando em /${path}`, 'ai-msg');
+}
+
+// MENSAGEM
+async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const rawText = input.value.trim();
+    if (!rawText) return;
+
+    addMsg(rawText, 'user-msg');
+    input.value = "";
+
+    // 🔥 CALCULADORA INTELIGENTE
+    const expressao = traduzirCalculo(rawText);
+
+    if (/(\d+)\s*[\+\-\*\/]\s*(\d+)/.test(expressao)) {
+        try {
+            const resultado = eval(expressao);
             setTimeout(() => {
-                const splash = document.getElementById('splash-wrapper');
-                const main = document.getElementById('main-chat-screen');
+                addMsg(`🧠 ${expressao} = ${resultado}`, "ai-msg");
+            }, 400);
+            return;
+        } catch {
+            addMsg("Erro ao calcular 🤔", "ai-msg");
+            return;
+        }
+    }
+
+    // NORMAL MATCH
+    const userText = normalizar(rawText);
+
+    try {
+        const response = await fetch(`https://raw.githubusercontent.com/pitocoofc/jt/main/modelos/${currentPath}/respostas.json`);
+        const data = await response.json();
+        
+        let responseToUser = "";
+        let codeToUser = null;
+        let found = false;
+
+        for (let keyGroup in data.keywords) {
+            const keys = keyGroup.split(',').map(k => normalizar(k));
+
+            if (keys.some(k => userText === k || userText.includes(k))) {
+                const item = data.keywords[keyGroup];
                 
-                splash.style.opacity = '0';
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                    main.style.display = 'flex';
-                    setTimeout(() => main.classList.add('active'), 50);
-                    addMsg("Conexão estável. Sou a Ndj-AI, como posso te ajudar hoje?", "ai-msg");
-                }, 800);
-            }, 2500); // 2 segundos de pulso + transição
-        }
-
-        // Abre/Fecha o painel de modelos
-        function toggleModelPanel() {
-            const panel = document.getElementById('model-panel');
-            panel.style.display = (panel.style.display === 'flex') ? 'none' : 'flex';
-        }
-
-        // Seleciona a pasta do modelo
-        function selectModel(path, label) {
-            currentPath = path;
-            document.getElementById('current-model-tag').textContent = `Modelo: ${label}`;
-            document.querySelectorAll('.model-option').forEach(opt => {
-                opt.classList.remove('selected');
-                if(opt.textContent.includes(label)) opt.classList.add('selected');
-            });
-            addMsg(`Modelo alterado para: ${label}. Buscando em /${path}`, 'ai-msg');
-        }
-
-        // LÓGICA DE MENSAGENS E MATCH
-        async function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const rawText = input.value.trim();
-            if (!rawText) return;
-
-            addMsg(rawText, 'user-msg');
-            input.value = "";
-
-            // Limpeza básica para o match
-            const userText = rawText.toLowerCase().replace(/[?.,!]/g, "").trim();
-
-            try {
-                // Busca o JSON na pasta do modelo selecionado
-                const response = await fetch(`https://raw.githubusercontent.com/pitocoofc/jt/main/modelos/${currentPath}/respostas.json`);
-                const data = await response.json();
+                if (item.texto.includes(';')) {
+                    const frases = item.texto.split(';').map(f => f.trim());
+                    responseToUser = frases[Math.floor(Math.random() * frases.length)];
+                } else {
+                    responseToUser = item.texto;
+                }
                 
-                let responseToUser = "";
-                let codeToUser = null;
-                let found = false;
-
-                // Percorre as keywords do JSON
-                for (let keyGroup in data.keywords) {
-                    // Divide as chaves por vírgula
-                    const keys = keyGroup.split(',').map(k => k.trim().toLowerCase());
-
-                    // Verifica se o texto do usuário bate com alguma chave
-                    if (keys.some(k => userText === k || userText.includes(k))) {
-                        const item = data.keywords[keyGroup];
-                        
-                        // Sorteia resposta se houver ";"
-                        if (item.texto.includes(';')) {
-                            const frases = item.texto.split(';').map(f => f.trim());
-                            responseToUser = frases[Math.floor(Math.random() * frases.length)];
-                        } else {
-                            responseToUser = item.texto;
-                        }
-                        
-                        codeToUser = item.codigo || null;
-                        found = true;
-                        break; 
-                    }
-                }
-
-                // Resposta caso nada seja encontrado
-                if (!found) {
-                    if (data.fallback.includes(';')) {
-                        const fbs = data.fallback.split(';').map(f => f.trim());
-                        responseToUser = fbs[Math.floor(Math.random() * fbs.length)];
-                    } else {
-                        responseToUser = data.fallback;
-                    }
-                }
-
-                // Envia a mensagem da IA com um pequeno delay
-                setTimeout(() => {
-                    if (codeToUser) {
-                        addMsgWithCode(responseToUser, codeToUser);
-                    } else {
-                        addMsg(responseToUser, 'ai-msg');
-                    }
-                }, 550);
-
-            } catch (err) {
-                addMsg("Erro crítico: Base de dados offline ou inexistente.", 'ai-msg');
+                codeToUser = item.codigo || null;
+                found = true;
+                break; 
             }
         }
 
-        function addMsg(text, type) {
-            const box = document.getElementById('chat-box');
-            const m = document.createElement('div');
-            m.className = `msg ${type}`;
-            m.textContent = text;
-            box.appendChild(m);
-            box.scrollTop = box.scrollHeight;
+        if (!found) {
+            if (data.fallback.includes(';')) {
+                const fbs = data.fallback.split(';').map(f => f.trim());
+                responseToUser = fbs[Math.floor(Math.random() * fbs.length)];
+            } else {
+                responseToUser = data.fallback;
+            }
         }
 
-        function addMsgWithCode(text, code) {
-            const box = document.getElementById('chat-box');
-            const m = document.createElement('div');
-            m.className = 'msg ai-msg';
-            m.innerHTML = `<div>${text}</div><button class="view-code-btn" onclick="openCodeModal(\`${code}\`)">Ver Código</button>`;
-            box.appendChild(m);
-            box.scrollTop = box.scrollHeight;
-        }
+        setTimeout(() => {
+            if (codeToUser) {
+                addMsgWithCode(responseToUser, codeToUser);
+            } else {
+                addMsg(responseToUser, 'ai-msg');
+            }
+        }, 550);
 
-        function openCodeModal(code) {
-            document.getElementById('code-modal').style.display = 'flex';
-            document.getElementById('modal-code-text').textContent = code;
-        }
+    } catch (err) {
+        addMsg("Erro crítico: Base de dados offline ou inexistente.", 'ai-msg');
+    }
+}
 
-        function closeModal() {
-            document.getElementById('code-modal').style.display = 'none';
-        }
-    </script>
+// UI helpers
+function addMsg(text, type) {
+    const box = document.getElementById('chat-box');
+    const m = document.createElement('div');
+    m.className = `msg ${type}`;
+    m.textContent = text;
+    box.appendChild(m);
+    box.scrollTop = box.scrollHeight;
+}
+
+function addMsgWithCode(text, code) {
+    const box = document.getElementById('chat-box');
+    const m = document.createElement('div');
+    m.className = 'msg ai-msg';
+    m.innerHTML = `<div>${text}</div><button class="view-code-btn" onclick="openCodeModal(\`${code}\`)">Ver Código</button>`;
+    box.appendChild(m);
+    box.scrollTop = box.scrollHeight;
+}
+
+function openCodeModal(code) {
+    document.getElementById('code-modal').style.display = 'flex';
+    document.getElementById('modal-code-text').textContent = code;
+}
+
+function closeModal() {
+    document.getElementById('code-modal').style.display = 'none';
+}
+</script>
 </body>
 </html>
