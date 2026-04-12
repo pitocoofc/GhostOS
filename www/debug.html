@@ -570,7 +570,7 @@
 
         // --- LÓGICA DE SIMULACIÓN ---
 
-        function simulateHack() {
+                     function simulateHack() {
             if (hackInProgress) return;
             
             hackInProgress = true;
@@ -612,6 +612,7 @@
                         {text: "exit", delay: 500, isCommand: true, action: () => { currentPath = '~'; updatePrompt(); }},
                     ];
                     
+                    let finalDelay = 0;
                     finalSteps.forEach(step => {
                         setTimeout(() => {
                             addTerminalLine(step.text, step.type, step.isCommand);
@@ -619,10 +620,26 @@
                             
                             if (step.text.includes("Hack completado")) {
                                 addLog("Proceso de hacking completado: Acceso a DB 'usuarios'", "success");
-                                addLog("Alerta de Seguridad: Tráfico de red anómalo detectado. Nivel 5", "alert");
+                                
+                                // --- ENVIO PARA O SISTEMA CENTRAL (os.html) ---
+                                if (window.parent) {
+                                    window.parent.postMessage({ 
+                                        type: 'HACK_SUCCESS', 
+                                        target: 'WIFI_MODULE', 
+                                        action: 'ACTIVATE_RUNET' 
+                                    }, '*');
+                                }
+
+                                // Atualização visual do IP no Terminal
+                                const ipDisplay = document.querySelector('.text-xs.text-green-600');
+                                if (ipDisplay) {
+                                    ipDisplay.innerHTML = 'IP Enmascarada: <span style="color:#ff4444">95.161.226.13 (Рунет)</span>';
+                                    ipDisplay.classList.add('animate-pulse');
+                                }
+                                addLog("Sinal de rede enviado ao os.html", "success");
                             }
-                        }, totalDelay);
-                        totalDelay += step.delay;
+                        }, finalDelay);
+                        finalDelay += step.delay;
                     });
                     
                     setTimeout(() => {
@@ -630,10 +647,12 @@
                         startHackBtn.disabled = false;
                         startHackBtn.innerHTML = '<i class="fas fa-play mr-1"></i>Iniciar Hack';
                         commandInput.focus();
-                    }, totalDelay);
+                    }, finalDelay + 500);
                 });
             }, totalDelay);
         }
+
+
         
         // Procesar comandos de usuario
         function processCommand(command) {
