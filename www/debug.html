@@ -1,57 +1,768 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Hacker - Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
     <style>
-        /* Reset para garantir que o WebOS controle o preenchimento */
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden; /* Evita barra de rolagem dupla */
-            background-color: #1a1a1a; /* Cor de fundo padrão do seu sistema */
-            font-family: 'Courier New', Courier, monospace;
+        /* Tipografía y Base */
+        * { font-family: 'Share Tech Mono', monospace; }
+
+        /* ---- G L I T C H ---- */
+        .glitch {
+            text-shadow: 0.05em 0 0 rgba(0,255,0,.7),
+                         -0.025em -0.05em 0 rgba(0,100,0,.7),
+                         0.025em 0.05em 0 rgba(0,255,120,.7);
+            animation: glitch 650ms infinite;
         }
 
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
+        @keyframes glitch {
+            0%, 15% {
+                text-shadow: 0.05em 0 rgba(0,255,0,.8),
+                             -0.025em -0.05em rgba(0,120,0,.8),
+                             0.025em 0.05em rgba(0,200,140,.8);
+            }
+            16%, 49% {
+                text-shadow: -0.05em -0.025em rgba(0,255,100,.7),
+                             0.025em 0.025em rgba(0,150,255,.7),
+                             -0.05em -0.05em rgba(0,255,180,.7);
+            }
+            50%, 99% {
+                text-shadow: 0.025em 0.05em rgba(0,200,0,.7),
+                             0.05em 0 rgba(0,255,120,.7),
+                             0 -0.05em rgba(0,255,180,.7);
+            }
         }
 
-        /* O crédito discreto no topo ou rodapé */
-        .credits-bar {
-            background: #222;
-            color: #0f0;
+        /* ---- FONDO Y SCANLINE ---- */
+        .terminal-bg {
+            background-color: #000;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(0,80,0,0.25), transparent 50%),
+                radial-gradient(circle at 90% 60%, rgba(0,120,40,0.15), transparent 50%);
+        }
+        .scanline {
+            position: fixed; top: 0; width: 100%; height: 8px; pointer-events: none; z-index: 999;
+            background: linear-gradient(to bottom, transparent, rgba(0,255,0,.12), transparent);
+            animation: scan 6s linear infinite;
+        }
+        @keyframes scan { from { top: 0; } to { top: 100%; } }
+        .matrix-rain { position: fixed; inset: 0; opacity: .12; pointer-events: none; }
+        .matrix-column { position: absolute; font-size: 12px; color: #0f0; animation: rain linear infinite; }
+        @keyframes rain { from { top: -100px; } to { top: 100vh; } }
+
+        /* ---- TRAINING CUÁNTICO: Futurista/Surrealista ---- */
+        .quantum-trace {
+            background: rgba(0,20,0,.85);
+            border: 1px solid #00f5d4; /* Color cian */
+            height: 140px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 12px #00f5d455 inset;
+        }
+        .quantum-line {
+            position: absolute;
+            white-space: nowrap;
             font-size: 11px;
-            padding: 4px 10px;
-            border-bottom: 1px solid #333;
-            display: flex;
-            justify-content: space-between;
+            opacity: .45;
+            color: #00f5d4;
+            animation: qflow linear infinite;
+        }
+        @keyframes qflow {
+            0% { transform: translateX(0); opacity: .4; }
+            50% { transform: translateX(-60%); opacity: 1; }
+            100% { transform: translateX(0); opacity: .4; }
         }
 
-        iframe {
-            flex-grow: 1;
-            width: 100%;
-            border: none;
+        /* ---- EFECTOS CUÁNTICOS NUEVOS ---- */
+        .quantum-message {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            opacity: 0;
+            z-index: 20;
+            pointer-events: none;
+            text-shadow: 0 0 8px currentColor;
+            animation: quantum-burst 3s ease-out forwards;
         }
+
+        @keyframes quantum-burst {
+            0% { 
+                opacity: 0; 
+                transform: scale(0.2) rotate(-20deg); 
+                filter: blur(3px);
+            }
+            15% { 
+                opacity: 1; 
+                transform: scale(1.2) rotate(5deg); 
+                filter: blur(0px);
+            }
+            40% { 
+                opacity: 1; 
+                transform: scale(1) rotate(0deg); 
+            }
+            70% { 
+                opacity: 0.8; 
+                transform: scale(0.9) rotate(3deg); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: scale(0.5) rotate(10deg) translateY(-30px); 
+                filter: blur(2px);
+            }
+        }
+
+        .created-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff00ff;
+            text-shadow: 0 0 15px #ff00ff, 0 0 30px #ff00ff;
+            opacity: 0;
+            z-index: 30;
+            animation: created-pop 2s ease-out forwards;
+        }
+
+        @keyframes created-pop {
+            0% { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.3); 
+            }
+            20% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1.3); 
+            }
+            40% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1); 
+            }
+            80% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.8); 
+            }
+        }
+
+        /* ---- TERMINAL Y BOTONES ---- */
+        #terminal-output { scrollbar-width: none; -ms-overflow-style: none; }
+        #terminal-output::-webkit-scrollbar { display: none; }
+        .hacker-btn {
+            background: rgba(0,40,0,.7); border: 1px solid #064e3b; color: #4ade80;
+            padding: .35rem .6rem; border-radius: .35rem; transition: .25s; font-size: .85rem;
+        }
+        .hacker-btn:hover {
+            background: rgba(0,70,0,.9); border-color: #10b981; box-shadow: 0 0 6px #10b981; transform: translateY(-2px);
+        }
+        #system-logs div { padding-top: 1px; padding-bottom: 1px; }
+
     </style>
 </head>
-<body>
 
-<div class="app-container">
-    <header class="credits-bar">
-        <span>https://suger-play.vercel.app/</span>
-    </header>
+<body class="terminal-bg text-green-400 min-h-screen p-4">
 
-    <iframe 
-        src="https://suger-play.vercel.app/" 
-        title="Debug"
-        loading="lazy">
-    </iframe>
-</div>
+    <div class="matrix-rain" id="matrix-rain"></div>
+    <div class="scanline"></div>
 
+    <div class="w-full max-w-[1700px] mx-auto z-10 relative">
+
+        <header class="mb-6">
+            <h1 class="text-4xl font-bold text-center glitch">HACKER TERMINAL SIMULATOR</h1>
+        </header>
+
+        <div class="grid grid-cols-12 gap-4">
+
+            <div class="col-span-12 lg:col-span-3 space-y-4">
+
+                <div class="bg-black bg-opacity-80 border border-green-700 rounded-lg p-4 shadow-lg shadow-green-800/40">
+                    <h2 class="text-lg font-bold mb-3 text-green-400 border-b border-green-800 pb-1">
+                        <i class="fas fa-folder-open mr-1"></i> Archivos Accedidos
+                    </h2>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center"> <i class="fas fa-file-code mr-2"></i> <span>config_sistema.txt</span> </div>
+                        <div class="flex items-center"> <i class="fas fa-file-contract mr-2"></i> <span>usuarios_db.sql</span> </div>
+                        <div class="flex items-center"> <i class="fas fa-key mr-2"></i> <span>hashes_passwords.dat</span> </div>
+                    </div>
+                </div>
+
+                <div class="bg-black bg-opacity-80 border border-green-700 rounded-lg p-4 shadow-lg shadow-green-800/40">
+                    <h2 class="text-lg font-bold mb-3 text-green-400 border-b border-green-800 pb-1">
+                        <i class="fas fa-tools mr-1"></i> Herramientas
+                    </h2>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button class="hacker-btn" data-tool="nmap">Nmap</button>
+                        <button class="hacker-btn" data-tool="sqlmap">SQLmap</button>
+                        <button class="hacker-btn" data-tool="metasploit">Meta</button>
+                        <button class="hacker-btn" data-tool="wireshark">Wire</button>
+                        <button class="hacker-btn" data-tool="john">John</button>
+                        <button class="hacker-btn" data-tool="aircrack">Air</button>
+                        <button class="hacker-btn" data-tool="ls">LS</button>
+                        <button class="hacker-btn" data-tool="ping">Ping</button>
+                    </div>
+                </div>
+
+                <div class="bg-black bg-opacity-80 border border-emerald-600 rounded-lg p-4 shadow-lg shadow-emerald-800/40">
+                    <h2 class="text-lg font-bold mb-3 text-emerald-300 border-b border-emerald-800 pb-1">
+                        <i class="fas fa-brain mr-1"></i> Quantum LLM Training
+                    </h2>
+                    <div class="quantum-trace" id="quantum-trace-output"></div>
+                </div>
+
+            </div>
+
+            <div class="col-span-12 lg:col-span-6">
+                <div class="bg-black bg-opacity-90 border border-green-700 rounded-lg p-4 h-full shadow-lg shadow-green-900/40">
+
+                    <div id="terminal-output" class="h-[460px] overflow-y-auto text-sm p-2 border border-green-800 rounded mb-3">
+                        <div class="mb-1 text-green-400">Welcome to the Hacker Terminal Simulator.</div>
+                        <div class="mb-1 text-green-400">Type 'help' and press Enter to begin.</div>
+                    </div>
+
+                    <div class="flex items-center">
+                        <span class="text-green-400 mr-2" id="prompt">root@hackersim:~#</span>
+                        <input id="command-input"
+                               class="bg-transparent outline-none flex-grow"
+                               placeholder=""
+                               autofocus />
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-3">
+                        <button id="start-hack" class="hacker-btn bg-green-900/50 border-green-600">
+                            <i class="fas fa-play mr-1"></i> Iniciar Hack
+                        </button>
+                        <button id="clear-terminal" class="hacker-btn bg-gray-800 border-gray-600 text-gray-300">
+                            <i class="fas fa-broom mr-1"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-12 lg:col-span-3 space-y-4">
+
+                <div class="bg-black bg-opacity-80 border border-green-700 rounded-lg p-4 shadow-lg shadow-green-900/40">
+                    <h2 class="text-lg font-bold text-green-400 border-b border-green-800 pb-1">
+                        <i class="fas fa-clipboard-list mr-1"></i> Logs del Sistema
+                    </h2>
+                    <div id="system-logs" class="h-32 overflow-y-auto mt-2 p-2 bg-gray-900 border border-green-800 rounded text-xs"></div>
+                </div>
+
+                <div class="bg-black bg-opacity-80 border border-green-700 rounded-lg p-4 shadow-lg shadow-green-900/40">
+                    <h2 class="text-lg font-bold text-green-400 border-b border-green-800 pb-1">
+                        <i class="fas fa-server mr-1"></i> Estado del Sistema
+                    </h2>
+
+                    <div class="mt-3 space-y-3">
+                        <div>
+                            <div class="flex justify-between text-sm">
+                                <span>CPU</span> <span id="cpu-usage">--%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 h-2 rounded">
+                                <div id="cpu-bar" class="bg-green-600 h-2 rounded" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-sm">
+                                <span>RAM</span> <span id="ram-usage">--%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 h-2 rounded">
+                                <div id="ram-bar" class="bg-green-600 h-2 rounded" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-sm">
+                                <span>Banda</span> <span id="bandwidth-usage">-- Gbps</span>
+                            </div>
+                            <div class="w-full bg-gray-800 h-2 rounded">
+                                <div id="bandwidth-bar" class="bg-green-600 h-2 rounded" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="text-sm pt-1">
+                            <span class="text-green-500">Conexión:</span>
+                            <span id="connection-status">--</span>
+                            <p class="text-xs text-green-600">IP Enmascarada: 10.0.4.15 (TOR)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-center mt-4 text-green-700/70 text-xs">Simulador educativo — No afecta sistemas reales.</p>
+    </div>
+
+    <script>
+        // Elementos del DOM
+        const terminalOutput = document.getElementById('terminal-output');
+        const commandInput = document.getElementById('command-input');
+        const startHackBtn = document.getElementById('start-hack');
+        const clearTerminalBtn = document.getElementById('clear-terminal');
+        const systemLogs = document.getElementById('system-logs');
+        const hackerBtns = document.querySelectorAll('.hacker-btn');
+        const mainProgressBar = document.getElementById('main-progress-bar');
+        const promptText = document.getElementById('prompt');
+        const quantumTraceOutput = document.getElementById('quantum-trace-output');
+        
+        let hackInProgress = false;
+        let currentPath = '~';
+        let quantumMessageInterval;
+        
+        // --- UTILIDADES ---
+
+        // Inicializar Matrix Rain
+        function initMatrixRain() {
+            const matrixRain = document.getElementById('matrix-rain');
+            const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{};:|,./<>?';
+            const columns = Math.floor(window.innerWidth / 15);
+            
+            for (let i = 0; i < columns; i++) {
+                const column = document.createElement('div');
+                column.className = 'matrix-column';
+                column.style.left = `${i * 15}px`;
+                column.style.animationDuration = `${Math.random() * 8 + 5}s`;
+                column.style.animationDelay = `${Math.random() * 5}s`;
+                
+                let content = '';
+                const rows = Math.floor(window.innerHeight / 15) + 5;
+                for (let j = 0; j < rows; j++) {
+                    content += characters.charAt(Math.floor(Math.random() * characters.length));
+                }
+                column.textContent = content;
+                matrixRain.appendChild(column);
+            }
+        }
+
+        // Simulación de Trazado Cuántico (Surrealista)
+        function initQuantumTrace() {
+            const symbols = 'αβγδεζηθικλμνξοπρστυφχψωΩΦΠΣΨ01*+-=';
+            const totalLines = 6;
+            quantumTraceOutput.innerHTML = ''; // Limpiar previo
+
+            for (let i = 0; i < totalLines; i++) {
+                const line = document.createElement('div');
+                line.className = 'quantum-line';
+                line.style.top = `${i * 24}px`; // Mayor espaciado
+                line.style.animationDuration = `${Math.random() * 8 + 5}s`;
+                line.style.animationDelay = `${Math.random() * 3}s`;
+
+                let content = '';
+                for (let j = 0; j < 40; j++) { // Más largo
+                    content += symbols.charAt(Math.floor(Math.random() * symbols.length)) + ' ';
+                }
+                
+                line.textContent = content.repeat(3);
+                quantumTraceOutput.appendChild(line);
+            }
+        }
+
+        // Generar nombres de herramientas cuánticas aleatorios
+        function generateQuantumName() {
+            const prefixes = ['Cyber', 'Quantum', 'Neural', 'Hyper', 'Mega', 'Ultra', 'Xeno', 'Nano', 'Bio', 'Cyber', 'Dark', 'Shadow'];
+            const middles = ['Evasion', 'Shield', 'Matrix', 'Core', 'Net', 'Grid', 'Link', 'Sync', 'Flow', 'Pulse', 'Wave', 'Field'];
+            const suffixes = ['Trillion', 'Billion', 'X9000', 'Pro', 'Max', 'Ultra', 'X', 'Z', 'Prime', 'Elite', 'V2', 'MarkII'];
+            const numbers = Math.floor(Math.random() * 9999) + 1000;
+            
+            const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            const middle = middles[Math.floor(Math.random() * middles.length)];
+            const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+            
+            return `${prefix}${middle}-${numbers}${suffix}`;
+        }
+
+        // Mostrar mensaje cuántico aleatorio
+        function showQuantumMessage() {
+            const message = generateQuantumName();
+            const colors = ['#00ff88', '#ff0088', '#0088ff', '#ffaa00', '#aa00ff', '#00ffff', '#ff00ff'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Posición aleatoria dentro del contenedor
+            const posX = Math.random() * 80 + 10; // 10% a 90%
+            const posY = Math.random() * 80 + 10;
+            
+            const msgElement = document.createElement('div');
+            msgElement.className = 'quantum-message';
+            msgElement.textContent = message;
+            msgElement.style.left = `${posX}%`;
+            msgElement.style.top = `${posY}%`;
+            msgElement.style.color = color;
+            
+            // Duración y retraso aleatorio
+            const duration = Math.random() * 2 + 2.5; // 2.5 a 4.5 segundos
+            msgElement.style.animationDuration = `${duration}s`;
+            
+            quantumTraceOutput.appendChild(msgElement);
+            
+            // Eliminar después de la animación
+            setTimeout(() => {
+                if (msgElement.parentNode) {
+                    msgElement.remove();
+                }
+            }, duration * 1000);
+            
+            // Posibilidad de mostrar "Created..." después
+            if (Math.random() > 0.7) {
+                setTimeout(() => {
+                    showCreatedMessage();
+                }, duration * 500); // La mitad de la duración
+            }
+        }
+
+        // Mostrar mensaje "Created..."
+        function showCreatedMessage() {
+            const createdElement = document.createElement('div');
+            createdElement.className = 'created-message';
+            createdElement.textContent = 'Created: ' + generateQuantumName();
+            
+            quantumTraceOutput.appendChild(createdElement);
+            
+            setTimeout(() => {
+                if (createdElement.parentNode) {
+                    createdElement.remove();
+                }
+            }, 2000);
+        }
+
+        // Iniciar ciclo de mensajes cuánticos
+        function startQuantumMessages() {
+            // Mostrar el primer mensaje después de un tiempo aleatorio
+            const firstDelay = Math.random() * 3000 + 2000; // 2-5 segundos
+            setTimeout(() => {
+                showQuantumMessage();
+                
+                // Configurar intervalo para mensajes continuos
+                quantumMessageInterval = setInterval(() => {
+                    const nextDelay = Math.random() * 5000 + 3000; // 3-8 segundos entre mensajes
+                    setTimeout(showQuantumMessage, Math.random() * 1000);
+                }, 8000); // Intervalo base
+            }, firstDelay);
+        }
+        
+        // Actualizar métricas del sistema
+        function updateSystemMetrics() {
+            let baseCpu = hackInProgress ? 80 : 50;
+            let baseRam = hackInProgress ? 70 : 40;
+
+            const cpuUsage = Math.min(Math.floor(Math.random() * 15) + baseCpu, 99); 
+            const ramUsage = Math.min(Math.floor(Math.random() * 15) + baseRam, 99); 
+            const bandwidth = (Math.random() * 2 + 1.5).toFixed(2);
+            
+            document.getElementById('cpu-usage').textContent = `${cpuUsage}%`;
+            document.getElementById('cpu-bar').style.width = `${cpuUsage}%`;
+            document.getElementById('cpu-bar').className = `bg-${cpuUsage > 90 ? 'red' : cpuUsage > 75 ? 'yellow' : 'green'}-600 h-2 rounded`;
+            
+            document.getElementById('ram-usage').textContent = `${ramUsage}%`;
+            document.getElementById('ram-bar').style.width = `${ramUsage}%`;
+            document.getElementById('ram-bar').className = `bg-${ramUsage > 85 ? 'red' : ramUsage > 65 ? 'yellow' : 'green'}-600 h-2 rounded`;
+            
+            document.getElementById('bandwidth-usage').textContent = `${bandwidth} Gbps`;
+            document.getElementById('bandwidth-bar').style.width = `${Math.min(Math.floor((bandwidth / 4) * 100), 99)}%`;
+
+            // Estado de conexión
+            const connStatusElement = document.getElementById('connection-status');
+            if (hackInProgress && Math.random() > 0.8) {
+                connStatusElement.textContent = 'INESTABLE';
+                connStatusElement.className = 'text-yellow-500 animate-pulse';
+                mainProgressBar.className = 'h-full bg-yellow-600 animate-pulse';
+            } else if (hackInProgress) {
+                connStatusElement.textContent = 'MÁXIMA';
+                connStatusElement.className = 'text-red-500 animate-pulse';
+                mainProgressBar.className = 'h-full bg-red-600 animate-pulse';
+            } else {
+                connStatusElement.textContent = 'ACTIVA';
+                connStatusElement.className = 'text-green-500';
+                mainProgressBar.className = 'h-full bg-green-500';
+            }
+        }
+        
+        // Añadir log al sistema
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            const logEntry = document.createElement('div');
+            
+            let colorClass = 'text-green-500';
+            let icon = '<i class="fas fa-info-circle mr-1"></i>';
+            if (type === 'warning') { colorClass = 'text-yellow-500'; icon = '<i class="fas fa-exclamation-triangle mr-1"></i>'; }
+            if (type === 'error') { colorClass = 'text-red-500'; icon = '<i class="fas fa-times-circle mr-1"></i>'; }
+            if (type === 'success') { colorClass = 'text-green-400'; icon = '<i class="fas fa-check-circle mr-1"></i>'; }
+            if (type === 'alert') { colorClass = 'text-red-600 font-bold animate-pulse'; icon = '<i class="fas fa-radiation-alt mr-1"></i>'; }
+            
+            logEntry.className = colorClass;
+            logEntry.innerHTML = `${icon} [${timestamp}] ${message}`;
+            
+            systemLogs.appendChild(logEntry);
+            systemLogs.scrollTop = systemLogs.scrollHeight;
+            
+            if (systemLogs.children.length > 15) {
+                systemLogs.removeChild(systemLogs.firstChild);
+            }
+        }
+
+        // Función para agregar línea a la terminal
+        function addTerminalLine(text, type = 'info', isCommand = false) {
+            const line = document.createElement('div');
+            line.className = 'mb-1';
+            
+            let htmlContent = '';
+            if (isCommand) {
+                 htmlContent = `<span class="text-green-400">root@hackersim:${currentPath}#</span> ${text}`;
+            } else if (type === 'success') {
+                line.className += ' text-green-500';
+                htmlContent = `<i class="fas fa-check mr-2"></i>${text}`;
+            } else if (type === 'warning') {
+                line.className += ' text-yellow-400';
+                htmlContent = `<i class="fas fa-exclamation-triangle mr-2"></i>${text}`;
+            } else if (type === 'error') {
+                line.className += ' text-red-500';
+                htmlContent = `<i class="fas fa-times-circle mr-2"></i>${text}`;
+            } else {
+                line.className += ' text-green-400';
+                htmlContent = `${text}`;
+            }
+            
+            line.innerHTML = htmlContent;
+            terminalOutput.appendChild(line);
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            return line;
+        }
+
+        // Simular barra de progreso
+        function simulateProgressBar(finalStepCallback) {
+            const progressLine = addTerminalLine('Progreso: [                                      ] 0%');
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                const advance = Math.random() * (100 - progress) / 10 + 1; 
+                progress += advance;
+
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    progressLine.innerHTML = `<span class="text-green-500"><i class="fas fa-check mr-2"></i>Progreso: [${'█'.repeat(20)}] 100% - ¡COMPLETADO!</span>`;
+                    finalStepCallback();
+                    return;
+                }
+                
+                const percentage = Math.floor(progress);
+                const barsCount = Math.floor(percentage / 5);
+                const bars = '█'.repeat(barsCount) + (percentage < 100 ? '>' : '');
+                const spaces = ' '.repeat(20 - barsCount - (percentage < 100 ? 1 : 0));
+                
+                progressLine.innerHTML = `Progreso: [<span class="text-green-300">${bars}</span>${spaces}] ${percentage}%`;
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            }, 100);
+        }
+
+        // Actualizar la línea de comando (prompt)
+        function updatePrompt() {
+            promptText.textContent = `root@hackersim:${currentPath}#`;
+        }
+
+        // --- LÓGICA DE SIMULACIÓN ---
+
+        function simulateHack() {
+            if (hackInProgress) return;
+            
+            hackInProgress = true;
+            startHackBtn.disabled = true;
+            startHackBtn.innerHTML = '<i class="fas fa-sync-alt mr-1 animate-spin"></i>Hackeando...';
+            
+            terminalOutput.innerHTML = '';
+            currentPath = '~';
+            updatePrompt();
+            
+            const hackSteps = [
+                {text: "bash iniciando_secuencia_hack.sh", delay: 500, isCommand: true},
+                {text: "Conectando a la red objetivo (192.168.1.104)...", delay: 800},
+                {text: "Conexión establecida, sesión SSH activa.", type: "success", delay: 1000},
+                {text: "Ejecutando exploit/multi/http/tomcat_ghostcat...", delay: 800},
+                {text: "Vulnerabilidad detectada: Tomcat file read - **Bypassing security...**", type: "warning", delay: 1500},
+                {text: "Cargando payload (Meterpreter reverse_tcp)...", delay: 800},
+            ];
+            
+            let totalDelay = 0;
+            hackSteps.forEach(step => {
+                setTimeout(() => {
+                    addTerminalLine(step.text, step.type, step.isCommand);
+                }, totalDelay);
+                totalDelay += step.delay;
+            });
+            
+            setTimeout(() => {
+                simulateProgressBar(() => {
+                    const finalSteps = [
+                        {text: "Payload inyectado. Sesión Meterpreter 1 abierta.", type: "success", delay: 500},
+                        {text: "sysinfo: SO - Linux Debian; Arquitectura - x64; Dominio - TARGET-NET", delay: 800},
+                        {text: "shell: Subiendo privilegios a root...", delay: 1000},
+                        {text: "privileges escalated. uid=0(root) gid=0(root)", type: "success", delay: 1200},
+                        {text: "Cambiando directorio a /var/www/html/database", delay: 800, action: () => { currentPath = '/var/www/html'; updatePrompt(); }},
+                        {text: "ls -la", delay: 50, isCommand: true},
+                        {text: "usuarios.db (7.2MB) - **EXTRAYENDO DATOS**", type: "warning", delay: 1000},
+                        {text: "Hack completado. Cerrando sesión...", type: "success", delay: 1000},
+                        {text: "exit", delay: 500, isCommand: true, action: () => { currentPath = '~'; updatePrompt(); }},
+                    ];
+                    
+                    finalSteps.forEach(step => {
+                        setTimeout(() => {
+                            addTerminalLine(step.text, step.type, step.isCommand);
+                            if (step.action) step.action();
+                            
+                            if (step.text.includes("Hack completado")) {
+                                addLog("Proceso de hacking completado: Acceso a DB 'usuarios'", "success");
+                                addLog("Alerta de Seguridad: Tráfico de red anómalo detectado. Nivel 5", "alert");
+                            }
+                        }, totalDelay);
+                        totalDelay += step.delay;
+                    });
+                    
+                    setTimeout(() => {
+                        hackInProgress = false;
+                        startHackBtn.disabled = false;
+                        startHackBtn.innerHTML = '<i class="fas fa-play mr-1"></i>Iniciar Hack';
+                        commandInput.focus();
+                    }, totalDelay);
+                });
+            }, totalDelay);
+        }
+        
+        // Procesar comandos de usuario
+        function processCommand(command) {
+            command = command.trim();
+            const lowerCommand = command.toLowerCase();
+            let response = '';
+            let logMessage = '';
+            let logType = 'info';
+
+            addTerminalLine(command, 'info', true);
+            
+            if (lowerCommand === 'help' || lowerCommand === '?') {
+                response = `<div class="text-green-300">Comandos disponibles:</div><div class="ml-4"><div>• help, status, ls, cd [dir]</div><div>• scan [ip], connect [ip], clear</div></div>`;
+                logMessage = "Comandos de ayuda solicitados.";
+            } else if (lowerCommand === 'status') {
+                response = `<div class="text-green-300">Estado del sistema:</div><div class="ml-4"><div>• CPU: ${document.getElementById('cpu-usage').textContent}</div><div>• RAM: ${document.getElementById('ram-usage').textContent}</div><div>• Path Actual: ${currentPath}</div></div>`;
+                logMessage = "Revisión de estado del sistema.";
+            } else if (lowerCommand === 'ls' || lowerCommand.startsWith('ls -')) {
+                if (currentPath.includes('www/html')) {
+                    response = `<span class="text-yellow-500">total 24</span>\ndrwxr-xr-x 2 www-data www-data 4096 Jul 20 04:30 .\ndrwxr-xr-x 4 root root 4096 Jul 20 04:20 ..\n-rw-r--r-- 1 www-data www-data 612 Jul 20 04:30 index.html\n<span class="text-green-500">drwxr-xr-x 2 www-data www-data 4096 Jul 20 04:30 database/</span>\n-rwxr-xr-x 1 root root 2048 Jul 20 04:30 config.sys`;
+                } else {
+                    response = `Dir1/ Dir2/ log.txt users.dat`;
+                }
+                logMessage = `Listando contenido del directorio ${currentPath}.`;
+            } else if (lowerCommand.startsWith('cd ')) {
+                const targetDir = lowerCommand.split(' ')[1];
+                if (targetDir === '..' || targetDir === '~') {
+                    currentPath = targetDir === '..' ? '~' : '~';
+                } else if (currentPath === '~') {
+                    currentPath = `~/${targetDir}`;
+                } else {
+                    currentPath = `${currentPath}/${targetDir}`;
+                }
+                updatePrompt();
+                logMessage = `Cambiando directorio a ${currentPath}.`;
+            } else if (lowerCommand.startsWith('scan')) {
+                const ip = lowerCommand.split(' ')[1] || '192.168.1.1';
+                response = `<div class="text-green-300">Nmap 7.94 scan report for ${ip}</div><div class="ml-4"><div class="text-green-500">22/tcp open ssh</div><div class="text-yellow-500">3389/tcp open ms-wbt-server (vulnerable)</div><div class="text-red-500">5432/tcp closed postgresql</div></div>`;
+                logMessage = `Escaneo de puertos realizado en ${ip}.`;
+                logType = "warning";
+            } else if (lowerCommand.startsWith('connect')) {
+                const ip = lowerCommand.split(' ')[1] || '192.168.1.104';
+                response = `<span class="text-green-500">Conectando a ${ip}... Conexión Shell Exitosa.</span>`;
+                logMessage = `Conexión Shell establecida con ${ip}.`;
+                logType = "success";
+            } else if (lowerCommand === 'clear') {
+                terminalOutput.innerHTML = '';
+                logMessage = "Terminal limpiada por el usuario.";
+                return;
+            } else if (command) {
+                response = `<span class="text-red-500">bash: ${command}: command not found</span>`;
+                logMessage = `Comando inválido: ${command}`;
+                logType = "error";
+            }
+
+            if (response) {
+                const responseLine = document.createElement('div');
+                responseLine.className = 'mb-1';
+                responseLine.innerHTML = response;
+                terminalOutput.appendChild(responseLine);
+            }
+            
+            if (logMessage && lowerCommand !== 'clear') {
+                addLog(logMessage, logType);
+            }
+
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            commandInput.value = '';
+        }
+        
+        // --- EVENTOS ---
+        
+        startHackBtn.addEventListener('click', simulateHack);
+        clearTerminalBtn.addEventListener('click', () => {
+            terminalOutput.innerHTML = '';
+            addLog("Terminal limpiada", "info");
+        });
+        
+        commandInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                processCommand(commandInput.value);
+            }
+        });
+        
+        hackerBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tool = btn.getAttribute('data-tool');
+                const toolNames = {
+                    nmap: 'Nmap', sqlmap: 'SQLmap', metasploit: 'Metasploit', wireshark: 'Wireshark',
+                    john: 'John the Ripper', aircrack: 'Aircrack-ng', ls: 'ls', ping: 'Ping'
+                };
+                
+                addLog(`Herramienta iniciada: ${toolNames[tool]}`, "info");
+                
+                btn.classList.add('bg-green-900', 'text-green-300', 'shadow-green-500/50');
+                setTimeout(() => {
+                    btn.classList.remove('bg-green-900', 'text-green-300', 'shadow-green-500/50');
+                }, 500);
+
+                if (tool === 'nmap') commandInput.value = 'scan 192.168.1.1';
+                if (tool === 'sqlmap') commandInput.value = 'exploit CVE-2023-12345';
+                if (tool === 'john') commandInput.value = 'decrypt';
+                if (tool === 'ls') commandInput.value = 'ls -la';
+                if (tool === 'ping') commandInput.value = 'ping 192.168.1.104';
+                commandInput.focus();
+            });
+        });
+        
+        // --- INICIALIZACIÓN ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initMatrixRain();
+            initQuantumTrace();
+            startQuantumMessages(); // Iniciar mensajes cuánticos
+            
+            setInterval(updateSystemMetrics, 2000);
+            
+            setInterval(() => {
+                if (Math.random() > 0.6) {
+                    const randomLogs = ["Paquete transmitido túnel encriptado", "Verificación integridad archivos OK", "Proceso de encriptación AES-256 en curso", "Proxy anónimo configurado", "Escaneo silencioso - Puerto 80"];
+                    addLog(randomLogs[Math.floor(Math.random() * randomLogs.length)], "info");
+                }
+            }, 5000);
+            
+            addLog("Sistema de simulación hacker inicializado. Escribe 'help'", "success");
+            
+            updateSystemMetrics();
+            updatePrompt();
+        });
+    </script>
 </body>
 </html>
-
