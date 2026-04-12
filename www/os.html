@@ -431,6 +431,40 @@ updateClock();
             if(show) panel.classList.add('active');
             else panel.classList.remove('active');
         }
+        // --- KERNEL MESSAGE ROUTER (os.html) ---
+
+window.addEventListener('message', (event) => {
+    // 1. Validar se a mensagem vem do Terminal com o sinal de sucesso
+    if (event.data.type === 'HACK_SUCCESS') {
+        console.log("OS: Terminal relatou invasão bem-sucedida. Redirecionando comando...");
+
+        // 2. Localizar o módulo de Wi-Fi entre os iframes do sistema
+        // Procuramos por todos os iframes para garantir que pegamos o correto
+        const systemFrames = document.querySelectorAll('iframe');
+        let moduleFound = false;
+
+        systemFrames.forEach(frame => {
+            try {
+                // Verificamos se o src do iframe contém 'wifi.html'
+                if (frame.src.includes('wifi.html')) {
+                    // Envia o sinal específico que o seu wifi.html já espera
+                    frame.contentWindow.postMessage({ type: 'ACTIVATE_RUNET' }, '*');
+                    moduleFound = true;
+                }
+            } catch (err) {
+                // Ignora frames de domínios externos por segurança
+            }
+        });
+
+        // 3. Log de controle no console do Kernel
+        if (moduleFound) {
+            console.log("OS: Comando enviado para o módulo Wi-Fi com sucesso.");
+        } else {
+            console.warn("OS: Módulo Wi-Fi não encontrado ou não está carregado.");
+        }
+    }
+});
+        
     </script>
 </body>
 </html>
