@@ -259,6 +259,40 @@
                 document.getElementById('active-net-name').innerText = "Desativado";
             }
         }
+        // Listener para receber comandos de outros apps (como o Terminal)
+window.addEventListener('message', (event) => {
+    if (event.data.type === 'ACTIVATE_RUNET') {
+        aplicarMascaraRussa();
+    }
+});
+
+function aplicarMascaraRussa() {
+    const nameElem = document.getElementById('active-net-name');
+    const ipElem = document.getElementById('stat-ip');
+    const card = document.getElementById('active-net-card');
+    
+    // Animação de Glitch visual rápida
+    card.style.filter = 'hue-rotate(180deg) brightness(1.2)';
+    
+    setTimeout(() => {
+        nameElem.innerText = "Рунет (Protected)"; // Nome em Russo
+        ipElem.innerText = "95.161.226.13"; // IP de São Petersburgo, Rússia
+        ipElem.style.color = "#ff4444";
+        
+        // Adiciona um log interno se você tiver sistema de notificações
+        console.log("MÁSCARA DE IP ATIVA: Origem RU-VNET");
+        card.style.filter = 'none';
+    }, 500);
+}
+
+// Modifique sua função connectToNetwork para resetar a máscara
+const originalConnect = connectToNetwork;
+connectToNetwork = function(newName, newIp) {
+    // Se conectar a outra rede, o IP volta ao normal
+    document.getElementById('stat-ip').style.color = ""; 
+    originalConnect(newName, newIp);
+};
+        
     </script>
 </body>
 </html>
