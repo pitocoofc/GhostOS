@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lingva Lite Pro</title>
+    <style>
+        :root { --bg: #d1e7dd; --card: #ffffff; --text: #1a1a1a; --border: #a3cfbb; --accent: #198754; }
+        body.dark { --bg: #1a1a1a; --card: #2d2d2d; --text: #e0e0e0; --border: #444; --accent: #22c55e; }
+
+        body { background-color: var(--bg); color: var(--text); font-family: sans-serif; transition: 0.3s; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 10px; }
+        
+        .header { width: 100%; max-width: 500px; display: flex; justify-content: space-between; align-items: center; padding: 15px; }
+        .logo { font-size: 22px; font-weight: bold; color: var(--accent); }
+        
+        .controls button { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 8px; cursor: pointer; color: var(--text); }
+
+        .container { width: 100%; max-width: 500px; background: var(--card); border-radius: 12px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid var(--border); box-sizing: border-box; }
+        
+        .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
+        select { background: transparent; border: 1px solid var(--border); color: var(--accent); font-weight: bold; font-size: 14px; padding: 5px; border-radius: 5px; flex: 1; outline: none; }
+        
+        .swap-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--accent); padding: 0 5px; }
+
+        textarea { width: 100%; height: 110px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; box-sizing: border-box; background: transparent; color: var(--text); font-size: 16px; resize: none; }
+        
+        .btn-main { width: 100%; background: var(--accent); color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 15px 0; }
+        
+        .result-box { width: 100%; min-height: 100px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; box-sizing: border-box; background: var(--bg); position: relative; }
+        
+        .audio-btn { position: absolute; bottom: 8px; right: 8px; background: var(--accent); color: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        #instancia { font-size: 10px; margin-top: 15px; color: #888; border: none; width: auto; background: transparent; }
+
+        /* Ajuste do Footer */
+        footer { 
+            margin-top: 20px; 
+            padding: 15px; 
+            font-size: 11px; 
+            color: var(--accent); 
+            text-align: center; 
+            line-height: 1.5;
+            width: 100%;
+            max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">Lingva Lite</div>
+        <div class="controls">
+            <button onclick="toggleTheme()" id="theme-icon">🌙</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <select id="lang-src"></select>
+            <button class="swap-btn" onclick="inverter()">⇄</button>
+            <select id="lang-tgt"></select>
+        </div>
+
+        <textarea id="input-text" placeholder="Digite o texto..."></textarea>
+        
+        <button class="btn-main" onclick="traduzir()">TRADUZIR</button>
+
+        <div class="result-box">
+            <div id="output-text">Sua tradução...</div>
+            <button class="audio-btn" onclick="ouvir()">🔊</button>
+        </div>
+        
+        <select id="instancia">
+            <option value="https://lingva.ml/api/v1">Server: Principal</option>
+            <option value="https://lingva.garudalinux.org/api/v1">Server: Garuda</option>
+            <option value="https://translate.plausibil.it/api/v1">Server: Plausibil</option>
+        </select>
+    </div>
+
+    <footer>
+        © 2021 thedaviddelta & contributors<br>
+        Licensed under AGPLv3<br>
+        Altered by <b>Ghost</b>
+    </footer>
+
+    <script>
+        const idiomas = [
+            {code: 'de', name: 'Alemão'}, {code: 'ar', name: 'Árabe'}, {code: 'zh', name: 'Chinês'},
+            {code: 'ko', name: 'Coreano'}, {code: 'es', name: 'Espanhol'}, {code: 'fr', name: 'Francês'},
+            {code: 'hi', name: 'Hindi'}, {code: 'en', name: 'Inglês'}, {code: 'it', name: 'Italiano'},
+            {code: 'ja', name: 'Japonês'}, {code: 'pt', name: 'Português'}, {code: 'ru', name: 'Russo'}
+        ].sort((a, b) => a.name.localeCompare(b.name));
+
+        const srcSelect = document.getElementById('lang-src');
+        const tgtSelect = document.getElementById('lang-tgt');
+
+        idiomas.forEach(lang => {
+            srcSelect.add(new Option(lang.name, lang.code));
+            tgtSelect.add(new Option(lang.name, lang.code));
+        });
+
+        srcSelect.value = 'pt';
+        tgtSelect.value = 'en';
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            document.getElementById('theme-icon').innerText = document.body.classList.contains('dark') ? '☀️' : '🌙';
+        }
+
+        function inverter() {
+            const temp = srcSelect.value;
+            srcSelect.value = tgtSelect.value;
+            tgtSelect.value = temp;
+        }
+
+        async function traduzir() {
+            const text = document.getElementById('input-text').value;
+            const output = document.getElementById('output-text');
+            const instancia = document.getElementById('instancia').value;
+            
+            if (!text) return;
+            output.innerText = "Traduzindo...";
+
+            try {
+                const url = `${instancia}/${srcSelect.value}/${tgtSelect.value}/${encodeURIComponent(text)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                output.innerText = data.translation || "Erro na resposta.";
+            } catch (err) {
+                output.innerText = "Erro de conexão. Troque a instância.";
+            }
+        }
+
+        function ouvir() {
+            const text = document.getElementById('output-text').innerText;
+            if (!text || text === "Sua tradução...") return;
+            
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = tgtSelect.value;
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(msg);
+        }
+    </script>
+</body>
+</html>
