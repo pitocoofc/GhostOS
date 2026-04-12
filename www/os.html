@@ -433,37 +433,33 @@ updateClock();
         }
         // --- KERNEL MESSAGE ROUTER (os.html) ---
 
+// Memória do Sistema
+let hackAtivo = false;
+
 window.addEventListener('message', (event) => {
-    // 1. Validar se a mensagem vem do Terminal com o sinal de sucesso
+    // 1. O Terminal avisa que o hack terminou
     if (event.data.type === 'HACK_SUCCESS') {
-        console.log("OS: Terminal relatou invasão bem-sucedida. Redirecionando comando...");
+        hackAtivo = true;
+        console.log("Kernel: Status de Hack salvo na memória.");
+    }
 
-        // 2. Localizar o módulo de Wi-Fi entre os iframes do sistema
-        // Procuramos por todos os iframes para garantir que pegamos o correto
-        const systemFrames = document.querySelectorAll('iframe');
-        let moduleFound = false;
-
-        systemFrames.forEach(frame => {
-            try {
-                // Verificamos se o src do iframe contém 'wifi.html'
-                if (frame.src.includes('wifi.html')) {
-                    // Envia o sinal específico que o seu wifi.html já espera
+    // 2. Sempre que QUALQUER iframe carregar, o Kernel tenta injetar o sinal
+    // Isso resolve o problema de abrir o wifi.html depois
+    if (event.data.type === 'IFRAME_LOADED' || hackAtivo) {
+        const frames = document.querySelectorAll('iframe');
+        frames.forEach(frame => {
+            // Se o arquivo sendo aberto for o wifi
+            if (frame.src.includes('wifi.html')) {
+                // Dá um tempinho para o HTML do wifi carregar e envia
+                setTimeout(() => {
                     frame.contentWindow.postMessage({ type: 'ACTIVATE_RUNET' }, '*');
-                    moduleFound = true;
-                }
-            } catch (err) {
-                // Ignora frames de domínios externos por segurança
+                    console.log("Kernel: Proxy Russo injetado no novo frame de Wi-Fi.");
+                }, 100); 
             }
         });
-
-        // 3. Log de controle no console do Kernel
-        if (moduleFound) {
-            console.log("OS: Comando enviado para o módulo Wi-Fi com sucesso.");
-        } else {
-            console.warn("OS: Módulo Wi-Fi não encontrado ou não está carregado.");
-        }
     }
 });
+
         
     </script>
 </body>
