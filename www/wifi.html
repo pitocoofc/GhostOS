@@ -150,6 +150,16 @@
     </div>
 
     <script>
+        // Avisa o OS que eu acabei de abrir e estou pronto
+window.parent.postMessage({ type: 'IFRAME_LOADED' }, '*');
+
+// O seu listener que já existe continua igual:
+window.addEventListener('message', (event) => {
+    if (event.data.type === 'ACTIVATE_RUNET') {
+        aplicarMascaraRussa();
+    }
+});
+        
         const CORRECT_PASSWORD = "1234"; // Defina a senha aqui
         let currentGasto = 25;
 
