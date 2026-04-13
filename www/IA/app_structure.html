@@ -1,1 +1,162 @@
 
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ndj-Neo v2 | Image Studio</title>
+    <style>
+        /* CSS PR?PRIO DO M?DULO (Mantendo a identidade da Ndj-AI) */
+        :root {
+            --bg-primary: #0a0a0a;
+            --accent-color: #00ff88; /* Verde Neo */
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --text-main: #e0e0e0;
+            --border-color: #333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        body, html { height: 100%; width: 100%; overflow: hidden; background-color: var(--bg-primary); font-family: 'Inter', -apple-system, sans-serif; color: var(--text-main); }
+
+        /* HEADER MODULAR */
+        #neo-header {
+            padding: 20px; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+            background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+        }
+        #app-name-v2 { font-weight: 600; font-size: 1.1rem; letter-spacing: 1px; color: #fff; }
+        .voltar-btn { background: var(--glass-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.3s; }
+        .voltar-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); }
+
+        /* ?REA DE EXIBI??O DA IMAGEM */
+        #studio-container {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px;
+            height: calc(100% - 160px); /* Desconta header e footer */
+        }
+
+        #image-viewer {
+            width: 100%; max-width: 500px; height: 350px;
+            background: #000; border: 2px solid var(--border-color); border-radius: 15px;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        #generated-image {
+            width: 100%; height: 100%; object-fit: cover;
+            opacity: 0; /* Come?a invis?vel para a anima??o */
+            transition: opacity 3s ease; /* Anima??o de 3 segundos */
+        }
+
+        #generated-image.visible { opacity: 1; }
+
+        /* LOADER (Seta girando) */
+        #loader {
+            display: none; /* Come?a escondido */
+            width: 50px; height: 50px;
+            border: 5px solid rgba(255,255,255,0.1);
+            border-top: 5px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            position: absolute;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* FOOTER DE ENTRADA (O Prompt "falso") */
+        #neo-footer {
+            position: fixed; bottom: 0; width: 100%; padding: 20px;
+            background: transparent;
+        }
+        .input-prompt-wrapper {
+            display: flex; align-items: center; background: #161616;
+            border-radius: 18px; padding: 6px 16px; border: 1px solid #252525;
+            box-shadow: 0 -5px 30px rgba(0,0,0,0.3);
+        }
+        #promptInput { flex: 1; border: none; background: transparent; color: #fff; padding: 12px; font-size: 0.95rem; }
+        
+        #generateBtn {
+            background: var(--accent-color); color: #000; border: none;
+            padding: 10px 20px; border-radius: 12px; font-weight: bold; font-size: 0.9rem;
+            cursor: pointer; transition: 0.3s;
+        }
+        #generateBtn:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(0,255,136,0.5); }
+        #generateBtn:disabled { background: #333; color: #888; cursor: not-allowed; transform: scale(1); box-shadow: none; }
+
+    </style>
+</head>
+<body>
+
+    <div id="neo-header">
+        <div id="app-name-v2">Ndj-Neo Image Studio</div>
+        <button class="voltar-btn" onclick="window.location.href = 'index.html'">Acessar Ndj-Core v1</button>
+    </div>
+
+    <div id="studio-container">
+        <div id="image-viewer">
+            <div id="loader"></div> <img id="generated-image" src="" alt="Sua imagem gerada aparecer? aqui">
+        </div>
+    </div>
+
+    <div id="neo-footer">
+        <div class="input-prompt-wrapper">
+            <input type="text" id="promptInput" placeholder="Descreva a imagem que deseja criar... (ex: Gato astronauta em Marte)">
+            <button id="generateBtn" onclick="simularGeracaoDeImagem()">Gerar Imagem</button>
+        </div>
+    </div>
+
+    <script>
+        // JAVASCRIPT EXCLUSIVO DA v2
+
+        function simularGeracaoDeImagem() {
+            const input = document.getElementById('promptInput');
+            const btn = document.getElementById('generateBtn');
+            const loader = document.getElementById('loader');
+            const img = document.getElementById('generated-image');
+            const prompt = input.value.trim();
+
+            if (!prompt) {
+                alert("Por favor, descreva a imagem primeiro!");
+                return;
+            }
+
+            // 1. Prepara a UI (Desativa bot?o, limpa imagem anterior, mostra loader)
+            btn.disabled = true;
+            btn.textContent = "Processando...";
+            input.disabled = true;
+            img.classList.remove('visible'); // Esconde a imagem antiga
+            img.src = ""; // Limpa a fonte
+
+            // 2. Mostra o Loader (seta girando)
+            loader.style.display = "block";
+
+            // 3. Simula o tempo de "gera??o consciente" (2 segundos girando)
+            setTimeout(() => {
+                // 4. Loader some
+                loader.style.display = "none";
+                
+                // 5. Define a URL da imagem (Usando Picsum Photos WebP para performance)
+                // Usamos o prompt como semente aleat?ria para fingir conex?o
+                const randomId = btoa(prompt).substring(0, 10); // Gera um ID baseado no texto
+                img.src = `https://picsum.photos/500/350.webp?blur=1&random=${randomId}`;
+
+                // 6. Faz a imagem aparecer lentamente (Anima??o de 3 segundos via CSS)
+                img.onload = function() {
+                    img.classList.add('visible');
+                    
+                    // 7. Reativa a UI ap?s a anima??o de opacidade come?ar
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = "Gerar Novamente";
+                        input.disabled = false;
+                    }, 3000); // Aguarda a anima??o de opacidade terminar
+                };
+
+            }, 2000); // 2 segundos de loading (seta girando)
+        }
+    </script>
+</body>
+</html>
