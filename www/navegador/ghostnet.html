@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ghost Search OS</title>
+
+<style>
+:root {
+    --primary: #3b82f6;
+    --danger: #ef4444;
+    --bg: #050505;
+    --bar-bg: #fce4e4; /* Cor da sua imagem */
+    --text-dark: #333;
+    --glass: rgba(255, 255, 255, 0.05);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+
+body { background: var(--bg); color: #fff; height: 100vh; overflow: hidden; }
+
+/* 🏠 HOME */
+#home {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle, #111 0%, #000 100%);
+}
+
+.logo { 
+    font-size: 42px; 
+    font-weight: 800; 
+    margin-bottom: 30px; 
+    background: linear-gradient(to right, #fff, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.search-box {
+    display: flex;
+    width: 90%;
+    max-width: 600px;
+    background: var(--glass);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.search-box input {
+    flex: 1; border: none; outline: none; background: transparent; color: white; padding: 12px; font-size: 16px;
+}
+
+/* 🔵 TOP BAR (IGUAL À FOTO) */
+.topbar {
+    position: fixed;
+    top: 0; width: 100%;
+    height: 60px;
+    display: none; 
+    align-items: center;
+    padding: 0 15px;
+    background: var(--bar-bg);
+    z-index: 1000;
+}
+
+.url-container {
+    flex: 1;
+    background: rgba(255,255,255,0.6);
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    padding: 5px 15px;
+    margin-right: 10px;
+}
+
+.url-static-prefix { color: #888; font-size: 14px; margin-right: 2px; }
+
+.url-input-field {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: #333;
+    font-size: 14px;
+    outline: none;
+}
+
+.menu-trigger {
+    font-size: 28px;
+    color: var(--text-dark);
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* 📱 DROPDOWN MENU */
+.dropdown {
+    position: absolute;
+    top: 65px; right: 15px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    display: none;
+    flex-direction: column;
+    width: 200px;
+    overflow: hidden;
+    z-index: 3000;
+}
+
+.dropdown-item {
+    padding: 15px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    font-weight: 500;
+}
+
+.dropdown-item:hover { background: #f0f0f0; }
+
+/* ⚠️ MODAL ANIMADO (FILTRO) */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.95);
+    backdrop-filter: blur(10px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+}
+
+.modal {
+    background: #0a0a0a;
+    border: 1px solid #333;
+    padding: 30px;
+    border-radius: 20px;
+    max-width: 400px; width: 90%;
+}
+
+.typewriter-text {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #00ff41;
+    margin-bottom: 25px;
+    min-height: 50px;
+}
+
+/* 🌐 IFRAME AREA */
+iframe {
+    width: 100%;
+    height: calc(100vh - 60px);
+    margin-top: 60px;
+    border: none;
+    display: none;
+    background: white;
+}
+</style>
+</head>
+<body>
+
+<div class="modal-overlay" id="securityModal">
+    <div class="modal">
+        <h2 style="color:var(--danger); margin-bottom:10px;">SEGURANÇA</h2>
+        <div class="typewriter-text" id="modalDesc"></div>
+        <div style="display:flex; gap:10px;">
+            <button onclick="closeModal()" style="flex:1; padding:12px; background:#222; color:#fff; border:none; border-radius:8px; cursor:pointer;">Abortar</button>
+            <button id="btnProceed" style="flex:1; padding:12px; background:var(--danger); color:#fff; border:none; border-radius:8px; cursor:pointer;">Acessar</button>
+        </div>
+    </div>
+</div>
+
+<div class="topbar" id="topbar">
+    <div class="url-container">
+        <span class="url-static-prefix">ghostsearch.gt/</span>
+        <input class="url-input-field" id="urlbar" onkeydown="handleBar(event)">
+    </div>
+    <div class="menu-trigger" onclick="toggleMenu()">⋮</div>
+
+    <div class="dropdown" id="menuDropdown">
+        <div class="dropdown-item" onclick="goBack()"><span>⬅</span> Voltar Página</div>
+        <div class="dropdown-item" onclick="goHome()"><span>🏠</span> Ir para Home</div>
+        <div class="dropdown-item" onclick="openLocalFile('seu-arquivo.html')"><span>📄</span> Arquivo Local</div>
+    </div>
+</div>
+
+<div id="home">
+    <div class="logo">Ghost Search OS</div>
+    <div class="search-box">
+        <input id="search" placeholder="Pesquisar na web..." onkeydown="handleSearch(event)">
+        <button onclick="search()" style="background:var(--primary); border:none; color:white; padding:0 15px; border-radius:10px; cursor:pointer;">➜</button>
+    </div>
+</div>
+
+<iframe id="frame"></iframe>
+
+<script>
+const BASE = "https://g-jxlf.onrender.com";
+let historyStack = [];
+let currentIndex = -1;
+const SAFE_DOMAINS = ["g-jxlf.onrender.com", "wikipedia.org", "github.com", "google.com", "youtube.com", "developer.mozilla.org"];
+
+function toggleMenu() {
+    const m = document.getElementById("menuDropdown");
+    m.style.display = m.style.display === "flex" ? "none" : "flex";
+}
+
+// Fecha menu ao clicar fora
+window.onclick = (e) => { if(!e.target.matches('.menu-trigger')) document.getElementById("menuDropdown").style.display = "none"; }
+
+function typeWrite(text, elementId) {
+    const el = document.getElementById(elementId);
+    el.innerHTML = ""; let i = 0;
+    function type() {
+        if (i < text.length) { el.innerHTML += text.charAt(i); i++; setTimeout(type, 20); }
+    }
+    type();
+}
+
+function openPage(url, title) {
+    const load = () => {
+        const frame = document.getElementById("frame");
+        frame.src = url;
+        document.getElementById("home").style.display = "none";
+        document.getElementById("topbar").style.display = "flex";
+        frame.style.display = "block";
+        document.getElementById("urlbar").value = title;
+
+        currentIndex++;
+        historyStack.splice(currentIndex);
+        historyStack.push({url, title});
+    };
+
+    const isSafe = SAFE_DOMAINS.some(d => url.includes(d));
+    if (url.startsWith("http") && !isSafe) {
+        document.getElementById("securityModal").style.display = "flex";
+        typeWrite(`ATENÇÃO: Conexão externa detectada para [${url}]. Deseja ignorar o protocolo de segurança?`, "modalDesc");
+        document.getElementById("btnProceed").onclick = () => { closeModal(); load(); };
+    } else { load(); }
+}
+
+function goBack() {
+    if (currentIndex > 0) {
+        currentIndex--;
+        const p = historyStack[currentIndex];
+        document.getElementById("frame").src = p.url;
+        document.getElementById("urlbar").value = p.title;
+    } else { goHome(); }
+}
+
+function goHome() {
+    currentIndex = -1; historyStack = [];
+    document.getElementById("frame").style.display = "none";
+    document.getElementById("topbar").style.display = "none";
+    document.getElementById("home").style.display = "flex";
+}
+
+function openLocalFile() {
+// Redireciona imediatamente ao carregar a página
+window.location.href = "ia.html";
+}
+
+function closeModal() { document.getElementById("securityModal").style.display = "none"; }
+function search() { 
+    const q = document.getElementById("search").value; 
+    if(q) openPage(`${BASE}/search?q=${encodeURIComponent(q)}`, q); 
+}
+function handleSearch(e) { if(e.key === "Enter") search(); }
+function handleBar(e) {
+    if(e.key === "Enter") {
+        let v = document.getElementById("urlbar").value;
+        let url = v.includes(".") ? (v.startsWith("http") ? v : "https://"+v) : `${BASE}/search?q=${encodeURIComponent(v)}`;
+        openPage(url, v);
+    }
+}
+</script>
+</body>
+</html>
