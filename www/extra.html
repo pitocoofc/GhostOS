@@ -53,8 +53,8 @@
         // HIERARQUIA AUTOMÁTICA: Basta adicionar o nome do arquivo aqui
         // O sistema cuida do ícone e do botão sozinho.
         const games = [
-            "extra/dex.html"
-            "extra/Graphic.html"
+            "extra/Graphic.html",
+            "extra/dex.html,
         ];
 
         const listContainer = document.getElementById('game-list');
@@ -76,7 +76,6 @@
                 if(file.includes("tetris")) icon = "🟦";
                 if(file.includes("click")) icon = "☝️";
                 if(file.includes("snake")) icon = "🐍";
-                if(file.includes("Graphic")) icon = "🎮";
 
                 btn.innerHTML = `
                     <div class="icon">${icon}</div>
