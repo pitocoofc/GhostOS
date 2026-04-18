@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -17,11 +18,17 @@
             padding: 20px; cursor: pointer; text-align: center;
             transition: 0.2s; font-size: 13px; text-transform: uppercase;
         }
+.nexo-bt2n {
+            background: #001100; border: 1px solid #0f0; color: #0f0;
+            padding: 20px; cursor: pointer; text-align: center;
+            transition: 0.2s; font-size: 13px; text-transform: uppercase;
+        }
         .nexo-btn:active { background: #0f0; color: #000; }
+.nexo-bt2n:active { background: #0f0; color: #000; }
 
         /* TERMINAL DE VERIFICAÇÃO */
         #term-box {
-            background: #000; border: 1px solid #333; height: 150px;
+          background: #000; border: 1px solid #333; height: 150px;
             padding: 10px; font-size: 11px; overflow-y: auto; margin-bottom: 20px;
             color: #0c0; line-height: 1.5;
         }
@@ -50,9 +57,10 @@
     </div>
 
     <div class="btn-grid">
-        <button class="nexo-btn" onclick="verifySoftware()">Verificação de Software</button>
+        <button class="nexo-btn" onclick="verifySoftware()">Update verify</button>
         <button class="nexo-btn" onclick="openOptions()">System Options</button>
         <button class="nexo-btn" onclick="fullReset()" style="border-color: #f00; color: #f00;">Hard Reset (Cache)</button>
+<button class="nexo-bt2n" onclick="verifyLocal()">Verificação de Arquivos</button>
         <button class="nexo-btn" onclick="window.location.href='os.html'">Return to OS</button>
     </div>
 
@@ -96,19 +104,363 @@
 
         // 2. VERIFICAÇÃO DE SOFTWARE (SIMULADA)
         async function verifySoftware() {
-            log("Iniciando verificação de integridade...");
-            log("Lendo 'app_list.conf'...");
-            
-            const appsParaVerificar = ["Ajustes", "Arquivos", "Notas", "Terminal"];
-            
-            for(let app of appsParaVerificar) {
-                await new Promise(r => setTimeout(r, 600));
-                log(`Verificando binários: ${app}... [OK]`);
-            }
-            
-            log("Varredura geral de diretórios concluída.");
-            log("Sincronização 100% estável.");
+    // Substitua pela URL bruta (raw) do seu arquivo no GitHub
+    const url = 'https://raw.githubusercontent.com/pitocoofc/Vonnect/main/check.json';
+    
+    log("Connecting to the integrity server...");
+    
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Connection failed. ");
+        
+        const data = await response.json();
+        
+        log(`Server status: ${data.status.toUpperCase()}`);
+        log(`Checking binary version  ${data.version}:`);
+        
+        for (let app of data.binaries) {
+            await new Promise(r => setTimeout(r, 400)); // Delay para efeito visual
+            log(`[${app.status}] -> ${app.name}`);
         }
+        
+        log("Sincronização concluída com sucesso.");
+    } catch (error) {
+        log("ERROR: UNABLE TO CONTACT THE SERVER");
+        log(`DETAILS ${error.message}`);
+    }
+}
+async function verifyLocal() {
+    const wait = (ms) => new Promise(r => setTimeout(r, ms));
+const btn1 = document.querySelector('.nexo-btn');
+const btn2 = document.querySelector('.nexo-bt2n');
+
+btn1.disabled = true;
+btn1.style.opacity = "0.5";
+
+btn2.disabled = true;
+btn2.style.opacity = "0.5";
+
+
+    log("Initializing local file verification...");
+    await wait(300);
+
+    log("Scanning system sectors...");
+    await wait(400);
+
+    log("OS Verification...")
+     await wait(2000);
+log("OS Verification (10%)")
+     await wait(2000);
+log("OS Verification (25%)")
+     await wait(2000);
+log("OS Verification (50%)")
+     await wait(4000);
+log("OS Verification (75%)")
+     await wait(3000);
+log("OS Verification (99%)")
+     await wait(5000);
+
+log("Verify Drivers")
+     await wait(100);
+
+log("Verify Drivers.")
+     await wait(100);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(50);
+
+log("Verify Drivers.")
+     await wait(50);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(500);
+
+log("Verify Drivers.")
+     await wait(100);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(50);
+
+log("Verify Drivers.")
+     await wait(50);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(500);
+
+log("Verify Drivers.")
+     await wait(100);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(50);
+
+log("Verify Drivers.")
+     await wait(50);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(500);
+
+log("Verify Drivers.")
+     await wait(100);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(50);
+
+log("Verify Drivers.")
+     await wait(50);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(500);
+
+log("Verify Drivers.")
+     await wait(100);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(50);
+
+log("Verify Drivers.")
+     await wait(50);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(500);
+
+log("Verify Drivers.")
+     await wait(100);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(50);
+
+log("Verify Drivers.")
+     await wait(50);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(500);
+
+log("Verify Drivers.")
+     await wait(100);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(50);
+
+log("Verify Drivers.")
+     await wait(50);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(500);
+
+log("Verify Drivers.")
+     await wait(100);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(50);
+
+log("Verify Drivers.")
+     await wait(50);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(500);
+
+log("Verify Drivers.")
+     await wait(100);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(50);
+
+log("Verify Drivers.")
+     await wait(50);
+
+log("Verify Drivers..")
+     await wait(50);
+
+log("Verify Drivers...")
+     await wait(50);
+
+log("Verify Drivers....")
+     await wait(50);
+
+log("Verify Drivers.....")
+     await wait(500);
+
+log("Apps Verify")
+     await wait(3000);
+
+
+log("Finalizando...")
+     await wait(1500);
+
+
+
+
+    // 🔥 detalhe pra dar realismo
+    if (Math.random() < 0.2) {
+        log("WARNING: Minor inconsistency detected...");
+        await wait(700);
+        log("Auto-correction applied.");
+    }
+
+    log("Finalizing verification...");
+    await wait(400);
+
+    log("SYSTEM STATUS: STABLE");
+btn1.disabled = false;
+btn1.style.opacity = "1";
+
+btn2.disabled = false;
+btn2.style.opacity = "1";
+}
+
 
         // 3. OPÇÕES E VARIÁVEIS
         function openOptions() {
