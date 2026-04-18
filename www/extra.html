@@ -55,6 +55,7 @@
         const games = [
             "extra/Graphic.html",
             "extra/dex.html,
+            "extra/excel.html",
         ];
 
         const listContainer = document.getElementById('game-list');
@@ -72,6 +73,7 @@
                 let icon = "🕹️";
                 if(file.includes("doom")) icon = "💀";
                 if(file.includes("ball")) icon = "🔵";
+                if(file.includes("Graphic")) icon = "🎮";
                 if(file.includes("calc")) icon = "🔢";
                 if(file.includes("tetris")) icon = "🟦";
                 if(file.includes("click")) icon = "☝️";
