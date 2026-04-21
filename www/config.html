@@ -1,105 +1,187 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        * { box-sizing: border-box; font-family: 'Consolas', monospace; }
-        body { background: #000; color: #3b82f6; margin: 0; padding: 20px; }
-        
-        #hub-title { font-size: 12px; letter-spacing: 2px; margin-bottom: 20px; color: #555; }
-        
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
-            gap: 15px; 
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        /* Botão gerado automaticamente */
-        .game-btn {
-            background: #0a0a0a; border: 1px solid #222;
-            padding: 15px; border-radius: 8px; cursor: pointer;
-            display: flex; flex-direction: column; align-items: center;
-            transition: 0.2s;
-        }
-        .game-btn:hover { border-color: #3b82f6; background: #111; }
-        .game-btn .icon { font-size: 24px; margin-bottom: 10px; }
-        .game-btn .name { font-size: 10px; color: #eee; text-align: center; overflow: hidden; }
+<style>
+body {
+    background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+    padding: 20px;
+}
 
-        /* Viewport do Jogo */
-        #viewport {
-            display: none; position: fixed; inset: 0; background: #000; z-index: 999;
-        }
-        iframe { width: 100%; height: 100%; border: none; }
-        .close-bar {
-            position: absolute; top: 10px; right: 10px;
-            background: rgba(255,0,0,0.7); color: #fff; border: none;
-            padding: 5px 12px; border-radius: 4px; cursor: pointer; z-index: 1000;
-        }
-    </style>
+/* Título */
+h2 {
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+/* Container */
+.lang-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Botões */
+button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.25s;
+    backdrop-filter: blur(10px);
+}
+
+button:hover {
+    background: rgba(255,255,255,0.1);
+    transform: scale(1.02);
+}
+
+/* Badge idioma */
+.lang-tag {
+    font-size: 12px;
+    opacity: 0.6;
+}
+</style>
 </head>
+
 <body>
 
-    <div id="hub-title">SYS/SETTINGS/BIN_ROOT</div>
-    <div class="grid" id="game-list">
-        </div>
+<h2>🌐 Idioma do Sistema</h2>
 
-    <div id="viewport">
-        <button class="close-bar" onclick="closeGame()">FECHAR [X]</button>
-        <iframe id="frame" src=""></iframe>
-    </div>
+<div class="lang-container">
 
-    <script>
-        // HIERARQUIA AUTOMÁTICA: Basta adicionar o nome do arquivo aqui
-        // O sistema cuida do ícone e do botão sozinho.
-        const games = [
-            "config/tradu.html",
-            "extr/dex.html",
-            "exta/excel.html",
-        ];
+<button onclick="setLang('pt')">
+    🇧🇷 Português (BR)
+    <span class="lang-tag">PT-BR 100%</span>
+</button>
 
-        const listContainer = document.getElementById('game-list');
+<button onclick="setLang('en')">
+    🇺🇸 English
+    <span class="lang-tag">EN-US 100%</span>
+</button>
 
-        function initHub() {
-            games.forEach(file => {
-                // Limpa o nome do arquivo para o botão (ex: ball_desviante.html -> BALL DESVIANTE)
-                let cleanName = file.replace('.html', '').replace('_', ' ').toUpperCase();
-                
-                const btn = document.createElement('div');
-                btn.className = 'game-btn';
-                btn.onclick = () => launch(file);
-                
-                // Lógica de ícone genérico ou específico
-                let icon = "🕹️";
-                if(file.includes("doom")) icon = "💀";
-                if(file.includes("ball")) icon = "🔵";
-                if(file.includes("Graphic")) icon = "🎮";
-                if(file.includes("calc")) icon = "🔢";
-                if(file.includes("tetris")) icon = "🟦";
-                if(file.includes("click")) icon = "☝️";
-                if(file.includes("snake")) icon = "🐍";
+<button onclick="setLang('es')">
+    🇪🇸 Español
+    <span class="lang-tag">ES 82%</span>
+</button>
 
-                btn.innerHTML = `
-                    <div class="icon">${icon}</div>
-                    <div class="name">${cleanName}</div>
-                `;
-                listContainer.appendChild(btn);
-            });
-        }
+<button onclick="setLang('fr')">
+    🇫🇷 Français
+    <span class="lang-tag">FR 84%</span>
+</button>
 
-        function launch(url) {
-            const view = document.getElementById('viewport');
-            const frame = document.getElementById('frame');
-            frame.src = url;
-            view.style.display = 'block';
-        }
+<button onclick="setLang('de')">
+    🇩🇪 Deutsch
+    <span class="lang-tag">DE 54%</span>
+</button>
 
-        function closeGame() {
-            document.getElementById('viewport').style.display = 'none';
-            document.getElementById('frame').src = '';
-        }
+<button onclick="setLang('jp')">
+    🇯🇵 日本語
+    <span class="lang-tag">JP 35%</span>
+</button>
 
-        initHub();
-    </script>
+</div>
+
+<script>
+
+/* 🌍 DICIONÁRIO GLOBAL (ESCALÁVEL) */
+const LANGS = {
+
+pt: {
+    AJUSTES: "Ajustes",
+    GHOSTNET: "GhostNet",
+    ARQUIVOS: "Arquivos",
+    CALCULADORA: "Calculadora",
+    TRADUTOR: "Tradutor",
+    GALERIA: "Galeria",
+    BUSSOLA: "Bússola",
+    RELOGIO: "Relógio"
+},
+
+en: {
+    AJUSTES: "Settings",
+    GHOSTNET: "Browser",
+    ARQUIVOS: "Files",
+    CALCULADORA: "Calculator",
+    TRADUTOR: "Translator",
+    GALERIA: "Gallery",
+    BUSSOLA: "Compass",
+    RELOGIO: "Clock"
+},
+
+es: {
+    AJUSTES: "Ajustes",
+    GHOSTNET: "Navegador",
+    ARQUIVOS: "Archivos",
+    CALCULADORA: "Calculadora",
+    TRADUTOR: "Traductor",
+    GALERIA: "Galería",
+    BUSSOLA: "Brújula",
+    RELOGIO: "Reloj"
+},
+
+fr: {
+    AJUSTES: "Paramètres",
+    GHOSTNET: "Navigateur",
+    ARQUIVOS: "Fichiers",
+    CALCULADORA: "Calculatrice",
+    TRADUTOR: "Traducteur",
+    GALERIA: "Galerie",
+    BUSSOLA: "Boussole",
+    RELOGIO: "Horloge"
+},
+
+de: {
+    AJUSTES: "Einstellungen",
+    GHOSTNET: "Browser",
+    ARQUIVOS: "Dateien",
+    CALCULADORA: "Rechner",
+    TRADUTOR: "Übersetzer",
+    GALERIA: "Galerie",
+    BUSSOLA: "Kompass",
+    RELOGIO: "Uhr"
+},
+
+jp: {
+    AJUSTES: "設定",
+    GHOSTNET: "ブラウザ",
+    ARQUIVOS: "ファイル",
+    CALCULADORA: "電卓",
+    TRADUTOR: "翻訳",
+    GALERIA: "ギャラリー",
+    BUSSOLA: "コンパス",
+    RELOGIO: "時計"
+}
+
+};
+
+/* 🚀 FUNÇÃO PRINCIPAL */
+function setLang(lang) {
+
+    const dict = LANGS[lang];
+
+    // salva idioma (pra usar no sistema inteiro)
+    localStorage.setItem("ghost_lang", lang);
+
+    for (let id in dict) {
+        window.parent.postMessage({
+            type: 'RENAME_APP',
+            id: id,
+            newName: dict[id]
+        }, '*');
+    }
+}
+
+</script>
+
 </body>
 </html>
