@@ -1,758 +1,755 @@
 
+<!DOCTYPE html>  <html lang="pt-br">    <head>    
+    <meta charset="UTF-8">    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">    
+    <title>WebOS - Future</title>    
+    <style>    
+        * { box-sizing: border-box; outline: none; }    
+        body, html { margin: 0; padding: 0; height: 100vh; background: #000; font-family: 'Segoe UI', sans-serif; overflow: hidden; color: #fff; }  /* --- NOVO: STATUS BAR --- */    
+    #status-bar {    
+        position: fixed; top: 0; left: 0; width: 100%; height: 25px;    
+        background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);    
+        display: flex; justify-content: space-between; align-items: center;    
+        padding: 0 15px; font-size: 12px; font-weight: bold; z-index: 600;    
+        cursor: pointer;    
+    }    /* --- NOVO: QUICK PANEL --- */    
+#quick-panel {    
+    position: fixed; top: -110%; left: 0; width: 100%; height: 100vh;    
+    background: rgba(255,255,255,0.95); color: #000; z-index: 700;    
+    transition: top 0.5s cubic-bezier(0.16, 1, 0.3, 1);    
+    display: flex; flex-direction: column; padding: 60px 20px;    
+}    
+#quick-panel.active { top: 0; }    
+.panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }    
+.panel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }    
+.panel-item { background: #eee; padding: 25px; border-radius: 20px; text-align: center; cursor: pointer; }    
+.panel-item span { font-size: 30px; display: block; }    
 
-<!DOCTYPE html>  <html lang="pt-br">  
-<head>  
-    <meta charset="UTF-8">  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  
-    <title>WebOS - Future</title>  
-    <style>  
-        * { box-sizing: border-box; outline: none; }  
-        body, html { margin: 0; padding: 0; height: 100vh; background: #000; font-family: 'Segoe UI', sans-serif; overflow: hidden; color: #fff; }  /* --- NOVO: STATUS BAR --- */  
-    #status-bar {  
-        position: fixed; top: 0; left: 0; width: 100%; height: 25px;  
-        background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);  
-        display: flex; justify-content: space-between; align-items: center;  
-        padding: 0 15px; font-size: 12px; font-weight: bold; z-index: 600;  
-        cursor: pointer;  
-    }  
+/* --- FASE 1: Intro das Bolas --- */    
+#intro-screen {    
+    position: fixed; inset: 0; background: #000; z-index: 500;    
+    display: flex; flex-direction: column; align-items: center; justify-content: center;    
+}    
+.bubble {    
+    position: absolute; bottom: -50px; background: rgba(255, 255, 255, 0.05);    
+    border-radius: 50%; animation: rise 10s infinite ease-in;    
+}    
+@keyframes rise {    
+    0% { transform: translateY(0) scale(1); opacity: 0; }    
+    20% { opacity: 1; }    
+    100% { transform: translateY(-110vh) scale(1.5); opacity: 0; }    
+}    
+#typewriter {    
+    font-size: 22px; letter-spacing: 3px; font-weight: 300;    
+    white-space: nowrap; overflow: hidden; border-right: 2px solid #3b82f6;    
+    width: 0; animation: typing 3s steps(20) forwards, blink 0.7s infinite;    
+}    
+@keyframes typing { from { width: 0; } to { width: 230px; } }    
+@keyframes blink { 50% { border-color: transparent; } }    
 
-    /* --- NOVO: QUICK PANEL --- */  
-    #quick-panel {  
-        position: fixed; top: -110%; left: 0; width: 100%; height: 100vh;  
-        background: rgba(255,255,255,0.95); color: #000; z-index: 700;  
-        transition: top 0.5s cubic-bezier(0.16, 1, 0.3, 1);  
-        display: flex; flex-direction: column; padding: 60px 20px;  
-    }  
-    #quick-panel.active { top: 0; }  
-    .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }  
-    .panel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }  
-    .panel-item { background: #eee; padding: 25px; border-radius: 20px; text-align: center; cursor: pointer; }  
-    .panel-item span { font-size: 30px; display: block; }  
+/* --- FASE 2: Lock Screen --- */    
+#lock-screen {    
+    position: fixed; inset: 0; background: url('https://w.wallhaven.cc/full/2e/wallhaven-2exm9y.jpg') no-repeat center center;    
+    background-size: cover; z-index: 400; display: none; flex-direction: column;    
+    align-items: center; justify-content: space-between; padding: 60px 0;    
+    transition: transform 0.8s cubic-bezier(0.85, 0, 0.15, 1);    
+}    
+#clock { font-size: 80px; font-weight: 200; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }    
+#date { font-size: 18px; margin-top: -10px; opacity: 0.8; }    
+.unlock-btn {    
+    width: 70px; height: 70px; background: rgba(255,255,255,0.2);    
+    backdrop-filter: blur(10px); border-radius: 50%; border: 1px solid rgba(255,255,255,0.4);    
+    display: flex; align-items: center; justify-content: center;    
+    cursor: pointer; animation: pulse-white 2s infinite;    
+}    
+@keyframes pulse-white { 0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); } 70% { box-shadow: 0 0 0 20px rgba(255,255,255,0); } 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } }    
 
-    /* --- FASE 1: Intro das Bolas --- */  
-    #intro-screen {  
-        position: fixed; inset: 0; background: #000; z-index: 500;  
-        display: flex; flex-direction: column; align-items: center; justify-content: center;  
-    }  
-    .bubble {  
-        position: absolute; bottom: -50px; background: rgba(255, 255, 255, 0.05);  
-        border-radius: 50%; animation: rise 10s infinite ease-in;  
-    }  
-    @keyframes rise {  
-        0% { transform: translateY(0) scale(1); opacity: 0; }  
-        20% { opacity: 1; }  
-        100% { transform: translateY(-110vh) scale(1.5); opacity: 0; }  
-    }  
-    #typewriter {  
-        font-size: 22px; letter-spacing: 3px; font-weight: 300;  
-        white-space: nowrap; overflow: hidden; border-right: 2px solid #3b82f6;  
-        width: 0; animation: typing 3s steps(20) forwards, blink 0.7s infinite;  
-    }  
-    @keyframes typing { from { width: 0; } to { width: 230px; } }  
-    @keyframes blink { 50% { border-color: transparent; } }  
+/* --- BOTÃO DE MENU SUPERIOR DIREITO --- */    
+#top-launcher {    
+    position: fixed; top: 35px; right: 15px; z-index: 460;    
+    width: 45px; height: 45px; background: rgba(255,255,255,0.1);    
+    backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);    
+    border-radius: 12px; display: none; align-items: center; justify-content: center;    
+    cursor: pointer; font-size: 20px; transition: 0.3s;    
+}    
 
-    /* --- FASE 2: Lock Screen --- */  
-    #lock-screen {  
-        position: fixed; inset: 0; background: url('https://w.wallhaven.cc/full/2e/wallhaven-2exm9y.jpg') no-repeat center center;  
-        background-size: cover; z-index: 400; display: none; flex-direction: column;  
-        align-items: center; justify-content: space-between; padding: 60px 0;  
-        transition: transform 0.8s cubic-bezier(0.85, 0, 0.15, 1);  
-    }  
-    #clock { font-size: 80px; font-weight: 200; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }  
-    #date { font-size: 18px; margin-top: -10px; opacity: 0.8; }  
-    .unlock-btn {  
-        width: 70px; height: 70px; background: rgba(255,255,255,0.2);  
-        backdrop-filter: blur(10px); border-radius: 50%; border: 1px solid rgba(255,255,255,0.4);  
-        display: flex; align-items: center; justify-content: center;  
-        cursor: pointer; animation: pulse-white 2s infinite;  
-    }  
-    @keyframes pulse-white { 0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); } 70% { box-shadow: 0 0 0 20px rgba(255,255,255,0); } 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } }  
+/* --- FASE 3: Desktop --- */    
+#main-desktop {    
+    height: 100vh; display: flex; flex-direction: column;    
+    background: url('https://w.wallhaven.cc/full/2e/wallhaven-2exm9y.jpg') no-repeat center center;    
+    background-size: cover;    
+}    
 
-    /* --- BOTÃO DE MENU SUPERIOR DIREITO --- */  
-    #top-launcher {  
-        position: fixed; top: 35px; right: 15px; z-index: 460;  
-        width: 45px; height: 45px; background: rgba(255,255,255,0.1);  
-        backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);  
-        border-radius: 12px; display: none; align-items: center; justify-content: center;  
-        cursor: pointer; font-size: 20px; transition: 0.3s;  
-    }  
+#app-grid {    
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;    
+    padding: 80px 20px 40px; width: 100%; max-width: 450px; margin: 0 auto;    
+    opacity: 0; transform: translateY(100px);    
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);    
+}    
+#app-grid.show { opacity: 1; transform: translateY(0); }    
 
-    /* --- FASE 3: Desktop --- */  
-    #main-desktop {  
-        height: 100vh; display: flex; flex-direction: column;  
-        background: url('https://w.wallhaven.cc/full/2e/wallhaven-2exm9y.jpg') no-repeat center center;  
-        background-size: cover;  
-    }  
+.app-card { display: flex; flex-direction: column; align-items: center; gap: 10px; transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; }    
+.app-card:active { transform: scale(0.9); }    
+.app-icon-box {    
+    width: 75px; height: 75px; background: rgba(255,255,255,0.1);    
+    backdrop-filter: blur(10px); border-radius: 18px; border: 1px solid rgba(255,255,255,0.2);    
+    display: flex; align-items: center; justify-content: center; font-size: 30px;    
+}    
+.app-card span { font-size: 11px; font-weight: 500; text-transform: uppercase; }    
 
-    #app-grid {  
-        display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;  
-        padding: 80px 20px 40px; width: 100%; max-width: 450px; margin: 0 auto;  
-        opacity: 0; transform: translateY(100px);  
-        transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);  
-    }  
-    #app-grid.show { opacity: 1; transform: translateY(0); }  
+/* --- SISTEMA DE JANELAS --- */    
+.window {    
+    position: absolute; width: 90%; height: 70%; background: #111;    
+    border-radius: 15px; border: 1px solid #333; display: none;    
+    flex-direction: column; overflow: hidden; z-index: 100;    
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);    
+    top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);    
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);    
+}    
+.window.open { display: flex; transform: translate(-50%, -50%) scale(1); }    
+.window.maximized { width: 100%; height: calc(100vh - 65px); border-radius: 0; top: 0; left: 0; transform: none; }    
 
-    .app-card { display: flex; flex-direction: column; align-items: center; gap: 10px; transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; }  
-    .app-card:active { transform: scale(0.9); }  
-    .app-icon-box {  
-        width: 75px; height: 75px; background: rgba(255,255,255,0.1);  
-        backdrop-filter: blur(10px); border-radius: 18px; border: 1px solid rgba(255,255,255,0.2);  
-        display: flex; align-items: center; justify-content: center; font-size: 30px;  
-    }  
-    .app-card span { font-size: 11px; font-weight: 500; text-transform: uppercase; }  
+.win-header { background: #222; padding: 12px; display: flex; justify-content: space-between; align-items: center; }    
+.win-controls { display: flex; gap: 10px; }    
+.win-btn { width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer; }    
+.win-close { background: #ff5f57; }    
+.win-max { background: #febc2e; }    
 
-    /* --- SISTEMA DE JANELAS --- */  
-    .window {  
-        position: absolute; width: 90%; height: 70%; background: #111;  
-        border-radius: 15px; border: 1px solid #333; display: none;  
-        flex-direction: column; overflow: hidden; z-index: 100;  
-        box-shadow: 0 20px 40px rgba(0,0,0,0.6);  
-        top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);  
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);  
-    }  
-    .window.open { display: flex; transform: translate(-50%, -50%) scale(1); }  
-    .window.maximized { width: 100%; height: calc(100vh - 65px); border-radius: 0; top: 0; left: 0; transform: none; }  
+.win-body { flex: 1; background: #fff; }    
+iframe { width: 100%; height: 100%; border: none; }    
 
-    .win-header { background: #222; padding: 12px; display: flex; justify-content: space-between; align-items: center; }  
-    .win-controls { display: flex; gap: 10px; }  
-    .win-btn { width: 14px; height: 14px; border-radius: 50%; border: none; cursor: pointer; }  
-    .win-close { background: #ff5f57; }  
-    .win-max { background: #febc2e; }  
+/* --- BARRA LATERAL (DRAWER) --- */    
+#drawer {    
+    position: fixed; left: -100%; top: 0; width: 100%; height: calc(100vh - 65px);    
+    background: rgba(0,0,0,0.92); backdrop-filter: blur(25px); z-index: 470;    
+    transition: left 0.5s cubic-bezier(0.16, 1, 0.3, 1);    
+    padding: 60px 20px 40px;    
+}    
+#drawer.open { left: 0; }    
+.drawer-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }    
+.search-box { flex: 1; padding: 15px; background: #222; border: 1px solid #444; color: #fff; border-radius: 12px; font-size: 16px; }    
+.close-drawer { font-size: 24px; cursor: pointer; padding: 5px; opacity: 0.7; }    
 
-    .win-body { flex: 1; background: #fff; }  
-    iframe { width: 100%; height: 100%; border: none; }  
+/* --- TASKBAR --- */    
+#taskbar {    
+    height: 65px; background: rgba(0,0,0,0.7); backdrop-filter: blur(20px);    
+    margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 50px;    
+    border-top: 1px solid rgba(255,255,255,0.1); z-index: 450;    
+}    
+.nav-btn { font-size: 22px; cursor: pointer; opacity: 0.6; transition: 0.3s; }    
+.nav-btn:active { opacity: 1; transform: scale(0.8); }    
 
-    /* --- BARRA LATERAL (DRAWER) --- */  
-    #drawer {  
-        position: fixed; left: -100%; top: 0; width: 100%; height: calc(100vh - 65px);  
-        background: rgba(0,0,0,0.92); backdrop-filter: blur(25px); z-index: 470;  
-        transition: left 0.5s cubic-bezier(0.16, 1, 0.3, 1);  
-        padding: 60px 20px 40px;  
-    }  
-    #drawer.open { left: 0; }  
-    .drawer-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }  
-    .search-box { flex: 1; padding: 15px; background: #222; border: 1px solid #444; color: #fff; border-radius: 12px; font-size: 16px; }  
-    .close-drawer { font-size: 24px; cursor: pointer; padding: 5px; opacity: 0.7; }  
+/* Estilo do App Falso de Data */    
+.date-icon {    
+    background: #ffffff !important;    
+    color: #000 !important;    
+    display: flex;    
+    flex-direction: column;    
+    justify-content: center;    
+    align-items: center;    
+    border: none !important;    
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);    
+}    
 
-    /* --- TASKBAR --- */  
-    #taskbar {  
-        height: 65px; background: rgba(0,0,0,0.7); backdrop-filter: blur(20px);  
-        margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 50px;  
-        border-top: 1px solid rgba(255,255,255,0.1); z-index: 450;  
-    }  
-    .nav-btn { font-size: 22px; cursor: pointer; opacity: 0.6; transition: 0.3s; }  
-    .nav-btn:active { opacity: 1; transform: scale(0.8); }  
+#icon-day-name { font-size: 10px; font-weight: 800; color: #ff3b30; text-transform: uppercase; margin-top: -5px; }    
+#icon-day-num { font-size: 32px; font-weight: 700; line-height: 1; margin-top: 2px; }
 
-    /* Estilo do App Falso de Data */  
-    .date-icon {  
-        background: #ffffff !important;  
-        color: #000 !important;  
-        display: flex;  
-        flex-direction: column;  
-        justify-content: center;  
-        align-items: center;  
-        border: none !important;  
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);  
-    }  
+</style>  </head>    
+<body>  <div id="status-bar" onclick="toggleQuickPanel(true)">    
+    <div id="status-time">00:00</div>    
+    <div style="display:flex; gap:10px;">    
+        <span>📶</span><span>98%🔋</span>    
+    </div>    
+</div>    <div id="quick-panel">    
+    <div class="panel-header">    
+        <h2 style="margin:0">Painel de Controle</h2>    
+        <button onclick="toggleQuickPanel(false)" style="border:none; background:none; font-size:20px;">✕</button>    
+    </div>    
+    <div class="panel-grid">    
+        <div class="panel-item" onclick="openApp('Wi-Fi', 'wifi.html')"><span>📡</span><p>Wi-Fi</p></div>    
+        <div class="panel-item"><span>🌙</span><p>Foco</p></div>    
+        <div class="panel-item" onclick="openApp('IA', 'IA/ia.html')"><span>🤖</span><p>IA</p></div>    
+        <div class="panel-item" onclick="toggleQuickPanel(false)"><span>⚙️</span><p>Ajustes</p></div>    
+    </div>    
+</div>    <div id="intro-screen">    
+    <div id="typewriter">Bem vindo ao Futuro</div>    
+</div>    <div id="lock-screen">    
+    <div style="text-align: center;">    
+        <div id="clock">00:00</div>    
+        <div id="date">DOMINGO, 15 DE FEVEREIRO</div>    
+    </div>    
+    <div class="unlock-btn" onclick="unlockSystem()"><div style="width: 20px; height: 20px; background: #fff; border-radius: 50%;"></div></div>    
+</div>    <div id="top-launcher" onclick="toggleDrawer()">⠿</div>    <div id="drawer">    
+    <div class="drawer-header">    
+        <input type="text" id="search-input" class="search-box" placeholder="Procurar aplicativos..." oninput="searchApp(this.value)">    
+        <div class="close-drawer" onclick="toggleDrawer(false)">✕</div>    
+    </div>    
+    <div id="drawer-list" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;"></div>    
+</div>    <div id="main-desktop">    
+    <div id="app-grid">    
+        <div class="app-card fake-date-app" id="date-app">    
+            <div class="app-icon-box date-icon">    
+                <span id="icon-day-name">DOM</span>    
+                <span id="icon-day-num">00</span>    
+            </div>    
+            <span>Calendário</span>    
+        </div>    
+        <div class="app-card" data-id="TRADUTOR" onclick="openApp('Tradutor', 'tradutor.html')">  
+    <div class="app-icon-box">🗣️</div><span>Tradutor</span>  
+        </div>    <div class="app-card" data-id="AJUSTES" onclick="openApp('Ajustes', 'ajustes.html')">  
+<div class="app-icon-box">⚙️</div><span>Ajustes</span>  
+    </div>   
 
-    #icon-day-name { font-size: 10px; font-weight: 800; color: #ff3b30; text-transform: uppercase; margin-top: -5px; }  
-    #icon-day-num { font-size: 32px; font-weight: 700; line-height: 1; margin-top: 2px; }  
-</style>
+    <div class="app-card" style="transition-delay: 0.2s;" onclick="openApp('GhostNet', 'navegador/ghostnet.html')">    
+        <div class="app-icon-box">🌐</div><span>GhostNet</span>    
+    </div>    
+      
 
-</head>  
-<body>  <div id="status-bar" onclick="toggleQuickPanel(true)">  
-    <div id="status-time">00:00</div>  
-    <div style="display:flex; gap:10px;">  
-        <span>📶</span><span>98%🔋</span>  
-    </div>  
+    <div class="app-card" data-id="CALCULADORA" onclick="openApp('Calculadora', 'jogos/calculadora.html')">  
+<div class="app-icon-box">🔢</div><span>Calculadora</span>  
+    </div>   
+      
+    <div class="app-card" style="transition-delay: 0.2s;" onclick="openApp('Animes', 'animes.html')">    
+        <div class="app-icon-box">🗨️</div><span>Animes</span>    
+    </div>    
+
+    <div class="app-card" data-id="RELOGIO" onclick="openApp('Relogio', 'relogio.html')">  
+<div class="app-icon-box">🕑</div><span>Relógio</span>  
+    </div>   
+      
+
+      
+    <div class="app-card" data-id="GALERIA" onclick="openApp('Galeria', 'galeria.html')">  
+<div class="app-icon-box">📷</div><span>Galeria</span>  
+    </div>   
+      
+
+    <div class="app-card" data-id="BUSSOLA" onclick="openApp('Bússola', 'bussola.html')">  
+<div class="app-icon-box">🧭</div><span>Bússola</span>  
+    </div>   
+      
+      
+<div class="app-card" data-id="ARQUIVOS" onclick="openApp('Arquivos', 'files.html')">  
+<div class="app-icon-box">📂</div><span>Arquivos</span>  
+    </div>
+
 </div>  
-
-<div id="quick-panel">  
-    <div class="panel-header">  
-        <h2 style="margin:0">Painel de Controle</h2>  
-        <button onclick="toggleQuickPanel(false)" style="border:none; background:none; font-size:20px;">✕</button>  
-    </div>  
-    <div class="panel-grid">  
-        <div class="panel-item" onclick="openApp('Wi-Fi', 'wifi.html')"><span>📡</span><p>Wi-Fi</p></div>  
-        <div class="panel-item"><span>🌙</span><p>Foco</p></div>  
-        <div class="panel-item" onclick="openApp('IA', 'IA/ia.html')"><span>🤖</span><p>IA</p></div>  
-        <div class="panel-item" onclick="toggleQuickPanel(false)"><span>⚙️</span><p>Ajustes</p></div>  
-    </div>  
-</div>  
-
-<div id="intro-screen">  
-    <div id="typewriter">Bem vindo ao Futuro</div>  
-</div>  
-
-<div id="lock-screen">  
-    <div style="text-align: center;">  
-        <div id="clock">00:00</div>  
-        <div id="date">DOMINGO, 15 DE FEVEREIRO</div>  
-    </div>  
-    <div class="unlock-btn" onclick="unlockSystem()"><div style="width: 20px; height: 20px; background: #fff; border-radius: 50%;"></div></div>  
-</div>  
-
-<div id="top-launcher" onclick="toggleDrawer()">⠿</div>  
-
-<div id="drawer">  
-    <div class="drawer-header">  
-        <input type="text" id="search-input" class="search-box" placeholder="Procurar aplicativos..." oninput="searchApp(this.value)">  
-        <div class="close-drawer" onclick="toggleDrawer(false)">✕</div>  
-    </div>  
-    <div id="drawer-list" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;"></div>  
-</div>  
-
-<div id="main-desktop">  
-    <div id="app-grid">  
-        <div class="app-card fake-date-app" id="date-app">  
-            <div class="app-icon-box date-icon">  
-                <span id="icon-day-name">DOM</span>  
-                <span id="icon-day-num">00</span>  
-            </div>  
-            <span>Calendário</span>  
-        </div>  
-        <div class="app-card" data-id="TRADUTOR" onclick="openApp('Tradutor', 'tradutor.html')">
-    <div class="app-icon-box">🗣️</div><span>Tradutor</span>
-        </div>  
-
-        
-
-        
-        <div class="app-card" data-id="AJUSTES" onclick="openApp('Ajustes', 'ajustes.html')">
-    <div class="app-icon-box">⚙️</div><span>Ajustes</span>
-        </div> 
-
-        <div class="app-card" style="transition-delay: 0.2s;" onclick="openApp('GhostNet', 'navegador/ghostnet.html')">  
-            <div class="app-icon-box">🌐</div><span>GhostNet</span>  
-        </div>  
-        
-
-        <div class="app-card" data-id="CALCULADORA" onclick="openApp('Calculadora', 'jogos/calculadora.html')">
-    <div class="app-icon-box">🔢</div><span>Calculadora</span>
-        </div> 
-        
-        <div class="app-card" style="transition-delay: 0.2s;" onclick="openApp('Animes', 'animes.html')">  
-            <div class="app-icon-box">🗨️</div><span>Animes</span>  
-        </div>  
-
-        <div class="app-card" data-id="RELOGIO" onclick="openApp('Relogio', 'relogio.html')">
-    <div class="app-icon-box">🕑</div><span>Relógio</span>
-        </div> 
-        
-
-        
-        <div class="app-card" data-id="GALERIA" onclick="openApp('Galeria', 'galeria.html')">
-    <div class="app-icon-box">📷</div><span>Galeria</span>
-        </div> 
-        
-
-        <div class="app-card" data-id="BUSSOLA" onclick="openApp('Bússola', 'bussola.html')">
-    <div class="app-icon-box">🧭</div><span>Bússola</span>
-        </div> 
-        
-        
-    <div class="app-card" data-id="ARQUIVOS" onclick="openApp('Arquivos', 'files.html')">
-    <div class="app-icon-box">📂</div><span>Arquivos</span>
-        </div> 
+    <div id="app-window" class="window">    
+        <div class="win-header">    
+            <span id="win-title" style="font-size: 12px; font-weight: bold; letter-spacing: 1px;">APP</span>    
+            <div class="win-controls">    
+                <button class="win-btn win-max" onclick="toggleMaximize()"></button>    
+                <button class="win-btn win-close" onclick="closeApp()"></button>    
+            </div>    
+        </div>    
+        <div class="win-body"><iframe id="win-frame" src=""></iframe></div>    
+    </div>    <div id="taskbar">    
+    <div class="nav-btn" onclick="goHome()">⚪</div>    
+    <div class="nav-btn" onclick="alert('Multitarefa em breve')">🔳</div>    
 </div>
-    <div id="app-window" class="window">  
-        <div class="win-header">  
-            <span id="win-title" style="font-size: 12px; font-weight: bold; letter-spacing: 1px;">APP</span>  
-            <div class="win-controls">  
-                <button class="win-btn win-max" onclick="toggleMaximize()"></button>  
-                <button class="win-btn win-close" onclick="closeApp()"></button>  
-            </div>  
-        </div>  
-        <div class="win-body"><iframe id="win-frame" src=""></iframe></div>  
-    </div>  
 
-    <div id="taskbar">  
-        <div class="nav-btn" onclick="goHome()">⚪</div>  
-        <div class="nav-btn" onclick="alert('Multitarefa em breve')">🔳</div>  
-    </div>  
-</div>  
-
-<script>  
-    // Variáveis Globais de Hardware  
-    var driver_video = "off";  
-    var driver_ndj = "off";  
-    var driver_files = "off";  
-    var driver_audio = "off";  
-    var driver_system = "off";  
-    var driver_camera = "off";  
-    var driver_user_erro = "off";  
-    var driver_touch_advanced = "off";  
-    var driver_cloud_conect = "off";  
-    var driver_all_conect = "off";  
-    var driver_security_internal = "off";  
-    var driver_optimization = "off";  
-    var driver_failed = "off";  
-    var driver_beta = "off";  
-
-    function checkDriver(name) { return window[name]; }  
-
-    const ALL_APPS = [  
-        { name: 'Ajustes', icon: '⚙️', url: 'ajustes.html' },  
-        { name: 'Notas', icon: '📝', url: 'notas/index.html' },  
-        { name: 'Browser ADv', icon: '🌐', url: 'beta/browser2.html'},  
-        { name: 'Jogos', icon: '📱', url: 'jogos.html' },  
-        { name: 'Bússola', icon: '🧭', url: 'bussola.html' },  
-        { name: 'Browser', icon: '🌐', url: 'browser.html' },  
-        { name: 'Arquivos', icon: '📂', url: 'files.html' },  
-        { name: 'Calculadora', icon: '🔢', url: 'jogos/calculadora.html' },  
-        { name: 'Terminal', icon: '📟', url: 'terminal.html' },  
-        { name: 'Galeria', icon: '📸', url: 'galeria.html' },  
-        { name: 'Animes', icon: '🗨️', url: 'animes.html' },  
-        { name: 'debug', icon: '🔐', url: 'debug.html' },  
-        { name: 'Extras', icon: '📁', url: 'extra.html'},  
-        { name: 'Configurar', icon: '⚙️', url: 'config.html'},
-        { name: 'Programação', icon: '🖥️', url: 'programacao.html'}  
-    ];  
-
-    // Intro  
-    const intro = document.getElementById('intro-screen');  
-    for (let i = 0; i < 15; i++) {  
-        let b = document.createElement('div'); b.className = 'bubble';  
-        let size = Math.random() * 60 + 20; b.style.width = size + 'px'; b.style.height = size + 'px';  
-        b.style.left = Math.random() * 100 + '%'; b.style.animationDelay = Math.random() * 5 + 's';  
-        intro.appendChild(b);  
-    }  
-    setTimeout(() => {  
-        intro.style.transition = 'opacity 1s'; intro.style.opacity = '0';  
-        setTimeout(() => {   
-            intro.style.display = 'none';   
-            document.getElementById('lock-screen').style.display = 'flex';   
-        }, 1000);  
-    }, 5000);  
-
-    // Substitua sua função updateClock atual por esta:
-
-function updateClock() {
-// 1. Puxa a região do cache (se não existir, usa Brasil como padrão)
-const savedRegion = localStorage.getItem('ghost_clock_region') || 'pt-BR';
-
-// 2. Mapeamento de fusos (deve ser igual ao do relogio.html)  
-const timeZones = {  
-    "pt-BR": "America/Sao_Paulo",
-
-"ne-NE": "Africa/Niamey",
-"ml-ML": "Africa/Bamako",
-"bf-BF": "Africa/Ouagadougou",
-"tg-TG": "Africa/Lome",
-"bj-BJ": "Africa/Porto-Novo",
-"mr-MR": "Africa/Nouakchott",
-"ss-SS": "Africa/Juba",
-
-"bt-BT": "Asia/Thimphu",
-"mv-MV": "Indian/Maldives",
-"tj-TJ": "Asia/Dushanbe",
-"tm-TM": "Asia/Ashgabat",
-"kg-KG": "Asia/Bishkek",
-
-"ki-KI": "Pacific/Tarawa",
-"nr-NR": "Pacific/Nauru",
-"tv-TV": "Pacific/Funafuti",
-"fm-FM": "Pacific/Pohnpei",
-"mh-MH": "Pacific/Majuro",
-"pw-PW": "Pacific/Palau",
-"al-AL": "Europe/Tirane",
-"gi-GI": "Europe/Gibraltar",
-"im-IM": "Europe/Isle_of_Man",
-"je-JE": "Europe/Jersey",
-"gg-GG": "Europe/Guernsey",
-"cn-HK": "Asia/Hong_Kong",
-"cn-MO": "Asia/Macau",
-"sg-SG": "Asia/Singapore",
-"my-MY": "Asia/Kuala_Lumpur",
-"np-NP": "Asia/Kathmandu",
-"lk-LK": "Asia/Colombo",
-"kz-KZ": "Asia/Almaty",
-"cm-CM": "Africa/Douala",
-"ws-WS": "Pacific/Apia",
-"to-TO": "Pacific/Tongatapu",
-"sb-SB": "Pacific/Guadalcanal",
-"vu-VU": "Pacific/Efate",
-"ci-CI": "Africa/Abidjan",
-"sn-SN": "Africa/Dakar",
-"gl-GL": "America/Godthab", // ou America/Nuuk (mais moderno)
-"ht-HT": "America/Port-au-Prince",
-"gy-GY": "America/Guyana",
-"sr-SR": "America/Paramaribo",
-"ug-UG": "Africa/Kampala",
-"tz-TZ": "Africa/Dar_es_Salaam",
-"zw-ZW": "Africa/Harare",
-"mz-MZ": "Africa/Maputo",
-"sd-SD": "Africa/Khartoum",
-"ly-LY": "Africa/Tripoli",
-"uz-UZ": "Asia/Tashkent",
-"qa-QA": "Asia/Qatar",
-"kw-KW": "Asia/Kuwait",
-"om-OM": "Asia/Muscat",
-"ye-YE": "Asia/Aden",
-"xk-XK": "Europe/Belgrade", // Kosovo usa esse padrão
-"za-ZA": "Africa/Johannesburg",
-"eg-EG": "Africa/Cairo",
-"ma-MA": "Africa/Casablanca",
-"ng-NG": "Africa/Lagos",
-"ke-KE": "Africa/Nairobi",
-"dz-DZ": "Africa/Algiers",
-"tn-TN": "Africa/Tunis",
-"gh-GH": "Africa/Accra",
-"et-ET": "Africa/Addis_Ababa",
-"ao-AO": "Africa/Luanda",
-
-"ja-JP": "Asia/Tokyo",
-"ko-KR": "Asia/Seoul",
-"hi-IN": "Asia/Kolkata",
-"th-TH": "Asia/Bangkok",
-"vi-VN": "Asia/Ho_Chi_Minh",
-"id-ID": "Asia/Jakarta",
-"ph-PH": "Asia/Manila",
-"ar-SA": "Asia/Riyadh",
-"he-IL": "Asia/Jerusalem",
-"fa-IR": "Asia/Tehran",
-"ae-AE": "Asia/Dubai",
-"pk-PK": "Asia/Karachi",
-"bd-BD": "Asia/Dhaka",
-
-"en-NZ": "Pacific/Auckland",
-"en-FJ": "Pacific/Fiji",
-"en-PG": "Pacific/Port_Moresby",
-"ba-BA": "Europe/Sarajevo",
-"me-ME": "Europe/Podgorica",
-"mk-MK": "Europe/Skopje",
-"md-MD": "Europe/Chisinau",
-"by-BY": "Europe/Minsk",
-"sk-SK": "Europe/Bratislava",
-
-"ad-AD": "Europe/Andorra",
-"mc-MC": "Europe/Monaco",
-"sm-SM": "Europe/San_Marino",
-"va-VA": "Europe/Vatican",
-"li-LI": "Europe/Vaduz",
-"lu-LU": "Europe/Luxembourg",
-"mt-MT": "Europe/Malta",
-"cy-CY": "Asia/Nicosia",
-
-"fo-FO": "Atlantic/Faroe",
-"aq-MC": "Antarctica/McMurdo",
-"aq-SP": "Antarctica/South_Pole",
-"aq-RO": "Antarctica/Rothera",
-"aq-PA": "Antarctica/Palmer",
-"aq-SY": "Antarctica/Syowa",
-"aq-MA": "Antarctica/Mawson",
-"aq-VO": "Antarctica/Vostok",
-"aq-DA": "Antarctica/Davis",
-"aq-CA": "Antarctica/Casey",
-"aq-DU": "Antarctica/DumontDUrville",
-"aq-TR": "Antarctica/Troll",
-"aq-MQ": "Antarctica/Macquarie",
-"es-AR": "America/Argentina/Buenos_Aires",
-"es-CL": "America/Santiago",
-"es-CO": "America/Bogota",
-"es-PE": "America/Lima",
-"es-VE": "America/Caracas",
-"es-UY": "America/Montevideo",
-"es-PY": "America/Asuncion",
-"es-BO": "America/La_Paz",
-"es-EC": "America/Guayaquil",
-"es-PA": "America/Panama",
-"es-CR": "America/Costa_Rica",
-"es-GT": "America/Guatemala",
-"es-SV": "America/El_Salvador",
-"es-HN": "America/Tegucigalpa",
-"es-NI": "America/Managua",
-"es-BZ": "America/Belize",
-"en-FK": "Atlantic/Stanley",
-"fr-GF": "America/Cayenne",
-"pt-BR-FN": "America/Noronha",
-"es-EC-G": "Pacific/Galapagos",
-"en-GS": "Atlantic/South_Georgia",
-"en-SH": "Atlantic/St_Helena",
-"en-BM": "Atlantic/Bermuda",
-"fr-PM": "America/Miquelon",
-"es-CU": "America/Havana",
-"es-DO": "America/Santo_Domingo",
-"es-PR": "America/Puerto_Rico",
-"en-JM": "America/Jamaica",
-"en-BS": "America/Nassau",
-"en-BB": "America/Barbados",
-"en-TT": "America/Port_of_Spain",
-"en-LC": "America/St_Lucia",
-"en-GD": "America/Grenada",
-"en-VC": "America/St_Vincent",
-"en-AG": "America/Antigua",
-"en-KN": "America/St_Kitts",
-"en-DM": "America/Dominica",
-"nl-AW": "America/Aruba",
-"nl-CW": "America/Curacao",
-"en-KY": "America/Cayman",
-"en-VG": "America/Virgin",
-"en-VI": "America/St_Thomas",
-"fr-GP": "America/Guadeloupe",
-"fr-MQ": "America/Martinique",
-"en-MS": "America/Montserrat",
-"en-AI": "America/Anguilla",
-"en-TC": "America/Grand_Turk",
-"en-US-ET": "America/New_York",
-"en-US-CT": "America/Chicago",
-"en-US-MT": "America/Denver",
-"en-US-AZ": "America/Phoenix",
-"en-US-PT": "America/Los_Angeles",
-"en-US-AK": "America/Anchorage",
-"en-US-HI": "Pacific/Honolulu",
-"en-CA-NF": "America/St_Johns",
-"en-CA-AT": "America/Halifax",
-"en-CA-ET": "America/Toronto",
-"en-CA-CT": "America/Winnipeg",
-"en-CA-MT": "America/Edmonton",
-"en-CA-PT": "America/Vancouver",
-"es-MX-CE": "America/Mexico_City",
-"es-MX-NW": "America/Tijuana",
-"es-MX-PA": "America/Mazatlan",
-"es-MX-QR": "America/Cancun",
-"en-US": "America/New_York",
-"en-CA": "America/Toronto",
-"es-MX": "America/Mexico_City",
-"en-GB": "Europe/London",
-"de-DE": "Europe/Berlin",
-"es-ES": "Europe/Madrid",
-"pt-PT": "Europe/Lisbon",
-"it-IT": "Europe/Rome",
-"nl-NL": "Europe/Amsterdam",
-"be-BE": "Europe/Brussels",
-"pl-PL": "Europe/Warsaw",
-"cz-CZ": "Europe/Prague",
-"at-AT": "Europe/Vienna",
-"de-CH": "Europe/Zurich",
-"sv-SE": "Europe/Stockholm",
-"no-NO": "Europe/Oslo",
-"fi-FI": "Europe/Helsinki",
-"dk-DK": "Europe/Copenhagen",
-"el-GR": "Europe/Athens",
-"tr-TR": "Europe/Istanbul",
-"ua-UA": "Europe/Kyiv",
-"ru-RU": "Europe/Moscow",
-"en-IE": "Europe/Dublin",
-"bg-BG": "Europe/Sofia",
-"hr-HR": "Europe/Zagreb",
-"ee-EE": "Europe/Tallinn",
-"is-IS": "Atlantic/Reykjavik",
-"lv-LV": "Europe/Riga",
-"lt-LT": "Europe/Vilnius",
-"sr-RS": "Europe/Belgrade",
-"sl-SI": "Europe/Ljubljana",
-"bw-BW": "Africa/Gaborone",
-"na-NA": "Africa/Windhoek",
-"ls-LS": "Africa/Maseru",
-"sz-SZ": "Africa/Mbabane",
-"mw-MW": "Africa/Blantyre",
-"mg-MG": "Indian/Antananarivo",
-"gm-GM": "Africa/Banjul",
-"lr-LR": "Africa/Monrovia",
-"sl-SL": "Africa/Freetown",
-"gn-GN": "Africa/Conakry",
-"gw-GW": "Africa/Bissau",
-"gq-GQ": "Africa/Malabo",
-"cf-CF": "Africa/Bangui",
-"td-TD": "Africa/Ndjamena",
-"er-ER": "Africa/Asmara",
-"dj-DJ": "Africa/Djibouti",
-"so-SO": "Africa/Mogadishu",
-"rw-RW": "Africa/Kigali",
-"bi-BI": "Africa/Bujumbura",
-"cg-CG": "Africa/Brazzaville",
-"cd-CD": "Africa/Kinshasa",
-"ga-GA": "Africa/Libreville",
-"st-ST": "Africa/Sao_Tome",
-"cv-CV": "Atlantic/Cape_Verde",
-"km-KM": "Indian/Comoro",
-"sc-SC": "Indian/Mahe",
-"mu-MU": "Indian/Mauritius",
-
-"en-VC": "America/St_Vincent",
-"en-BL": "America/St_Barthelemy",
-"fr-BL": "America/St_Barthelemy",
-"en-SX": "America/Lower_Princes",
-"nl-SX": "America/Lower_Princes",
-
-"mn-MN": "Asia/Ulaanbaatar",
-"kh-KH": "Asia/Phnom_Penh",
-"la-LA": "Asia/Vientiane",
-"mm-MM": "Asia/Yangon",
-"bn-BN": "Asia/Brunei",
-"tl-TL": "Asia/Dili",
-"af-AF": "Asia/Kabul",
-"iq-IQ": "Asia/Baghdad",
-"sy-SY": "Asia/Damascus",
-"jo-JO": "Asia/Amman",
-"lb-LB": "Asia/Beirut",
-"am-AM": "Asia/Yerevan",
-"az-AZ": "Asia/Baku",
-"ge-GE": "Asia/Tbilisi",
-
-"rs-RS": "Europe/Belgrade",
-
-"zh-CN": "Asia/Shanghai",  
-            "fr-FR": "Europe/Paris",  
-            "en-AU": "Australia/Sydney",  
-
-};  
-
-const now = new Date();  
-const timeZone = timeZones[savedRegion];  
-
-// 3. Formata o Horário (HH:MM)  
-const timeStr = now.toLocaleTimeString('pt-BR', {   
-    timeZone: timeZone,   
-    hour: '2-digit',   
-    minute: '2-digit'   
+</div>    <script>    
+    // Variáveis Globais de Hardware    
+    var driver_video = "off";    
+    var driver_ndj = "off";    
+    var driver_files = "off";    
+    var driver_audio = "off";    
+    var driver_system = "off";    
+    var driver_camera = "off";    
+    var driver_user_erro = "off";    
+    var driver_touch_advanced = "off";    
+    var driver_cloud_conect = "off";    
+    var driver_all_conect = "off";    
+    var driver_security_internal = "off";    
+    var driver_optimization = "off";    
+    var driver_failed = "off";    
+    var driver_beta = "off";    
+  
+    function checkDriver(name) { return window[name]; }    
+  
+    const ALL_APPS = [    
+        { name: 'Ajustes', icon: '⚙️', url: 'ajustes.html' },    
+        { name: 'Notas', icon: '📝', url: 'notas/index.html' },    
+        { name: 'Browser ADv', icon: '🌐', url: 'beta/browser2.html'},    
+        { name: 'Jogos', icon: '📱', url: 'jogos.html' },    
+        { name: 'Bússola', icon: '🧭', url: 'bussola.html' },    
+        { name: 'Browser', icon: '🌐', url: 'browser.html' },    
+        { name: 'Arquivos', icon: '📂', url: 'files.html' },    
+        { name: 'Calculadora', icon: '🔢', url: 'jogos/calculadora.html' },    
+        { name: 'Terminal', icon: '📟', url: 'terminal.html' },    
+        { name: 'Galeria', icon: '📸', url: 'galeria.html' },    
+        { name: 'Animes', icon: '🗨️', url: 'animes.html' },    
+        { name: 'debug', icon: '🔐', url: 'debug.html' },    
+        { name: 'Extras', icon: '📁', url: 'extra.html'},    
+        { name: 'Configurar', icon: '⚙️', url: 'config.html'},  
+        { name: 'Programação', icon: '🖥️', url: 'programacao.html'}    
+    ];    
+  
+    // Intro    
+    const intro = document.getElementById('intro-screen');    
+    for (let i = 0; i < 15; i++) {    
+        let b = document.createElement('div'); b.className = 'bubble';    
+        let size = Math.random() * 60 + 20; b.style.width = size + 'px'; b.style.height = size + 'px';    
+        b.style.left = Math.random() * 100 + '%'; b.style.animationDelay = Math.random() * 5 + 's';    
+        intro.appendChild(b);    
+    }    
+    setTimeout(() => {    
+        intro.style.transition = 'opacity 1s'; intro.style.opacity = '0';    
+        setTimeout(() => {     
+            intro.style.display = 'none';     
+            document.getElementById('lock-screen').style.display = 'flex';     
+        }, 1000);    
+    }, 5000);    
+  
+    // Substitua sua função updateClock atual por esta:  
+  
+function updateClock() {  
+// 1. Puxa a região do cache (se não existir, usa Brasil como padrão)  
+const savedRegion = localStorage.getItem('ghost_clock_region') || 'pt-BR';  
+  
+// 2. Mapeamento de fusos (deve ser igual ao do relogio.html)    
+const timeZones = {    
+    "pt-BR": "America/Sao_Paulo",  
+  
+"ne-NE": "Africa/Niamey",  
+"ml-ML": "Africa/Bamako",  
+"bf-BF": "Africa/Ouagadougou",  
+"tg-TG": "Africa/Lome",  
+"bj-BJ": "Africa/Porto-Novo",  
+"mr-MR": "Africa/Nouakchott",  
+"ss-SS": "Africa/Juba",  
+  
+"bt-BT": "Asia/Thimphu",  
+"mv-MV": "Indian/Maldives",  
+"tj-TJ": "Asia/Dushanbe",  
+"tm-TM": "Asia/Ashgabat",  
+"kg-KG": "Asia/Bishkek",  
+  
+"ki-KI": "Pacific/Tarawa",  
+"nr-NR": "Pacific/Nauru",  
+"tv-TV": "Pacific/Funafuti",  
+"fm-FM": "Pacific/Pohnpei",  
+"mh-MH": "Pacific/Majuro",  
+"pw-PW": "Pacific/Palau",  
+"al-AL": "Europe/Tirane",  
+"gi-GI": "Europe/Gibraltar",  
+"im-IM": "Europe/Isle_of_Man",  
+"je-JE": "Europe/Jersey",  
+"gg-GG": "Europe/Guernsey",  
+"cn-HK": "Asia/Hong_Kong",  
+"cn-MO": "Asia/Macau",  
+"sg-SG": "Asia/Singapore",  
+"my-MY": "Asia/Kuala_Lumpur",  
+"np-NP": "Asia/Kathmandu",  
+"lk-LK": "Asia/Colombo",  
+"kz-KZ": "Asia/Almaty",  
+"cm-CM": "Africa/Douala",  
+"ws-WS": "Pacific/Apia",  
+"to-TO": "Pacific/Tongatapu",  
+"sb-SB": "Pacific/Guadalcanal",  
+"vu-VU": "Pacific/Efate",  
+"ci-CI": "Africa/Abidjan",  
+"sn-SN": "Africa/Dakar",  
+"gl-GL": "America/Godthab", // ou America/Nuuk (mais moderno)  
+"ht-HT": "America/Port-au-Prince",  
+"gy-GY": "America/Guyana",  
+"sr-SR": "America/Paramaribo",  
+"ug-UG": "Africa/Kampala",  
+"tz-TZ": "Africa/Dar_es_Salaam",  
+"zw-ZW": "Africa/Harare",  
+"mz-MZ": "Africa/Maputo",  
+"sd-SD": "Africa/Khartoum",  
+"ly-LY": "Africa/Tripoli",  
+"uz-UZ": "Asia/Tashkent",  
+"qa-QA": "Asia/Qatar",  
+"kw-KW": "Asia/Kuwait",  
+"om-OM": "Asia/Muscat",  
+"ye-YE": "Asia/Aden",  
+"xk-XK": "Europe/Belgrade", // Kosovo usa esse padrão  
+"za-ZA": "Africa/Johannesburg",  
+"eg-EG": "Africa/Cairo",  
+"ma-MA": "Africa/Casablanca",  
+"ng-NG": "Africa/Lagos",  
+"ke-KE": "Africa/Nairobi",  
+"dz-DZ": "Africa/Algiers",  
+"tn-TN": "Africa/Tunis",  
+"gh-GH": "Africa/Accra",  
+"et-ET": "Africa/Addis_Ababa",  
+"ao-AO": "Africa/Luanda",  
+  
+"ja-JP": "Asia/Tokyo",  
+"ko-KR": "Asia/Seoul",  
+"hi-IN": "Asia/Kolkata",  
+"th-TH": "Asia/Bangkok",  
+"vi-VN": "Asia/Ho_Chi_Minh",  
+"id-ID": "Asia/Jakarta",  
+"ph-PH": "Asia/Manila",  
+"ar-SA": "Asia/Riyadh",  
+"he-IL": "Asia/Jerusalem",  
+"fa-IR": "Asia/Tehran",  
+"ae-AE": "Asia/Dubai",  
+"pk-PK": "Asia/Karachi",  
+"bd-BD": "Asia/Dhaka",  
+  
+"en-NZ": "Pacific/Auckland",  
+"en-FJ": "Pacific/Fiji",  
+"en-PG": "Pacific/Port_Moresby",  
+"ba-BA": "Europe/Sarajevo",  
+"me-ME": "Europe/Podgorica",  
+"mk-MK": "Europe/Skopje",  
+"md-MD": "Europe/Chisinau",  
+"by-BY": "Europe/Minsk",  
+"sk-SK": "Europe/Bratislava",  
+  
+"ad-AD": "Europe/Andorra",  
+"mc-MC": "Europe/Monaco",  
+"sm-SM": "Europe/San_Marino",  
+"va-VA": "Europe/Vatican",  
+"li-LI": "Europe/Vaduz",  
+"lu-LU": "Europe/Luxembourg",  
+"mt-MT": "Europe/Malta",  
+"cy-CY": "Asia/Nicosia",  
+  
+"fo-FO": "Atlantic/Faroe",  
+"aq-MC": "Antarctica/McMurdo",  
+"aq-SP": "Antarctica/South_Pole",  
+"aq-RO": "Antarctica/Rothera",  
+"aq-PA": "Antarctica/Palmer",  
+"aq-SY": "Antarctica/Syowa",  
+"aq-MA": "Antarctica/Mawson",  
+"aq-VO": "Antarctica/Vostok",  
+"aq-DA": "Antarctica/Davis",  
+"aq-CA": "Antarctica/Casey",  
+"aq-DU": "Antarctica/DumontDUrville",  
+"aq-TR": "Antarctica/Troll",  
+"aq-MQ": "Antarctica/Macquarie",  
+"es-AR": "America/Argentina/Buenos_Aires",  
+"es-CL": "America/Santiago",  
+"es-CO": "America/Bogota",  
+"es-PE": "America/Lima",  
+"es-VE": "America/Caracas",  
+"es-UY": "America/Montevideo",  
+"es-PY": "America/Asuncion",  
+"es-BO": "America/La_Paz",  
+"es-EC": "America/Guayaquil",  
+"es-PA": "America/Panama",  
+"es-CR": "America/Costa_Rica",  
+"es-GT": "America/Guatemala",  
+"es-SV": "America/El_Salvador",  
+"es-HN": "America/Tegucigalpa",  
+"es-NI": "America/Managua",  
+"es-BZ": "America/Belize",  
+"en-FK": "Atlantic/Stanley",  
+"fr-GF": "America/Cayenne",  
+"pt-BR-FN": "America/Noronha",  
+"es-EC-G": "Pacific/Galapagos",  
+"en-GS": "Atlantic/South_Georgia",  
+"en-SH": "Atlantic/St_Helena",  
+"en-BM": "Atlantic/Bermuda",  
+"fr-PM": "America/Miquelon",  
+"es-CU": "America/Havana",  
+"es-DO": "America/Santo_Domingo",  
+"es-PR": "America/Puerto_Rico",  
+"en-JM": "America/Jamaica",  
+"en-BS": "America/Nassau",  
+"en-BB": "America/Barbados",  
+"en-TT": "America/Port_of_Spain",  
+"en-LC": "America/St_Lucia",  
+"en-GD": "America/Grenada",  
+"en-VC": "America/St_Vincent",  
+"en-AG": "America/Antigua",  
+"en-KN": "America/St_Kitts",  
+"en-DM": "America/Dominica",  
+"nl-AW": "America/Aruba",  
+"nl-CW": "America/Curacao",  
+"en-KY": "America/Cayman",  
+"en-VG": "America/Virgin",  
+"en-VI": "America/St_Thomas",  
+"fr-GP": "America/Guadeloupe",  
+"fr-MQ": "America/Martinique",  
+"en-MS": "America/Montserrat",  
+"en-AI": "America/Anguilla",  
+"en-TC": "America/Grand_Turk",  
+"en-US-ET": "America/New_York",  
+"en-US-CT": "America/Chicago",  
+"en-US-MT": "America/Denver",  
+"en-US-AZ": "America/Phoenix",  
+"en-US-PT": "America/Los_Angeles",  
+"en-US-AK": "America/Anchorage",  
+"en-US-HI": "Pacific/Honolulu",  
+"en-CA-NF": "America/St_Johns",  
+"en-CA-AT": "America/Halifax",  
+"en-CA-ET": "America/Toronto",  
+"en-CA-CT": "America/Winnipeg",  
+"en-CA-MT": "America/Edmonton",  
+"en-CA-PT": "America/Vancouver",  
+"es-MX-CE": "America/Mexico_City",  
+"es-MX-NW": "America/Tijuana",  
+"es-MX-PA": "America/Mazatlan",  
+"es-MX-QR": "America/Cancun",  
+"en-US": "America/New_York",  
+"en-CA": "America/Toronto",  
+"es-MX": "America/Mexico_City",  
+"en-GB": "Europe/London",  
+"de-DE": "Europe/Berlin",  
+"es-ES": "Europe/Madrid",  
+"pt-PT": "Europe/Lisbon",  
+"it-IT": "Europe/Rome",  
+"nl-NL": "Europe/Amsterdam",  
+"be-BE": "Europe/Brussels",  
+"pl-PL": "Europe/Warsaw",  
+"cz-CZ": "Europe/Prague",  
+"at-AT": "Europe/Vienna",  
+"de-CH": "Europe/Zurich",  
+"sv-SE": "Europe/Stockholm",  
+"no-NO": "Europe/Oslo",  
+"fi-FI": "Europe/Helsinki",  
+"dk-DK": "Europe/Copenhagen",  
+"el-GR": "Europe/Athens",  
+"tr-TR": "Europe/Istanbul",  
+"ua-UA": "Europe/Kyiv",  
+"ru-RU": "Europe/Moscow",  
+"en-IE": "Europe/Dublin",  
+"bg-BG": "Europe/Sofia",  
+"hr-HR": "Europe/Zagreb",  
+"ee-EE": "Europe/Tallinn",  
+"is-IS": "Atlantic/Reykjavik",  
+"lv-LV": "Europe/Riga",  
+"lt-LT": "Europe/Vilnius",  
+"sr-RS": "Europe/Belgrade",  
+"sl-SI": "Europe/Ljubljana",  
+"bw-BW": "Africa/Gaborone",  
+"na-NA": "Africa/Windhoek",  
+"ls-LS": "Africa/Maseru",  
+"sz-SZ": "Africa/Mbabane",  
+"mw-MW": "Africa/Blantyre",  
+"mg-MG": "Indian/Antananarivo",  
+"gm-GM": "Africa/Banjul",  
+"lr-LR": "Africa/Monrovia",  
+"sl-SL": "Africa/Freetown",  
+"gn-GN": "Africa/Conakry",  
+"gw-GW": "Africa/Bissau",  
+"gq-GQ": "Africa/Malabo",  
+"cf-CF": "Africa/Bangui",  
+"td-TD": "Africa/Ndjamena",  
+"er-ER": "Africa/Asmara",  
+"dj-DJ": "Africa/Djibouti",  
+"so-SO": "Africa/Mogadishu",  
+"rw-RW": "Africa/Kigali",  
+"bi-BI": "Africa/Bujumbura",  
+"cg-CG": "Africa/Brazzaville",  
+"cd-CD": "Africa/Kinshasa",  
+"ga-GA": "Africa/Libreville",  
+"st-ST": "Africa/Sao_Tome",  
+"cv-CV": "Atlantic/Cape_Verde",  
+"km-KM": "Indian/Comoro",  
+"sc-SC": "Indian/Mahe",  
+"mu-MU": "Indian/Mauritius",  
+  
+"en-VC": "America/St_Vincent",  
+"en-BL": "America/St_Barthelemy",  
+"fr-BL": "America/St_Barthelemy",  
+"en-SX": "America/Lower_Princes",  
+"nl-SX": "America/Lower_Princes",  
+  
+"mn-MN": "Asia/Ulaanbaatar",  
+"kh-KH": "Asia/Phnom_Penh",  
+"la-LA": "Asia/Vientiane",  
+"mm-MM": "Asia/Yangon",  
+"bn-BN": "Asia/Brunei",  
+"tl-TL": "Asia/Dili",  
+"af-AF": "Asia/Kabul",  
+"iq-IQ": "Asia/Baghdad",  
+"sy-SY": "Asia/Damascus",  
+"jo-JO": "Asia/Amman",  
+"lb-LB": "Asia/Beirut",  
+"am-AM": "Asia/Yerevan",  
+"az-AZ": "Asia/Baku",  
+"ge-GE": "Asia/Tbilisi",  
+  
+"rs-RS": "Europe/Belgrade",  
+  
+"zh-CN": "Asia/Shanghai",    
+            "fr-FR": "Europe/Paris",    
+            "en-AU": "Australia/Sydney",    
+  
+};    
+  
+const now = new Date();    
+const timeZone = timeZones[savedRegion];    
+  
+// 3. Formata o Horário (HH:MM)    
+const timeStr = now.toLocaleTimeString('pt-BR', {     
+    timeZone: timeZone,     
+    hour: '2-digit',     
+    minute: '2-digit'     
+});    
+  
+// 4. Formata a Data da Lockscreen baseada na localidade salva    
+const dateOptions = { weekday: 'long', day: 'numeric', month: 'long', timeZone: timeZone };    
+const dateStr = now.toLocaleDateString(savedRegion, dateOptions).toUpperCase();    
+  
+// 5. Aplica nos elementos    
+document.getElementById('clock').innerText = timeStr;    
+document.getElementById('status-time').innerText = timeStr;    
+document.getElementById('date').innerText = dateStr;  
+  
+}  
+  
+// Mantém o intervalo para atualizar todo segundo  
+setInterval(updateClock, 1000);  
+updateClock();  
+  
+setInterval(updateClock, 1000); updateClock();    
+  
+    function unlockSystem() {    
+        document.getElementById('lock-screen').style.transform = 'translateY(-100%)';    
+        setTimeout(() => {     
+            document.getElementById('app-grid').classList.add('show');     
+            document.getElementById('top-launcher').style.display = 'flex';    
+        }, 300);    
+    }    
+  
+    function openApp(name, url) {    
+        const win = document.getElementById('app-window');    
+        document.getElementById('win-title').innerText = name.toUpperCase();    
+        document.getElementById('win-frame').src = url;    
+        win.classList.add('open');    
+        toggleDrawer(false);     
+    }    
+  
+    function closeApp() {    
+        const win = document.getElementById('app-window');    
+        win.classList.remove('open');    
+        win.classList.remove('maximized');    
+        setTimeout(() => { document.getElementById('win-frame').src = ''; }, 300);    
+    }    
+  
+    function toggleMaximize() { document.getElementById('app-window').classList.toggle('maximized'); }    
+  
+    function goHome() {    
+        closeApp();    
+        toggleDrawer(false);    
+        toggleQuickPanel(false);    
+    }    
+  
+    function toggleDrawer(force) {    
+        const d = document.getElementById('drawer');    
+        if(force === false) {    
+            d.classList.remove('open');    
+            document.getElementById('search-input').value = '';    
+            searchApp('');    
+        } else {    
+            d.classList.toggle('open');    
+            if(d.classList.contains('open')) searchApp('');    
+        }    
+    }    
+  
+    function searchApp(val) {    
+        const list = document.getElementById('drawer-list');    
+        list.innerHTML = '';    
+        const filtered = ALL_APPS.filter(app => app.name.toLowerCase().includes(val.toLowerCase()));    
+        filtered.forEach(app => {    
+            const card = document.createElement('div');    
+            card.className = 'app-card';    
+            card.onclick = () => openApp(app.name, app.url);    
+            card.innerHTML = `<div class="app-icon-box">${app.icon}</div><span>${app.name}</span>`;    
+            list.appendChild(card);    
+        });    
+    }    
+  
+    window.addEventListener('message', (event) => {    
+        if (event.data.type === 'SET_WALLPAPER') {    
+            const url = event.data.url;    
+            document.getElementById('main-desktop').style.backgroundImage = `url('${url}')`;    
+            document.getElementById('lock-screen').style.backgroundImage = `url('${url}')`;    
+localStorage.setItem("ghost_wallpaper", url);  
+        }    
+    });    
+  
+    function updateFakeDateApp() {    
+        const now = new Date();    
+        const daysShort = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];    
+        document.getElementById('icon-day-name').innerText = daysShort[now.getDay()];    
+        document.getElementById('icon-day-num').innerText = now.getDate();    
+    }    
+    updateFakeDateApp();    
+    setInterval(updateFakeDateApp, 3600000);    
+  
+    // FUNÇÃO DO PAINEL    
+    function toggleQuickPanel(show) {    
+        const panel = document.getElementById('quick-panel');    
+        if(show) panel.classList.add('active');    
+        else panel.classList.remove('active');    
+    }    
+    // --- KERNEL MESSAGE ROUTER (os.html) ---  
+  
+// Memória do Sistema  
+let hackAtivo = false;  
+  
+window.addEventListener('message', (event) => {  
+// 1. O Terminal avisa que o hack terminou  
+if (event.data.type === 'HACK_SUCCESS') {  
+hackAtivo = true;  
+console.log("Kernel: Status de Hack salvo na memória.");  
+}  
+  
+// 2. Sempre que QUALQUER iframe carregar, o Kernel tenta injetar o sinal    
+// Isso resolve o problema de abrir o wifi.html depois    
+if (event.data.type === 'IFRAME_LOADED' || hackAtivo) {    
+    const frames = document.querySelectorAll('iframe');    
+    frames.forEach(frame => {    
+        // Se o arquivo sendo aberto for o wifi    
+        if (frame.src.includes('wifi.html')) {    
+            // Dá um tempinho para o HTML do wifi carregar e envia    
+            setTimeout(() => {    
+                frame.contentWindow.postMessage({ type: 'ACTIVATE_RUNET' }, '*');    
+                console.log("Kernel: Proxy Russo injetado no novo frame de Wi-Fi.");    
+            }, 100);     
+        }    
+    });    
+}  
+  
 });  
-
-// 4. Formata a Data da Lockscreen baseada na localidade salva  
-const dateOptions = { weekday: 'long', day: 'numeric', month: 'long', timeZone: timeZone };  
-const dateStr = now.toLocaleDateString(savedRegion, dateOptions).toUpperCase();  
-
-// 5. Aplica nos elementos  
-document.getElementById('clock').innerText = timeStr;  
-document.getElementById('status-time').innerText = timeStr;  
-document.getElementById('date').innerText = dateStr;
-
-}
-
-// Mantém o intervalo para atualizar todo segundo
-setInterval(updateClock, 1000);
-updateClock();
-
-setInterval(updateClock, 1000); updateClock();  
-
-    function unlockSystem() {  
-        document.getElementById('lock-screen').style.transform = 'translateY(-100%)';  
-        setTimeout(() => {   
-            document.getElementById('app-grid').classList.add('show');   
-            document.getElementById('top-launcher').style.display = 'flex';  
-        }, 300);  
-    }  
-
-    function openApp(name, url) {  
-        const win = document.getElementById('app-window');  
-        document.getElementById('win-title').innerText = name.toUpperCase();  
-        document.getElementById('win-frame').src = url;  
-        win.classList.add('open');  
-        toggleDrawer(false);   
-    }  
-
-    function closeApp() {  
-        const win = document.getElementById('app-window');  
-        win.classList.remove('open');  
-        win.classList.remove('maximized');  
-        setTimeout(() => { document.getElementById('win-frame').src = ''; }, 300);  
-    }  
-
-    function toggleMaximize() { document.getElementById('app-window').classList.toggle('maximized'); }  
-
-    function goHome() {  
-        closeApp();  
-        toggleDrawer(false);  
-        toggleQuickPanel(false);  
-    }  
-
-    function toggleDrawer(force) {  
-        const d = document.getElementById('drawer');  
-        if(force === false) {  
-            d.classList.remove('open');  
-            document.getElementById('search-input').value = '';  
-            searchApp('');  
-        } else {  
-            d.classList.toggle('open');  
-            if(d.classList.contains('open')) searchApp('');  
-        }  
-    }  
-
-    function searchApp(val) {  
-        const list = document.getElementById('drawer-list');  
-        list.innerHTML = '';  
-        const filtered = ALL_APPS.filter(app => app.name.toLowerCase().includes(val.toLowerCase()));  
-        filtered.forEach(app => {  
-            const card = document.createElement('div');  
-            card.className = 'app-card';  
-            card.onclick = () => openApp(app.name, app.url);  
-            card.innerHTML = `<div class="app-icon-box">${app.icon}</div><span>${app.name}</span>`;  
-            list.appendChild(card);  
-        });  
-    }  
-
     window.addEventListener('message', (event) => {  
-        if (event.data.type === 'SET_WALLPAPER') {  
-            const url = event.data.url;  
-            document.getElementById('main-desktop').style.backgroundImage = `url('${url}')`;  
-            document.getElementById('lock-screen').style.backgroundImage = `url('${url}')`;  
+    if (event.data.type === 'rename_app') {  
+        const { id, newName } = event.data;  
+          
+        // Ele vai procurar apenas o card que tenha o ID exato  
+        const card = document.querySelector(`.app-card[data-id="${id}"]`);  
+          
+        if (card) {  
+            const span = card.querySelector('span');  
+            if (span) {  
+                span.innerText = newName;  
+            }  
+        }  
+let apps = JSON.parse(localStorage.getItem("ghost_apps")) || {};  
+    apps[id] = newName;  
+    localStorage.setItem("ghost_apps", JSON.stringify(apps));  
+    }  
+});  
+  
+    const savedWP = localStorage.getItem("ghost_wallpaper");  
+if (savedWP) {  
+    document.getElementById('main-desktop').style.backgroundImage = `url('${savedWP}')`;  
+    document.getElementById('lock-screen').style.backgroundImage = `url('${savedWP}')`;  
+}  
+function loadAppNames() {  
+    const apps = JSON.parse(localStorage.getItem("ghost_apps")) || {};  
+  
+    Object.keys(apps).forEach(id => {  
+        const card = document.querySelector(`.app-card[data-id="${id}"]`);  
+        if (card) {  
+            const span = card.querySelector('span');  
+            if (span) {  
+                span.innerText = apps[id];  
+            }  
         }  
     });  
-
-    function updateFakeDateApp() {  
-        const now = new Date();  
-        const daysShort = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];  
-        document.getElementById('icon-day-name').innerText = daysShort[now.getDay()];  
-        document.getElementById('icon-day-num').innerText = now.getDate();  
-    }  
-    updateFakeDateApp();  
-    setInterval(updateFakeDateApp, 3600000);  
-
-    // FUNÇÃO DO PAINEL  
-    function toggleQuickPanel(show) {  
-        const panel = document.getElementById('quick-panel');  
-        if(show) panel.classList.add('active');  
-        else panel.classList.remove('active');  
-    }  
-    // --- KERNEL MESSAGE ROUTER (os.html) ---
-
-// Memória do Sistema
-let hackAtivo = false;
-
-window.addEventListener('message', (event) => {
-// 1. O Terminal avisa que o hack terminou
-if (event.data.type === 'HACK_SUCCESS') {
-hackAtivo = true;
-console.log("Kernel: Status de Hack salvo na memória.");
-}
-
-// 2. Sempre que QUALQUER iframe carregar, o Kernel tenta injetar o sinal  
-// Isso resolve o problema de abrir o wifi.html depois  
-if (event.data.type === 'IFRAME_LOADED' || hackAtivo) {  
-    const frames = document.querySelectorAll('iframe');  
-    frames.forEach(frame => {  
-        // Se o arquivo sendo aberto for o wifi  
-        if (frame.src.includes('wifi.html')) {  
-            // Dá um tempinho para o HTML do wifi carregar e envia  
-            setTimeout(() => {  
-                frame.contentWindow.postMessage({ type: 'ACTIVATE_RUNET' }, '*');  
-                console.log("Kernel: Proxy Russo injetado no novo frame de Wi-Fi.");  
-            }, 100);   
-        }  
-    });  
-}
-
-});
-    window.addEventListener('message', (event) => {
-    if (event.data.type === 'RENAME_APP') {
-        const { id, newName } = event.data;
-        
-        // Ele vai procurar apenas o card que tenha o ID exato
-        const card = document.querySelector(`.app-card[data-id="${id}"]`);
-        
-        if (card) {
-            const span = card.querySelector('span');
-            if (span) {
-                span.innerText = newName;
-            }
-        }
-    }
-});
-
-    
-
-</script>
-
-</body>  
+}  
+  
+loadAppNames();  
+  
+</script>  </body>    
 </html>
