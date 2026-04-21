@@ -120,6 +120,12 @@
             
             <div class="wp-item" style="background-image: url('https://w.wallhaven.cc/full/gp/wallhaven-gpl9ve.jpg');" 
                  onclick="changeWP('https://w.wallhaven.cc/full/gp/wallhaven-gpl9ve.jpg')"></div>
+
+<div class="wp-item" onclick="document.getElementById('fileInput').click()" style="display:flex;align-items:center;justify-content:center;background:#222;font-size:24px;">
+    +
+</div>
+<input id="fileInput" type="file" accept="image/*" onchange="uploadWallpaper(event)" hidden>
+
         </div>
     </div>
 
@@ -238,6 +244,29 @@
         function wtd() {
             window.location.href = "overclock.html";
         }
+function uploadWallpaper(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const base64 = e.target.result;
+
+        // salva no sistema
+        localStorage.setItem("custom_wallpaper", base64);
+
+        // aplica imediatamente
+        changeWP(base64);
+    };
+
+    reader.readAsDataURL(file);
+}
+
+const savedWP = localStorage.getItem("custom_wallpaper");
+if (savedWP) {
+    changeWP(savedWP);
+}
     </script>
 </body>
 </html>
