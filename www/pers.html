@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personalização</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background: #111;
+        color: #fff;
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    .section {
+        margin-bottom: 25px;
+        padding: 15px;
+        background: #1c1c1c;
+        border-radius: 12px;
+        border: 1px solid #333;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    input, select, button {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: none;
+        outline: none;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+
+    input[type="color"] {
+        height: 50px;
+        padding: 5px;
+    }
+
+    button {
+        background: #3b82f6;
+        color: white;
+        cursor: pointer;
+    }
+
+    button:active {
+        transform: scale(0.95);
+    }
+</style>
+</head>
+
+<body>
+
+<h1>🎨 Personalização</h1>
+
+<div class="section">
+    <label>Cor do Relógio</label>
+    <input type="color" id="colorPicker">
+    <button onclick="applyColor()">Aplicar Cor</button>
+</div>
+
+<div class="section">
+    <label>Fonte do Relógio</label>
+    <select id="fontSelect">
+        <option value="Segoe UI">Padrão</option>
+        <option value="Arial">Arial</option>
+        <option value="Courier New">Courier</option>
+        <option value="monospace">Monospace</option>
+        <option value="fantasy">Fantasy</option>
+    </select>
+    <button onclick="applyFont()">Aplicar Fonte</button>
+</div>
+
+<div class="section">
+    <label>Mostrar / Ocultar Relógio</label>
+    <button onclick="toggleClock(true)">Mostrar</button>
+    <button onclick="toggleClock(false)">Ocultar</button>
+</div>
+
+<div class="section">
+    <label>Wallpaper (URL da imagem)</label>
+    <input type="text" id="wallInput" placeholder="https://...">
+    <button onclick="applyWallpaper()">Aplicar Wallpaper</button>
+</div>
+
+<script>
+function send(data){
+    window.parent.postMessage(data, '*');
+}
+
+// Cor
+function applyColor(){
+    const color = document.getElementById('colorPicker').value;
+    send({ type: 'clock_color', value: color });
+}
+
+// Fonte
+function applyFont(){
+    const font = document.getElementById('fontSelect').value;
+    send({ type: 'clock_font', value: font });
+}
+
+// Mostrar / Ocultar
+function toggleClock(state){
+    send({ type: 'clock_toggle', value: state });
+}
+
+// Wallpaper
+function applyWallpaper(){
+    const url = document.getElementById('wallInput').value;
+
+    send({
+        type: 'SET_WALLPAPER',
+        url: url
+    });
+}
+
+// Carregar valores salvos
+window.onload = () => {
+    const savedColor = localStorage.getItem('clock_color');
+    if(savedColor){
+        document.getElementById('colorPicker').value = savedColor;
+    }
+
+    const savedFont = localStorage.getItem('clock_font');
+    if(savedFont){
+        document.getElementById('fontSelect').value = savedFont;
+    }
+}
+</script>
+
+</body>
+</html>
