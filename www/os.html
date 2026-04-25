@@ -273,7 +273,7 @@
 </div>  
 
 <script>  
-    // Variáveis Globais de Hardware  
+    // Drivers
     var driver_video = "off";  
     var driver_ndj = "off";  
     var driver_files = "off";  
@@ -325,13 +325,13 @@
         }, 1000);  
     }, 5000);  
 
-    // Substitua sua função updateClock atual por esta:
+    //  updateClock atual 
 
 function updateClock() {
 // 1. Puxa a região do cache (se não existir, usa Brasil como padrão)
 const savedRegion = localStorage.getItem('ghost_clock_region') || 'pt-BR';
 
-// 2. Mapeamento de fusos (deve ser igual ao do relogio.html)  
+// 2. Mapeamento de fusos   
 const timeZones = {  
     "pt-BR": "America/Sao_Paulo",
 
@@ -734,7 +734,7 @@ console.log("Kernel: Status de Hack salvo na memória.");
 }
 
 // 2. Sempre que QUALQUER iframe carregar, o Kernel tenta injetar o sinal  
-// Isso resolve o problema de abrir o wifi.html depois  
+  
 if (event.data.type === 'IFRAME_LOADED' || hackAtivo) {  
     const frames = document.querySelectorAll('iframe');  
     frames.forEach(frame => {  
