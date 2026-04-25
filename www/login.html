@@ -131,7 +131,7 @@
         /* --- FASE 2: Input de Nome --- */
         document.getElementById('username').addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && this.value.length > 2) {
-                localStorage.setItem("ghost_lang", pt);
+                localStorage.setItem("ghost_lang", "pt");
                 localStorage.setItem('os_user', this.value);
                 phase2.classList.remove('active');
                 phase2b.classList.add('active');
