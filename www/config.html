@@ -174,7 +174,7 @@ function setLang(lang) {
 
     for (let id in dict) {
         window.parent.postMessage({
-            type: 'RENAME_APP',
+            type: 'rename_app',
             id: id,
             newName: dict[id]
         }, '*');
