@@ -1,3 +1,22 @@
+# Atualização 5.5.0
+"O que tem de novo?"
+
+- Papel de parede editavel
+- Mapa nativo
+- Melhor integração offline
+- Otimização
+- Mais opções de fusos horários
+- Tradução de apps
+- adição do alemão
+- adição do japonês
+- remoção/movimentação de aplicativos
+- menor dependência externa
+- otimização da tela de boot
+
+
+
+
+
  
 This project utilizes several other projects...Such as:
 
