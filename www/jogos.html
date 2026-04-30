@@ -55,11 +55,12 @@
         const games = [
             "jogos/ball.html",
             "jogos/doom.html",
-            "jogos/calculadora.html", // Sim, você pode tratar como "jogo" se quiser testar
+            "jogos/calculadora.html", 
             "jogos/snake.html",
             "jogos/click.html",
             "jogos/tetris.html",
-            "jogos/blockblaster.html"
+            "jogos/blockblaster.html",
+            "jogos/flappy_bird_game.html"
         ];
 
         const listContainer = document.getElementById('game-list');
@@ -78,6 +79,7 @@
                 if(file.includes("doom")) icon = "💀";
                 if(file.includes("ball")) icon = "🔵";
                 if(file.includes("calc")) icon = "🔢";
+                if(file.includes("flappy_bird")) icon = "🕊️";
                 if(file.includes("tetris")) icon = "🟦";
                 if(file.includes("click")) icon = "☝️";
                 if(file.includes("snake")) icon = "🐍";
