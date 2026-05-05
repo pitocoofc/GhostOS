@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendário Moderno</title>
+
+<style>
+:root {
+    --bg-body: #f0f2f5;
+    --bg-card: #ffffff;
+    --text-main: #2d2d2d;
+    --text-muted: #888;
+    --accent: #008cff;
+    --sunday: #d93025;
+    --border: #eeeeee;
+}
+
+body.dark-mode {
+    --bg-body: #121212;
+    --bg-card: #1e1e1e;
+    --text-main: #e0e0e0;
+    --text-muted: #aaa;
+    --accent: #4dabff;
+    --sunday: #ff6b6b;
+    --border: #333;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--bg-body);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    transition: 0.3s;
+}
+
+.container {
+    width: 100%;
+    max-width: 400px;
+    background: var(--bg-card);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+/* HEADER */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-btn {
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px;
+}
+
+#theme-toggle {
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* GRID */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+}
+
+.weekdays {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: var(--text-muted);
+    margin: 10px 0;
+}
+
+.weekdays div:first-child { color: var(--sunday); }
+
+.days div {
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 50%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.days div:hover { background: var(--border); }
+
+.today {
+    background: var(--accent);
+    color: white;
+}
+
+.selected {
+    outline: 2px solid var(--accent);
+}
+
+.notes-area {
+    margin-top: 20px;
+    border-top: 1px solid var(--border);
+    padding-top: 15px;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-body);
+    color: var(--text-main);
+}
+
+button {
+    cursor: pointer;
+}
+
+.note-item {
+    background: var(--bg-body);
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<header>
+    <span class="nav-btn" id="prev">◀</span>
+    <h2 id="monthDisplay"></h2>
+    <span class="nav-btn" id="next">▶</span>
+    <span id="theme-toggle">☰</span>
+</header>
+
+<div class="grid weekdays">
+<div>DOM</div><div>SEG</div><div>TER</div><div>QUA</div><div>QUI</div><div>SEX</div><div>SÁB</div>
+</div>
+
+<div class="grid days" id="daysGrid"></div>
+
+<div class="notes-area">
+<div class="input-group">
+    <input type="text" id="noteInput" placeholder="Nota do dia...">
+    <button id="addNote">+</button>
+</div>
+<div id="notes-list"></div>
+</div>
+
+</div>
+
+<script>
+const daysGrid = document.getElementById('daysGrid');
+const monthDisplay = document.getElementById('monthDisplay');
+const noteInput = document.getElementById('noteInput');
+const notesList = document.getElementById('notes-list');
+
+let date = new Date();
+let selectedDate = new Date();
+
+/* TEMA */
+document.getElementById('theme-toggle').onclick = () => {
+    document.body.classList.toggle('dark-mode');
+};
+
+/* NAVEGAÇÃO */
+document.getElementById('prev').onclick = () => {
+    date.setMonth(date.getMonth() - 1);
+    renderCalendar();
+};
+
+document.getElementById('next').onclick = () => {
+    date.setMonth(date.getMonth() + 1);
+    renderCalendar();
+};
+
+/* CALENDÁRIO */
+function renderCalendar() {
+    daysGrid.innerHTML = '';
+
+    const month = date.getMonth();
+    const year = date.getFullYear();
+
+    const names = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+    monthDisplay.innerText = `${names[month]} ${year}`;
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const lastDay = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+        daysGrid.innerHTML += `<div></div>`;
+    }
+
+    for (let i = 1; i <= lastDay; i++) {
+        const fullDate = `${year}-${month}-${i}`;
+        const today = new Date();
+
+        const div = document.createElement('div');
+        div.innerText = i;
+
+        if (
+            i === today.getDate() &&
+            month === today.getMonth() &&
+            year === today.getFullYear()
+        ) div.classList.add('today');
+
+        if (
+            i === selectedDate.getDate() &&
+            month === selectedDate.getMonth() &&
+            year === selectedDate.getFullYear()
+        ) div.classList.add('selected');
+
+        div.onclick = () => {
+            selectedDate = new Date(year, month, i);
+            renderCalendar();
+            renderNotes();
+        };
+
+        daysGrid.appendChild(div);
+    }
+
+    renderNotes();
+}
+
+/* NOTAS POR DIA */
+function getKey() {
+    return selectedDate.toISOString().split('T')[0];
+}
+
+function renderNotes() {
+    const notes = JSON.parse(localStorage.getItem(getKey()) || '[]');
+
+    notesList.innerHTML = notes.map((n, i) => `
+        <div class="note-item">
+            ${n}
+            <span onclick="deleteNote(${i})">✕</span>
+        </div>
+    `).join('');
+}
+
+document.getElementById('addNote').onclick = () => {
+    if (!noteInput.value) return;
+
+    const key = getKey();
+    const notes = JSON.parse(localStorage.getItem(key) || '[]');
+
+    notes.push(noteInput.value);
+    localStorage.setItem(key, JSON.stringify(notes));
+
+    noteInput.value = '';
+    renderNotes();
+};
+
+window.deleteNote = (i) => {
+    const key = getKey();
+    const notes = JSON.parse(localStorage.getItem(key) || '[]');
+
+    notes.splice(i, 1);
+    localStorage.setItem(key, JSON.stringify(notes));
+
+    renderNotes();
+};
+
+renderCalendar();
+</script>
+
+</body>
+</html>
