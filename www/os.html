@@ -174,7 +174,7 @@
     </div>  
     <div class="panel-grid">  
         <div class="panel-item" onclick="openApp('Wi-Fi', 'wifi.html')"><span>📡</span><p>Wi-Fi</p></div>  
-        <div class="panel-item" onclick="openApp('Personalização', 'pers.html')"><span>💠</span><p>IA</p></div>    
+        <div class="panel-item" onclick="openApp('Personalização', 'pers.html')"><span>💠</span><p>Personalizar</p></div>    
         <div class="panel-item" onclick="openApp('IA', 'IA/ia.html')"><span>🤖</span><p>IA</p></div>  
         <div class="panel-item" onclick="toggleQuickPanel(false)"><span>⚙️</span><p>Ajustes</p></div>  
     </div>  
@@ -204,7 +204,9 @@
 
 <div id="main-desktop">  
     <div id="app-grid">  
-        <div class="app-card fake-date-app" id="date-app">  
+    <div class="app-card fake-date-app"
+     id="date-app"
+     onclick="openApp('Calendário', 'calendario.html')"> 
             <div class="app-icon-box date-icon">  
                 <span id="icon-day-name">DOM</span>  
                 <span id="icon-day-num">00</span>  
