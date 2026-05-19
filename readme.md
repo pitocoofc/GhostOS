@@ -1,3 +1,18 @@
+# Atualização 6.0.0
+"Oque tem de novo?"
+
+- Melhorias visuais
+- Adição de novas formas de senhas
+- melhorias de tradução
+- melhorias na segurança do sistema
+- melhor otimização
+- remoção de funcionalidades antigas que atrapalhavam o Sistema
+- adição de novos aplicativos
+- Calendário interativo
+
+
+
+
 # Atualização 5.5.0
 "O que tem de novo?"
 
