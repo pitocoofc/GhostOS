@@ -1,3 +1,6 @@
+ 
+
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -202,7 +205,7 @@
         <div class="progress-bar"><div id="fill2" class="fill"></div></div>
     </div>
 
-    <script>
+        <script>
         const screens = ['phase1', 'os-menu', 'menu-login', 'recovery-step1', 'recovery-step2', 'phase2', 'phase2b', 'phase2c', 'phase3', 'phase4'];
         let currentTrackedPoints = [];
         let logData = ["Carregando Kernel Principal...", "Montando partições de segurança...", "Decodificando cofre LocalStorage...", "Ligando subsistema de nodes e vetores...", "Liberando ambiente operacional..."];
@@ -212,6 +215,7 @@
 
         let patternNodes = [];
         let selectedPatternPath = [];
+        let correctDateString = "";
 
         function changeScreen(targetId) {
             screens.forEach(id => document.getElementById(id).classList.remove('active'));
@@ -219,6 +223,72 @@
         }
 
         const getTargetOS = () => localStorage.getItem("selected_os") || "os.html";
+
+        /* =========================================================================
+           🛡️ MOTOR DE CRIPTOGRAFIA AVANÇADA (WEB CRYPTO API - AES-GCM-256 + PBKDF2)
+           ========================================================================= */
+        
+        // Converte ArrayBuffer para string Hexadecimal
+        const bufToHex = buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        // Converte string Hexadecimal para Uint8Array
+        const hexToBuf = hex => new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+
+        // Deriva uma chave AES-256 a partir de um input (Password ou dados brutos) usando PBKDF2
+        async function deriveKey(inputString, saltBuf) {
+            const enc = new TextEncoder();
+            const initialKey = await crypto.subtle.importKey(
+                "raw", enc.encode(inputString), { name: "PBKDF2" }, false, ["deriveKey"]
+            );
+            return crypto.subtle.deriveKey(
+                {
+                    name: "PBKDF2",
+                    salt: saltBuf,
+                    iterations: 100000,
+                    hash: "SHA-256"
+                },
+                initialKey,
+                { name: "AES-GCM", length: 256 },
+                false,
+                ["encrypt", "decrypt"]
+            );
+        }
+
+        // Cifra qualquer string usando uma chave baseada no usuário e dados do sistema
+        async function encryptData(secret, plainText) {
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const key = await deriveKey(secret, salt);
+            
+            const enc = new TextEncoder();
+            const encryptedBuf = await crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv }, key, enc.encode(plainText)
+            );
+
+            // Retorna o pacote estruturado: SALT:IV:CIPHERTEXT
+            return `${bufToHex(salt)}:${bufToHex(iv)}:${bufToHex(encryptedBuf)}`;
+        }
+
+        // Decifra o pacote estruturado. Retorna string original ou lança erro se a chave falhar
+        async function decryptData(secret, encryptedPackage) {
+            try {
+                const parts = encryptedPackage.split(':');
+                if (parts.length !== 3) return null;
+
+                const salt = hexToBuf(parts[0]);
+                const iv = hexToBuf(parts[1]);
+                const cipherText = hexToBuf(parts[2]);
+
+                const key = await deriveKey(secret, salt);
+                const decryptedBuf = await crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv: iv }, key, cipherText
+                );
+
+                return new TextDecoder().decode(decryptedBuf);
+            } catch (e) {
+                return null; // Falha na descriptografia (Chave errada ou dados corrompidos)
+            }
+        }
 
         /* --- FASE 1: Animação Inicial --- */
         let p1 = 0;
@@ -377,10 +447,14 @@
         }
 
         /* --- CADASTRO SEQUENCIAL HÍBRIDO --- */
-        document.getElementById('password').addEventListener('keypress', function(e) {
+        document.getElementById('password').addEventListener('keypress', async function(e) {
             if(e.key === "Enter") {
-                if (this.value.trim().length > 0) {
-                    localStorage.setItem('os_pass', this.value);
+                const passValue = this.value.trim();
+                if (passValue.length > 0) {
+                    const uName = localStorage.getItem('os_user');
+                    // Cifra a senha usando uma chave gerada combinando o nome do operador + salt interno
+                    const encPass = await encryptData(uName, passValue);
+                    localStorage.setItem('os_pass', encPass);
                 }
                 document.getElementById('reg-title').innerText = "LOCK PATTERN (2/3):";
                 document.getElementById('reg-digit-container').style.display = "none";
@@ -389,12 +463,14 @@
             }
         });
 
-        function saveRegisterPattern() {
+        async function saveRegisterPattern() {
             if (selectedPatternPath.length < 3) {
                 alert("Padrão de segurança muito fraco. Conecte pelo menos 3 pontos.");
                 return;
             }
-            localStorage.setItem("os_pattern", JSON.stringify(selectedPatternPath));
+            const uName = localStorage.getItem('os_user');
+            const encPattern = await encryptData(uName, JSON.stringify(selectedPatternPath));
+            localStorage.setItem("os_pattern", encPattern);
             goToRegisterStep3();
         }
 
@@ -407,10 +483,12 @@
             setupCanvasHandlers('reg-canvas');
         }
 
-        function saveRegisterDraw() {
+        async function saveRegisterDraw() {
             if(currentTrackedPoints.length >= 10) {
                 const normalized = normalizePoints(currentTrackedPoints);
-                localStorage.setItem("os_draw", JSON.stringify(normalized));
+                const uName = localStorage.getItem('os_user');
+                const encDraw = await encryptData(uName, JSON.stringify(normalized));
+                localStorage.setItem("os_draw", encDraw);
             }
             validateFinalRegistration();
         }
@@ -426,13 +504,13 @@
             startLogs();
         }
 
-        /* --- VALIDAÇÕES DE LOGIN COM ALERTAS DETALHADOS --- */
-        document.getElementById('login-pass').addEventListener('keypress', function(e) {
+        /* --- VALIDAÇÕES DE LOGIN COM DECRIPTAÇÃO ASSÍNCRONA --- */
+        document.getElementById('login-pass').addEventListener('keypress', async function(e) {
             if(e.key === 'Enter') {
                 if(cooldownActive) return;
                 const uInput = document.getElementById('login-user').value.trim();
                 const savedUser = localStorage.getItem('os_user');
-                const savedPass = localStorage.getItem('os_pass');
+                const encryptedPass = localStorage.getItem('os_pass');
                 
                 if(uInput !== savedUser) {
                     alert("FALHA NA AUTENTICAÇÃO:\nOperador '" + (uInput || "vazio") + "' não localizado no banco do sistema.");
@@ -441,7 +519,16 @@
                     return;
                 }
 
-                if(savedPass && this.value === savedPass) {
+                if(!encryptedPass) {
+                    alert("MÉTODO INDISPONÍVEL:\nEste usuário não configurou um Passcode.");
+                    triggerLoginError('login-pass');
+                    return;
+                }
+
+                // Tenta decifrar o bloco guardado usando o username fornecido
+                const decryptedPass = await decryptData(uInput, encryptedPass);
+
+                if(decryptedPass && this.value === decryptedPass) {
                     startLogs();
                 } else {
                     alert("FALHA NA AUTENTICAÇÃO:\nSenha/Passcode inválido para o operador '" + uInput + "'.");
@@ -451,11 +538,11 @@
             }
         });
 
-        function validateLoginPattern() {
+        async function validateLoginPattern() {
             if(cooldownActive) return;
             const uInput = document.getElementById('login-user').value.trim();
             const savedUser = localStorage.getItem('os_user');
-            const savedPatternData = localStorage.getItem("os_pattern");
+            const encryptedPattern = localStorage.getItem("os_pattern");
 
             if(uInput !== savedUser) {
                 alert("FALHA NA AUTENTICAÇÃO:\nOperador '" + (uInput || "vazio") + "' não localizado no banco do sistema.");
@@ -464,13 +551,15 @@
                 return;
             }
 
-            if(!savedPatternData) {
+            if(!encryptedPattern) {
                 alert("MÉTODO INDISPONÍVEL:\nEste usuário não configurou um Lock Pattern.");
                 triggerLoginError('login-pattern-canvas');
                 return;
             }
 
-            if(JSON.stringify(selectedPatternPath) === savedPatternData) {
+            const decryptedPatternStr = await decryptData(uInput, encryptedPattern);
+
+            if(decryptedPatternStr && JSON.stringify(selectedPatternPath) === decryptedPatternStr) {
                 startLogs();
             } else {
                 alert("FALHA NA AUTENTICAÇÃO:\nO padrão de nós desenhado está incorreto.");
@@ -480,11 +569,11 @@
             }
         }
 
-        function validateLoginDraw() {
+        async function validateLoginDraw() {
             if(cooldownActive) return;
             const uInput = document.getElementById('login-user').value.trim();
             const savedUser = localStorage.getItem('os_user');
-            const savedDrawData = localStorage.getItem("os_draw");
+            const encryptedDraw = localStorage.getItem("os_draw");
 
             if(uInput !== savedUser) {
                 alert("FALHA NA AUTENTICAÇÃO:\nOperador '" + (uInput || "vazio") + "' não localizado no banco do sistema.");
@@ -493,13 +582,20 @@
                 return;
             }
 
-            if(!savedDrawData) {
+            if(!encryptedDraw) {
                 alert("MÉTODO INDISPONÍVEL:\nEste usuário não possui assinatura visual registrada.");
                 triggerLoginError('login-canvas');
                 return;
             }
 
-            const savedPattern = JSON.parse(savedDrawData);
+            const decryptedDrawStr = await decryptData(uInput, encryptedDraw);
+            if(!decryptedDrawStr) {
+                alert("FALHA CRÍTICA:\nIncapaz de decodificar a matriz vetorial do operador.");
+                triggerLoginError('login-canvas');
+                return;
+            }
+
+            const savedPattern = JSON.parse(decryptedDrawStr);
             const currentPattern = normalizePoints(currentTrackedPoints);
             const matchScore = calculateMatchPercentage(savedPattern, currentPattern);
 
@@ -634,14 +730,25 @@
             }
         });
 
-        function generateRecoveryChallenge() {
-            let systemCreationTime = localStorage.getItem('os_creation_date');
-            if (!systemCreationTime) {
+        async function generateRecoveryChallenge() {
+            let encryptedTime = localStorage.getItem('os_creation_date');
+            const uName = localStorage.getItem('os_user');
+            let rawDate = "";
+
+            if (!encryptedTime) {
                 const d = new Date();
-                systemCreationTime = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
-                localStorage.setItem('os_creation_date', systemCreationTime);
+                rawDate = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+                const encDate = await encryptData(uName, rawDate);
+                localStorage.setItem('os_creation_date', encDate);
+            } else {
+                rawDate = await decryptData(uName, encryptedTime);
+                if (!rawDate) {
+                     // Fallback de contingência caso mude de sistema no meio
+                     const d = new Date();
+                     rawDate = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+                }
             }
-            correctDateString = systemCreationTime;
+            correctDateString = rawDate;
 
             let dateSet = new Set();
             dateSet.add(correctDateString);
@@ -668,12 +775,17 @@
             changeScreen('recovery-step2');
         }
 
-        function verifyRecoveryAnswer(selectedDate) {
+        async function verifyRecoveryAnswer(selectedDate) {
             if (selectedDate === correctDateString) {
+                const uName = localStorage.getItem('os_user');
                 let infoStr = "Chaves ativas recuperadas:\n";
-                if(localStorage.getItem('os_pass')) infoStr += `- Senha: ${localStorage.getItem('os_pass')}\n`;
-                if(localStorage.getItem('os_pattern')) infoStr += `- Lock Pattern: [Configurado]\n`;
-                if(localStorage.getItem('os_draw')) infoStr += `- Assinatura Visual: [Configurada]\n`;
+                
+                if(localStorage.getItem('os_pass')) {
+                    const pass = await decryptData(uName, localStorage.getItem('os_pass'));
+                    infoStr += `- Senha: ${pass}\n`;
+                }
+                if(localStorage.getItem('os_pattern')) infoStr += `- Lock Pattern: [Criptografado e Ativo]\n`;
+                if(localStorage.getItem('os_draw')) infoStr += `- Assinatura Visual: [Criptografado e Ativo]\n`;
                 
                 alert(`ACESSO FORENSE CONCEDIDO!\n\n${infoStr}`);
                 openLogin();
@@ -683,15 +795,19 @@
             }
         }
 
-        document.getElementById('username').addEventListener('keypress', function(e) {
+        document.getElementById('username').addEventListener('keypress', async function(e) {
             if (e.key === 'Enter') {
-                if (this.value.trim().length > 2) {
+                const nameValue = this.value.trim();
+                if (nameValue.length > 2) {
                     this.classList.remove('error');
-                    localStorage.setItem('os_user', this.value.trim());
+                    localStorage.setItem('os_user', nameValue);
                     
                     const today = new Date();
                     const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
-                    localStorage.setItem('os_creation_date', formattedDate);
+                    
+                    // Criptografa o timestamp de criação do sistema também
+                    const encDate = await encryptData(nameValue, formattedDate);
+                    localStorage.setItem('os_creation_date', encDate);
 
                     changeScreen('phase2b');
 
@@ -759,5 +875,6 @@
             }, 30);
         }
     </script>
+
 </body>
 </html>
