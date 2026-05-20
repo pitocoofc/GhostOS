@@ -84,12 +84,43 @@ button:hover {
     <span class="lang-tag">DE 54%</span>
 </button>
 
+<button onclick="setLang('ru')">
+    🇷🇺 Русский (Russo)
+    <span class="lang-tag">RU 67%</span>
+</button>
+
+<button onclick="setLang('zh')">
+    🇨🇳 🇨🇳 简体中文 (Mandarim)
+    <span class="lang-tag">ZH-CN 41%</span>
+</button>
+
+<button onclick="setLang('hi')">
+    🇮🇳 हिन्दी (Hindi)
+    <span class="lang-tag">HI 29%</span>
+</button>
+
+<button onclick="setLang('ko')">
+    🇰🇷 한국어 (Coreano)
+    <span class="lang-tag">KO 48%</span>
+</button>
+
 <button onclick="setLang('jp')">
     🇯🇵 日本語
     <span class="lang-tag">JP 35%</span>
 </button>
 
+<button onclick="setLang('ar')">
+    🇸🇦 العربية (Árabe)
+    <span class="lang-tag">AR 12%</span>
+</button>
+
+<button onclick="setLang('it')">
+    🇮🇹 Italiano
+    <span class="lang-tag">IT 76%</span>
+</button>
+
 </div>
+
 
 <script>
 
@@ -97,83 +128,164 @@ button:hover {
 const LANGS = {
 
 pt: {
-    AJUSTES: "Ajustes",
-    MAPA: "Maps",
-    ANIME: "Animes",
-    GHOSTNET: "GhostNet",
-    ARQUIVOS: "Arquivos",
-    CALCULADORA: "Calculadora",
-    TRADUTOR: "Tradutor",
-    GALERIA: "Galeria",
-    BUSSOLA: "Bússola",
-    RELOGIO: "Relógio"
+    AJUSTES: "Ajustes", 
+MAPA: "Maps", 
+ANIME: "Animes", 
+GHOSTNET: "GhostNet",
+    ARQUIVOS: "Arquivos", 
+CALCULADORA: "Calculadora", 
+TRADUTOR: "Tradutor",
+    GALERIA: "Galeria", 
+BUSSOLA: "Bússola", 
+RELOGIO: "Relógio"
 },
 
 en: {
-    AJUSTES: "Settings",
-    MAPA: "Map",
-    ANIME: "Animes",
-    GHOSTNET: "Browser",
-    ARQUIVOS: "Files",
-    CALCULADORA: "Calculator",
-    TRADUTOR: "Translator",
-    GALERIA: "Gallery",
-    BUSSOLA: "Compass",
-    RELOGIO: "Clock"
+    AJUSTES: "Settings", 
+MAPA: "Map", 
+ANIME: "Animes", 
+GHOSTNET: "Browser",
+    ARQUIVOS: "Files", 
+CALCULADORA: "Calculator", 
+TRADUTOR: "Translator",
+    GALERIA: "Gallery", 
+BUSSOLA: "Compass", 
+RELOGIO: "Clock"
 },
 
 es: {
-    AJUSTES: "Ajustes",
-    MAPA: "Mapa",
-    ANIME: "Animes",
-    GHOSTNET: "Navegador",
-    ARQUIVOS: "Archivos",
-    CALCULADORA: "Calculadora",
-    TRADUTOR: "Traductor",
-    GALERIA: "Galería",
-    BUSSOLA: "Brújula",
-    RELOGIO: "Reloj"
+    AJUSTES: "Ajustes", 
+MAPA: "Mapa", 
+ANIME: "Animes", 
+GHOSTNET: "Navegador",
+    ARQUIVOS: "Archivos", 
+CALCULADORA: "Calculadora", 
+TRADUTOR: "Traductor",
+    GALERIA: "Galería", 
+BUSSOLA: "Brújula", 
+RELOGIO: "Reloj"
 },
 
 fr: {
-    AJUSTES: "Paramètres",
-    MAPA: "Carte",
-    ANIME: "Animes",
-    GHOSTNET: "Navigateur",
-    ARQUIVOS: "Fichiers",
-    CALCULADORA: "Calculatrice",
-    TRADUTOR: "Traducteur",
-    GALERIA: "Galerie",
-    BUSSOLA: "Boussole",
-    RELOGIO: "Horloge"
+    AJUSTES: "Paramètres", 
+MAPA: "Carte", 
+ANIME: "Animes", 
+GHOSTNET: "Navigateur",
+    ARQUIVOS: "Fichiers", 
+CALCULADORA: "Calculatrice", 
+TRADUTOR: "Traducteur",
+    GALERIA: "Galerie", 
+BUSSOLA: "Boussole", 
+RELOGIO: "Horloge"
 },
 
 de: {
-    AJUSTES: "Einstellungen",
-    MAPA: "Karte",
-    ANIME: "Animes",
-    GHOSTNET: "Browser",
-    ARQUIVOS: "Dateien",
-    CALCULADORA: "Rechner",
-    TRADUTOR: "Übersetzer",
-    GALERIA: "Galerie",
-    BUSSOLA: "Kompass",
-    RELOGIO: "Uhr"
+    AJUSTES: "Einstellungen", 
+MAPA: "Karte", 
+ANIME: "Animes", 
+GHOSTNET: "Browser",
+    ARQUIVOS: "Dateien", 
+CALCULADORA: "Rechner", 
+TRADUTOR: "Übersetzer",
+    GALERIA: "Galerie", 
+BUSSOLA: "Kompass", 
+RELOGIO: "Uhr"
+},
+
+ru: {
+ // Russian_Cyrillic
+    AJUSTES: "Настройки", 
+MAPA: "Карты", 
+ANIME: "Аниме", 
+GHOSTNET: "Браузер",
+    ARQUIVOS: "Файлы", 
+CALCULADORA: "Калькулятор", 
+TRADUTOR: "Переводчик",
+    GALERIA: "Галерея", 
+BUSSOLA: "Компас", 
+RELOGIO: "Часы"
+},
+
+zh: {
+ // Mandarim Simplificado
+    AJUSTES: "设置", 
+MAPA: "地图", 
+ANIME: "动漫", 
+GHOSTNET: "浏览器",
+    ARQUIVOS: "文件", 
+CALCULADORA: "计算器", 
+TRADUTOR: "翻译",
+    GALERIA: "图库", 
+BUSSOLA: "指南针", 
+RELOGIO: "时钟"
+},
+
+hi: {
+ // Hindi
+    AJUSTES: "सेटिंग्स", 
+MAPA: "नक्शा", 
+ANIME: "एनिमे", 
+GHOSTNET: "ब्राउज़र",
+    ARQUIVOS: "फाइलें", 
+CALCULADORA: "कैलकुलेटर", 
+TRADUTOR: "अनुवादक",
+    GALERIA: "गैलरी", 
+BUSSOLA: "कम्पास", 
+RELOGIO: "घड़ी"
+},
+
+ko: {
+ // Coreano
+    AJUSTES: "설정", 
+MAPA: "지도", 
+ANIME: "애니", 
+GHOSTNET: "브라우저",
+    ARQUIVOS: "파일", 
+CALCULADORA: "계산기", 
+TRADUTOR: "번역기",
+    GALERIA: "갤러리", 
+BUSSOLA: "나침반", 
+RELOGIO: "시계"
 },
 
 jp: {
-    AJUSTES: "設定",
-    MAPA: "地図",
-    ANIME: "アニメ",
-    GHOSTNET: "ブラウザ",
-    ARQUIVOS: "ファイル",
-    CALCULADORA: "電卓",
-    TRADUTOR: "翻訳",
-    GALERIA: "ギャラリー",
-    BUSSOLA: "コンパス",
-    RELOGIO: "時計"
-}
+    AJUSTES: "設定", 
+MAPA: "地図", 
+ANIME: "アニメ", 
+GHOSTNET: "ブラウザ",
+    ARQUIVOS: "ファイル", 
+CALCULADORA: "電卓", 
+TRADUTOR: "翻訳",
+    GALERIA: "ギャラリー", 
+BUSSOLA: "コンパス", 
+RELOGIO: "時計"
+},
 
+ar: {
+    AJUSTES: "الإعدادات", 
+MAPA: "الخرائط", 
+ANIME: "أنمي", 
+GHOSTNET: "المتصفح",
+    ARQUIVOS: "الملفات", 
+CALCULADORA: "الحاسبة", 
+TRADUTOR: "المترجم",
+    GALERIA: "المعرض", 
+BUSSOLA: "البوصلة", 
+RELOGIO: "الساعة"
+},
+
+it: {
+    AJUSTES: "Impostazioni", 
+MAPA: "Mappe", 
+ANIME: "Anime", 
+GHOSTNET: "Browser",
+    ARQUIVOS: "File",
+ CALCULADORA: "Calcolatrice", 
+TRADUTOR: "Traduttore",
+    GALERIA: "Galleria", 
+BUSSOLA: "Bussola", 
+RELOGIO: "Orologio"
+}
 };
 
 /* 🚀 FUNÇÃO PRINCIPAL */
