@@ -157,10 +157,98 @@
 
     #icon-day-name { font-size: 10px; font-weight: 800; color: #ff3b30; text-transform: uppercase; margin-top: -5px; }  
     #icon-day-num { font-size: 32px; font-weight: 700; line-height: 1; margin-top: 2px; }  
+    /* --- INTERFACE DE MULTITAREFA (SOBE DE BAIXO) --- */
+    #recents-screen {
+        position: fixed;
+        bottom: -110%; /* Começa totalmente escondido embaixo */
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(20px);
+        z-index: 800; /* Fica acima de tudo */
+        transition: bottom 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        padding: 40px 20px;
+    }
+    #recents-screen.active {
+        bottom: 0; /* Sobe para cobrir a tela */
+    }
+
+    .recents-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+    .close-recents-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        font-size: 20px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Área rolável de baixo para cima */
+        /* Substitua a antiga .recents-container por esta */
+    .recents-container {
+        flex: 1;
+        overflow-y: auto; /* Permite rolar de baixo para cima */
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Grid de 3 colunas para os apps adicionais */
+        gap: 25px;
+        padding: 20px 10px 60px;
+        align-content: start;
+    }
+
+  
+
 </style>
 
 </head>  
-<body>  <div id="status-bar" onclick="toggleQuickPanel(true)">  
+
+
+<body>  
+<div id="recents-screen">
+    <div class="recents-header">
+        <h2 style="margin:0; font-weight: 400; letter-spacing: 1px;">Mais Aplicativos</h2>
+        <button class="close-recents-btn" onclick="toggleRecents(false)">✕</button>
+    </div>
+    
+    <div class="recents-container" id="recents-list">
+        
+        <div class="app-card" onclick="openAppAndCloseRecents('Tradução', 'config.html')">
+            <div class="app-icon-box">⚙️</div><span>Tradução</span>
+        </div>
+
+        <div class="app-card" onclick="openAppAndCloseRecents('Extra', 'extra.html')">
+            <div class="app-icon-box">📁</div><span>Extra</span>
+        </div>
+
+        <div class="app-card" onclick="openAppAndCloseRecents('Terminal', 'terminal.html')">
+            <div class="app-icon-box">📟</div><span>Terminal</span>
+        </div>
+
+        <div class="app-card" onclick="openAppAndCloseRecents('Debug', 'debug.html')">
+            <div class="app-icon-box">🔐</div><span>Debug</span>
+        </div>
+
+<div class="app-card" onclick="openAppAndCloseRecents('Security', 't.html')">
+            <div class="app-icon-box">🪪</div><span>Security</span>
+        </div>
+
+        </div>
+</div>
+
+
+<div id="status-bar" onclick="toggleQuickPanel(true)">  
     <div id="status-time">00:00</div>  
     <div style="display:flex; gap:10px;">  
         <span>📶</span><span>98%🔋</span>  
@@ -274,7 +362,8 @@
 
     <div id="taskbar">  
         <div class="nav-btn" onclick="goHome()">⚪</div>  
-        <div class="nav-btn" onclick="alert('Multitarefa em breve')">🔳</div>  
+          <div class="nav-btn" onclick="gamePanel()">🎮</div>  
+        <div class="nav-btn" onclick="toggleRecents(true)">🔳</div> 
     </div>  
 </div>  
 
@@ -300,7 +389,7 @@
     const ALL_APPS = [  
         { name: 'Ajustes', icon: '⚙️', url: 'ajustes.html' },
         
-        { name: 'Ajus', icon: '⚙️', url: 't.html' },  
+         
         
         { name: 'Notas', icon: '📝', url: 'notas/index.html' },  
         { name: 'Jogos', icon: '📱', url: 'jogos.html' },  
@@ -310,9 +399,8 @@
         { name: 'Terminal', icon: '📟', url: 'terminal.html' },  
         { name: 'Galeria', icon: '📸', url: 'galeria.html' },  
         { name: 'Animes', icon: '🗨️', url: 'animes.html' },  
-        { name: 'debug', icon: '🔐', url: 'debug.html' },  
-        { name: 'Extras', icon: '📁', url: 'extra.html'},  
-        { name: 'Configurar', icon: '⚙️', url: 'config.html'},
+       
+       
         { name: 'Programação', icon: '🖥️', url: 'programacao.html'}  
     ];  
 
@@ -381,7 +469,7 @@ const timeZones = {
 "vu-VU": "Pacific/Efate",
 "ci-CI": "Africa/Abidjan",
 "sn-SN": "Africa/Dakar",
-"gl-GL": "America/Godthab", // ou America/Nuuk (mais moderno)
+"gl-GL": "America/Godthab", 
 "ht-HT": "America/Port-au-Prince",
 "gy-GY": "America/Guyana",
 "sr-SR": "America/Paramaribo",
@@ -396,7 +484,7 @@ const timeZones = {
 "kw-KW": "Asia/Kuwait",
 "om-OM": "Asia/Muscat",
 "ye-YE": "Asia/Aden",
-"xk-XK": "Europe/Belgrade", // Kosovo usa esse padrão
+"xk-XK": "Europe/Belgrade", 
 "za-ZA": "Africa/Johannesburg",
 "eg-EG": "Africa/Cairo",
 "ma-MA": "Africa/Casablanca",
@@ -813,6 +901,28 @@ function loadAppNames() {
 
 });
 loadAppNames();
+
+
+        // FUNÇÕES DA MULTITAREFA (EXTENSÃO)
+    function toggleRecents(show) {
+        const recentsScreen = document.getElementById('recents-screen');
+        if (show) {
+            recentsScreen.classList.add('active'); // Sobe de baixo para cima
+        } else {
+            recentsScreen.classList.remove('active'); // Desce e fecha
+        }
+    }
+
+    // NOVA: Abre o aplicativo clicado e fecha o painel descendo a animação
+    function openAppAndCloseRecents(name, url) {
+        openApp(name, url); // Chama sua função nativa de abrir na janela
+        toggleRecents(false); // Faz o painel descer
+    }
+
+// Painel Gamer
+function gamePanel() {  
+        alert("Disponível em breve")
+    }  
 
 </script>
 
