@@ -1,3 +1,5 @@
+Quebrou de vez...Br voltar pra um mais antigo...c tem alguma ideia de outro tipo de entrada q já tenha sido utilizada?
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -70,10 +72,10 @@
         .date-option:hover { background: #222; }
 
         /* Elementos de Escolha de Tipo de Senha e Quadro de Desenho */
-        .auth-modes { display: flex; gap: 5px; width: 100%; margin-top: 15px; }
+        .auth-modes { display: flex; gap: 4px; width: 100%; margin-top: 15px; }
         .mode-btn {
             flex: 1; background: #111; border: 1px solid #222; color: #888;
-            padding: 8px 4px; font-family: monospace; cursor: pointer; font-size: 10px;
+            padding: 8px 2px; font-family: monospace; cursor: pointer; font-size: 10px;
             white-space: nowrap;
         }
         .mode-btn.selected { border-color: #3b82f6; color: #fff; background: #0d1e3d; }
@@ -87,6 +89,17 @@
             background: none; border: none; color: #666; font-size: 10px;
             margin-top: 5px; cursor: pointer; text-decoration: underline;
         }
+
+        /* Knock Code Grid System */
+        .knock-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+            width: 220px; height: 220px; margin: 15px auto 5px auto;
+        }
+        .knock-quadrant {
+            background: #0a0a0a; border: 1px solid #333; border-radius: 4px;
+            cursor: pointer; transition: background 0.1s, border-color 0.1s;
+        }
+        .knock-quadrant:active { background: #1d4ed8; border-color: #3b82f6; }
     </style>
 </head>
 <body>
@@ -109,6 +122,7 @@
         
         <div class="auth-modes" id="login-modes-bar">
             <button id="btn-login-mode-digit" class="mode-btn selected" onclick="setLoginAuthMode('digit')">KEYPAD</button>
+            <button id="btn-login-mode-knock" class="mode-btn" onclick="setLoginAuthMode('knock')">KNOCK</button>
             <button id="btn-login-mode-pattern" class="mode-btn" onclick="setLoginAuthMode('pattern')">PATTERN</button>
             <button id="btn-login-mode-draw" class="mode-btn" onclick="setLoginAuthMode('draw')">ASSINATURA</button>
         </div>
@@ -116,6 +130,18 @@
         <div id="login-digit-container" style="width:100%;">
             <input type="password" id="login-pass" placeholder="Passcode..." style="margin-top: 10px;">
             <p id="login-hint" style="font-size: 10px; color: #444; margin-top: 15px;">PRESSIONE ENTER NO PASSWORD PARA ENTRAR</p>
+        </div>
+
+        <div id="login-knock-container" class="pad-container">
+            <p style="font-size: 10px; color: #666; margin: 5px 0;">Insira a sequência de batidas nos quadrantes:</p>
+            <div class="knock-grid">
+                <div class="knock-quadrant" onclick="registerLoginKnock(1)"></div>
+                <div class="knock-quadrant" onclick="registerLoginKnock(2)"></div>
+                <div class="knock-quadrant" onclick="registerLoginKnock(3)"></div>
+                <div class="knock-quadrant" onclick="registerLoginKnock(4)"></div>
+            </div>
+            <button class="clear-pad-btn" onclick="clearLoginKnocks()">Resetar Sequência</button>
+            <button class="menu-btn" id="btn-val-knock" onclick="validateLoginKnock()" style="text-align:center; margin-top:15px;">[ ENTRAR ]</button>
         </div>
 
         <div id="login-pattern-container" class="pad-container">
@@ -156,11 +182,26 @@
     </div>
 
     <div id="phase2c" class="screen">
-        <label id="reg-title">ESTRUTURA DE AUTENTICAÇÃO (1/3):</label>
+        <label id="reg-title">ESTRUTURA DE AUTENTICAÇÃO (1/4):</label>
         
         <div id="reg-digit-container" style="width:100%;">
             <input type="password" id="password" placeholder="Nova Senha / PIN...">
             <p id="pass-hint" style="font-size: 10px; color: #666; margin-top: 10px;">Defina seu código numérico/texto e dê Enter</p>
+        </div>
+
+        <div id="reg-knock-container" class="pad-container">
+            <p style="font-size: 10px; color: #aaa; margin: 5px 0;">Crie seu código Knock tocando nos quadrantes (Mín. 3 batidas):</p>
+            <div class="knock-grid">
+                <div class="knock-quadrant" onclick="registerRegKnock(1)"></div>
+                <div class="knock-quadrant" onclick="registerRegKnock(2)"></div>
+                <div class="knock-quadrant" onclick="registerRegKnock(3)"></div>
+                <div class="knock-quadrant" onclick="registerRegKnock(4)"></div>
+            </div>
+            <button class="clear-pad-btn" onclick="clearRegKnocks()">Limpar Sequência</button>
+            <div style="display:flex; gap:10px; width:100%; margin-top:15px;">
+                <button class="menu-btn" onclick="skipRegisterKnock()" style="text-align:center; flex:1;">[ PULAR ]</button>
+                <button class="menu-btn" onclick="saveRegisterKnock()" style="text-align:center; flex:1; border-color:#3b82f6;">[ SALVAR ]</button>
+            </div>
         </div>
 
         <div id="reg-pattern-container" class="pad-container">
@@ -204,6 +245,9 @@
         let patternNodes = [];
         let selectedPatternPath = [];
         let correctDateString = "";
+
+        let regKnockPath = [];
+        let loginKnockPath = [];
 
         function changeScreen(targetId) {
             screens.forEach(id => document.getElementById(id).classList.remove('active'));
@@ -275,7 +319,7 @@
             document.getElementById('fill1').style.width = p1 + "%";
             if(p1 >= 100) {
                 clearInterval(int1);
-                if (localStorage.getItem("os_user") && (localStorage.getItem("os_pass") || localStorage.getItem("os_draw") || localStorage.getItem("os_pattern"))) {
+                if (localStorage.getItem("os_user") && (localStorage.getItem("os_pass") || localStorage.getItem("os_draw") || localStorage.getItem("os_pattern") || localStorage.getItem("os_knock"))) {
                     changeScreen('os-menu');
                 } else {
                     changeScreen('phase2');
@@ -288,13 +332,16 @@
         function setLoginAuthMode(mode) {
             if(cooldownActive) return;
             document.getElementById('btn-login-mode-digit').classList.toggle('selected', mode === 'digit');
+            document.getElementById('btn-login-mode-knock').classList.toggle('selected', mode === 'knock');
             document.getElementById('btn-login-mode-pattern').classList.toggle('selected', mode === 'pattern');
             document.getElementById('btn-login-mode-draw').classList.toggle('selected', mode === 'draw');
             
             document.getElementById('login-digit-container').style.display = mode === 'digit' ? 'block' : 'none';
+            document.getElementById('login-knock-container').classList.toggle('visible', mode === 'knock');
             document.getElementById('login-pattern-container').classList.toggle('visible', mode === 'pattern');
             document.getElementById('login-draw-container').classList.toggle('visible', mode === 'draw');
             
+            if(mode === 'knock') clearLoginKnocks();
             if(mode === 'draw') setupCanvasHandlers('login-canvas');
             if(mode === 'pattern') setupPatternHandlers('login-pattern-canvas');
         }
@@ -303,6 +350,8 @@
             changeScreen('menu-login');
             if(localStorage.getItem("os_pass")) {
                 setLoginAuthMode('digit');
+            } else if(localStorage.getItem("os_knock")) {
+                setLoginAuthMode('knock');
             } else if(localStorage.getItem("os_pattern")) {
                 setLoginAuthMode('pattern');
             } else {
@@ -355,6 +404,7 @@
         function setLockdownState(lock) {
             document.getElementById('login-user').disabled = lock;
             document.getElementById('login-pass').disabled = lock;
+            document.getElementById('btn-val-knock').disabled = lock;
             document.getElementById('btn-val-pattern').disabled = lock;
             document.getElementById('btn-val-draw').disabled = lock;
             document.getElementById('btn-clear-draw').disabled = lock;
@@ -429,6 +479,21 @@
             drawPatternLayout();
         }
 
+        /* --- ENGINE DO KNOCK CODE --- */
+        function registerRegKnock(quadrant) {
+            regKnockPath.push(quadrant);
+        }
+        function clearRegKnocks() {
+            regKnockPath = [];
+        }
+        function registerLoginKnock(quadrant) {
+            if(cooldownActive) return;
+            loginKnockPath.push(quadrant);
+        }
+        function clearLoginKnocks() {
+            loginKnockPath = [];
+        }
+
         /* --- CADASTRO SEQUENCIAL HÍBRIDO --- */
         document.getElementById('password').addEventListener('keypress', async function(e) {
             if(e.key === "Enter") {
@@ -438,12 +503,32 @@
                     const encPass = await encryptData(uName, passValue);
                     localStorage.setItem('os_pass', encPass);
                 }
-                document.getElementById('reg-title').innerText = "LOCK PATTERN (2/3):";
+                document.getElementById('reg-title').innerText = "KNOCK CODE (2/4):";
                 document.getElementById('reg-digit-container').style.display = "none";
-                document.getElementById('reg-pattern-container').classList.add('visible');
-                setupPatternHandlers('reg-pattern-canvas');
+                document.getElementById('reg-knock-container').classList.add('visible');
+                clearRegKnocks();
             }
         });
+
+        async function saveRegisterKnock() {
+            if (regKnockPath.length < 3) {
+                alert("Código Knock muito curto. Defina pelo menos 3 batidas.");
+                return;
+            }
+            const uName = localStorage.getItem('os_user');
+            const encKnock = await encryptData(uName, JSON.stringify(regKnockPath));
+            localStorage.setItem("os_knock", encKnock);
+            goToRegisterStep3();
+        }
+
+        function skipRegisterKnock() { goToRegisterStep3(); }
+
+        function goToRegisterStep3() {
+            document.getElementById('reg-title').innerText = "LOCK PATTERN (3/4):";
+            document.getElementById('reg-knock-container').classList.remove('visible');
+            document.getElementById('reg-pattern-container').classList.add('visible');
+            setupPatternHandlers('reg-pattern-canvas');
+        }
 
         async function saveRegisterPattern() {
             if (selectedPatternPath.length < 3) {
@@ -453,13 +538,13 @@
             const uName = localStorage.getItem('os_user');
             const encPattern = await encryptData(uName, JSON.stringify(selectedPatternPath));
             localStorage.setItem("os_pattern", encPattern);
-            goToRegisterStep3();
+            goToRegisterStep4();
         }
 
-        function skipRegisterPattern() { goToRegisterStep3(); }
+        function skipRegisterPattern() { goToRegisterStep4(); }
 
-        function goToRegisterStep3() {
-            document.getElementById('reg-title').innerText = "ASSINATURA VISUAL (3/3):";
+        function goToRegisterStep4() {
+            document.getElementById('reg-title').innerText = "ASSINATURA VISUAL (4/4):";
             document.getElementById('reg-pattern-container').classList.remove('visible');
             document.getElementById('reg-draw-container').classList.add('visible');
             setupCanvasHandlers('reg-canvas');
@@ -480,7 +565,7 @@
         function skipRegisterDraw() { validateFinalRegistration(); }
 
         function validateFinalRegistration() {
-            if(!localStorage.getItem('os_pass') && !localStorage.getItem('os_pattern') && !localStorage.getItem('os_draw')) {
+            if(!localStorage.getItem('os_pass') && !localStorage.getItem('os_knock') && !localStorage.getItem('os_pattern') && !localStorage.getItem('os_draw')) {
                 alert("Erro de Segurança: Você precisa definir pelo menos um dos métodos!");
                 window.location.reload();
                 return;
@@ -519,6 +604,36 @@
                 }
             }
         });
+
+        async function validateLoginKnock() {
+            if(cooldownActive) return;
+            const uInput = document.getElementById('login-user').value.trim();
+            const savedUser = localStorage.getItem('os_user');
+            const encryptedKnock = localStorage.getItem("os_knock");
+
+            if(uInput !== savedUser) {
+                alert("FALHA NA AUTENTICAÇÃO:\nOperador '" + (uInput || "vazio") + "' não localizado no banco do sistema.");
+                triggerLoginError('btn-val-knock');
+                checkLoginAttempts();
+                return;
+            }
+
+            if(!encryptedKnock) {
+                alert("MÉTODO INDISPONÍVEL:\nEste usuário não configurou um Knock Code.");
+                triggerLoginError('btn-val-knock');
+                return;
+            }
+
+            const decryptedKnockStr = await decryptData(uInput, encryptedKnock);
+            if(decryptedKnockStr && JSON.stringify(loginKnockPath) === decryptedKnockStr) {
+                startLogs();
+            } else {
+                alert("FALHA NA AUTENTICAÇÃO:\nA sequência Knock Code inserida está incorreta.");
+                triggerLoginError('btn-val-knock');
+                checkLoginAttempts();
+                clearLoginKnocks();
+            }
+        }
 
         async function validateLoginPattern() {
             if(cooldownActive) return;
@@ -779,6 +894,7 @@
                     const pass = await decryptData(uName, localStorage.getItem('os_pass'));
                     infoStr += `- Senha: ${pass}\n`;
                 }
+                if(localStorage.getItem('os_knock')) infoStr += `- Knock Code: [Criptografado e Ativo]\n`;
                 if(localStorage.getItem('os_pattern')) infoStr += `- Lock Pattern: [Criptografado e Ativo]\n`;
                 if(localStorage.getItem('os_draw')) infoStr += `- Assinatura Visual: [Criptografado e Ativo]\n`;
                 
