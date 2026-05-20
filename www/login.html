@@ -1,6 +1,3 @@
- 
-
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -94,13 +91,11 @@
 </head>
 <body>
 
-    <!-- FASE 1: Carregamento Inicial -->
     <div id="phase1" class="screen active">
         <div style="font-size: 24px; letter-spacing: 5px; margin-bottom: 20px;">GHOST_OS</div>
         <div class="progress-bar"><div id="fill1" class="fill"></div></div>
     </div>
 
-    <!-- TELA MENU -->
     <div id="os-menu" class="screen">
         <div style="font-size: 18px; color: #3b82f6; margin-bottom: 20px; letter-spacing: 2px;">SISTEMA ENCONTRADO</div>
         <button class="menu-btn" onclick="openLogin()">[ 1 ] ACESSAR TERMINAL</button>
@@ -108,7 +103,6 @@
         <button class="menu-btn danger" onclick="wipeSystem()">[ 3 ] APAGAR SISTEMA (WIPE)</button>
     </div>
 
-    <!-- TELA LOGIN -->
     <div id="menu-login" class="screen">
         <label id="login-label">CONEXÃO SEGURA - OPERADOR:</label>
         <input type="text" id="login-user" placeholder="Username..." autocomplete="off">
@@ -138,21 +132,18 @@
         </div>
     </div>
 
-    <!-- TELA RECUPERAÇÃO: Passo 1 -->
     <div id="recovery-step1" class="screen">
         <label>VERIFICAÇÃO DE IDENTIDADE:</label>
         <input type="text" id="recovery-username" placeholder="Qual o nome do usuário cadastrado?" autocomplete="off">
         <p id="rec-user-hint" style="font-size: 10px; color: #444; margin-top: 15px;">PRESSIONE ENTER PARA CONFIRMAR</p>
     </div>
 
-    <!-- TELA RECUPERAÇÃO: Passo 2 -->
     <div id="recovery-step2" class="screen">
         <label style="color: #eab308;">DESAFIO TEMPORAL KERNEL</label>
         <p style="font-size: 11px; color: #aaa; margin: 10px 0;">Acerte o registro exato de criação deste terminal para descriptografar os dados:</p>
         <div id="date-options-container" style="width: 100%;"></div>
     </div>
 
-    <!-- FASE 2: Cadastro de Nome -->
     <div id="phase2" class="screen">
         <label>NENHUM OS DETECTADO. CRIE SEU OPERADOR:</label>
         <input type="text" id="username" autocomplete="off" placeholder="Novo Username..." autofocus>
@@ -164,7 +155,6 @@
         <div class="progress-bar"><div id="fillMid" class="fill"></div></div>
     </div>
 
-    <!-- FASE 2C: Cadastro Híbrido Completo -->
     <div id="phase2c" class="screen">
         <label id="reg-title">ESTRUTURA DE AUTENTICAÇÃO (1/3):</label>
         
@@ -193,19 +183,17 @@
         </div>
     </div>
 
-    <!-- FASE 3: Logs -->
     <div id="phase3" class="screen">
         <div id="log-container"></div>
     </div>
 
-    <!-- FASE 4: Boas-vindas -->
     <div id="phase4" class="screen">
         <div id="user-welcome" style="margin-bottom: 10px; font-size: 14px; letter-spacing: 2px;"></div>
         <div class="status-text" style="font-size: 10px; color: #888;">INICIANDO KERNEL SELECIONADO...</div>
         <div class="progress-bar"><div id="fill2" class="fill"></div></div>
     </div>
 
-        <script>
+    <script>
         const screens = ['phase1', 'os-menu', 'menu-login', 'recovery-step1', 'recovery-step2', 'phase2', 'phase2b', 'phase2c', 'phase3', 'phase4'];
         let currentTrackedPoints = [];
         let logData = ["Carregando Kernel Principal...", "Montando partições de segurança...", "Decodificando cofre LocalStorage...", "Ligando subsistema de nodes e vetores...", "Liberando ambiente operacional..."];
@@ -227,14 +215,9 @@
         /* =========================================================================
            🛡️ MOTOR DE CRIPTOGRAFIA AVANÇADA (WEB CRYPTO API - AES-GCM-256 + PBKDF2)
            ========================================================================= */
-        
-        // Converte ArrayBuffer para string Hexadecimal
         const bufToHex = buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-        
-        // Converte string Hexadecimal para Uint8Array
         const hexToBuf = hex => new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
 
-        // Deriva uma chave AES-256 a partir de um input (Password ou dados brutos) usando PBKDF2
         async function deriveKey(inputString, saltBuf) {
             const enc = new TextEncoder();
             const initialKey = await crypto.subtle.importKey(
@@ -254,7 +237,6 @@
             );
         }
 
-        // Cifra qualquer string usando uma chave baseada no usuário e dados do sistema
         async function encryptData(secret, plainText) {
             const salt = crypto.getRandomValues(new Uint8Array(16));
             const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -264,12 +246,9 @@
             const encryptedBuf = await crypto.subtle.encrypt(
                 { name: "AES-GCM", iv: iv }, key, enc.encode(plainText)
             );
-
-            // Retorna o pacote estruturado: SALT:IV:CIPHERTEXT
             return `${bufToHex(salt)}:${bufToHex(iv)}:${bufToHex(encryptedBuf)}`;
         }
 
-        // Decifra o pacote estruturado. Retorna string original ou lança erro se a chave falhar
         async function decryptData(secret, encryptedPackage) {
             try {
                 const parts = encryptedPackage.split(':');
@@ -283,10 +262,9 @@
                 const decryptedBuf = await crypto.subtle.decrypt(
                     { name: "AES-GCM", iv: iv }, key, cipherText
                 );
-
                 return new TextDecoder().decode(decryptedBuf);
             } catch (e) {
-                return null; // Falha na descriptografia (Chave errada ou dados corrompidos)
+                return null;
             }
         }
 
@@ -323,9 +301,14 @@
 
         function openLogin() {
             changeScreen('menu-login');
-            if(localStorage.getItem("os_pass")) setLoginAuthMode('digit');
-            else if(localStorage.getItem("os_pattern")) setLoginAuthMode('pattern');
-            else setLoginAuthMode('draw');
+            if(localStorage.getItem("os_pass")) {
+                setLoginAuthMode('digit');
+            } else if(localStorage.getItem("os_pattern")) {
+                setLoginAuthMode('pattern');
+            } else {
+                setLoginAuthMode('draw');
+                setupCanvasHandlers('login-canvas');
+            }
             document.getElementById('login-user').focus();
         }
 
@@ -452,7 +435,6 @@
                 const passValue = this.value.trim();
                 if (passValue.length > 0) {
                     const uName = localStorage.getItem('os_user');
-                    // Cifra a senha usando uma chave gerada combinando o nome do operador + salt interno
                     const encPass = await encryptData(uName, passValue);
                     localStorage.setItem('os_pass', encPass);
                 }
@@ -484,12 +466,14 @@
         }
 
         async function saveRegisterDraw() {
-            if(currentTrackedPoints.length >= 10) {
-                const normalized = normalizePoints(currentTrackedPoints);
-                const uName = localStorage.getItem('os_user');
-                const encDraw = await encryptData(uName, JSON.stringify(normalized));
-                localStorage.setItem("os_draw", encDraw);
+            if(currentTrackedPoints.length < 6) {
+                alert("ASSINATURA INVÁLIDA:\nO traço estrutural foi muito curto. Desenhe uma assinatura clara no painel.");
+                return;
             }
+            const normalized = normalizePoints(currentTrackedPoints);
+            const uName = localStorage.getItem('os_user');
+            const encDraw = await encryptData(uName, JSON.stringify(normalized));
+            localStorage.setItem("os_draw", encDraw);
             validateFinalRegistration();
         }
 
@@ -525,9 +509,7 @@
                     return;
                 }
 
-                // Tenta decifrar o bloco guardado usando o username fornecido
                 const decryptedPass = await decryptData(uInput, encryptedPass);
-
                 if(decryptedPass && this.value === decryptedPass) {
                     startLogs();
                 } else {
@@ -558,7 +540,6 @@
             }
 
             const decryptedPatternStr = await decryptData(uInput, encryptedPattern);
-
             if(decryptedPatternStr && JSON.stringify(selectedPatternPath) === decryptedPatternStr) {
                 startLogs();
             } else {
@@ -599,10 +580,10 @@
             const currentPattern = normalizePoints(currentTrackedPoints);
             const matchScore = calculateMatchPercentage(savedPattern, currentPattern);
 
-            if(matchScore >= 50) {
+            if(matchScore >= 40) {
                 startLogs();
             } else {
-                alert(`FALHA NA BIOMETRIA VETORIAL:\nSua assinatura obteve ${matchScore.toFixed(1)}% de precisão.\nTaxa mínima exigida pelo Kernel: 50.0%`);
+                alert(`FALHA NA BIOMETRIA VETORIAL:\nSua assinatura obteve ${matchScore.toFixed(1)}% de precisão.\nTaxa mínima exigida pelo Kernel: 40.0%`);
                 triggerLoginError('login-canvas');
                 clearCanvas('login-canvas');
                 checkLoginAttempts();
@@ -669,23 +650,34 @@
             currentTrackedPoints = [];
         }
 
+        /* Mapeamento de Localização Espacial Pura (Ignora velocidade de escrita/amostragem) */
         function normalizePoints(points) {
             if(points.length === 0) return [];
+            
+            // 1. Encontra a caixa delimitadora do desenho (Bounding Box)
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
             points.forEach(p => {
                 if(p.x < minX) minX = p.x; if(p.x > maxX) maxX = p.x;
                 if(p.y < minY) minY = p.y; if(p.y > maxY) maxY = p.y;
             });
             const width = maxX - minX || 1; const height = maxY - minY || 1;
+            
+            // 2. Transforma em escala percentual/relativa de 0 a 100
             let normalized = points.map(p => ({
                 x: ((p.x - minX) / width) * 100,
                 y: ((p.y - minY) / height) * 100
             }));
+            
+            // 3. Amostragem baseada na distância percorrida (Mapeamento Geométrico Fixo)
             let sampled = [];
             const samplesTarget = 40;
+            
             for(let i = 0; i < samplesTarget; i++) {
-                let idx = Math.floor((i / samplesTarget) * normalized.length);
-                sampled.push(normalized[idx]);
+                let percent = i / (samplesTarget - 1);
+                let idx = Math.min(Math.floor(percent * normalized.length), normalized.length - 1);
+                if(normalized[idx]) {
+                    sampled.push(normalized[idx]);
+                }
             }
             return sampled;
         }
@@ -693,13 +685,17 @@
         function calculateMatchPercentage(patternA, patternB) {
             if(!patternA || !patternB || patternA.length === 0 || patternB.length === 0) return 0;
             let totalDistance = 0;
-            for(let i = 0; i < patternA.length; i++) {
+            let lengthToCompare = Math.min(patternA.length, patternB.length);
+            
+            for(let i = 0; i < lengthToCompare; i++) {
                 let dx = patternA[i].x - patternB[i].x;
                 let dy = patternA[i].y - patternB[i].y;
                 totalDistance += Math.sqrt(dx*dx + dy*dy);
             }
-            let avgDistance = totalDistance / patternA.length;
-            let accuracy = 100 - (avgDistance * 2.2); 
+            let avgDistance = totalDistance / lengthToCompare;
+            
+            // Peso balanceado para conferir precisão com margem aceitável em telas mobile (1.3)
+            let accuracy = 100 - (avgDistance * 1.3); 
             return Math.max(0, Math.min(100, accuracy));
         }
 
@@ -743,7 +739,6 @@
             } else {
                 rawDate = await decryptData(uName, encryptedTime);
                 if (!rawDate) {
-                     // Fallback de contingência caso mude de sistema no meio
                      const d = new Date();
                      rawDate = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
                 }
@@ -805,7 +800,6 @@
                     const today = new Date();
                     const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
                     
-                    // Criptografa o timestamp de criação do sistema também
                     const encDate = await encryptData(nameValue, formattedDate);
                     localStorage.setItem('os_creation_date', encDate);
 
@@ -875,6 +869,5 @@
             }, 30);
         }
     </script>
-
 </body>
 </html>
