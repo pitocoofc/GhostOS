@@ -10,7 +10,7 @@
     --primary: #3b82f6;
     --danger: #ef4444;
     --bg: #050505;
-    --bar-bg: #fce4e4; /* Cor da sua imagem */
+    --bar-bg: #fce4e4; 
     --text-dark: #333;
     --glass: rgba(255, 255, 255, 0.05);
 }
@@ -19,7 +19,7 @@
 
 body { background: var(--bg); color: #fff; height: 100vh; overflow: hidden; }
 
-/* 🏠 HOME */
+
 #home {
     height: 100vh;
     display: flex;
@@ -53,7 +53,7 @@ body { background: var(--bg); color: #fff; height: 100vh; overflow: hidden; }
     flex: 1; border: none; outline: none; background: transparent; color: white; padding: 12px; font-size: 16px;
 }
 
-/* 🔵 TOP BAR (IGUAL À FOTO) */
+
 .topbar {
     position: fixed;
     top: 0; width: 100%;
@@ -93,7 +93,7 @@ body { background: var(--bg); color: #fff; height: 100vh; overflow: hidden; }
     font-weight: bold;
 }
 
-/* 📱 DROPDOWN MENU */
+
 .dropdown {
     position: absolute;
     top: 65px; right: 15px;
@@ -120,7 +120,7 @@ body { background: var(--bg); color: #fff; height: 100vh; overflow: hidden; }
 
 .dropdown-item:hover { background: #f0f0f0; }
 
-/* ⚠️ MODAL ANIMADO (FILTRO) */
+
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -148,7 +148,7 @@ body { background: var(--bg); color: #fff; height: 100vh; overflow: hidden; }
     min-height: 50px;
 }
 
-/* 🌐 IFRAME AREA */
+
 iframe {
     width: 100%;
     height: calc(100vh - 60px);
@@ -207,7 +207,7 @@ function toggleMenu() {
     m.style.display = m.style.display === "flex" ? "none" : "flex";
 }
 
-// Fecha menu ao clicar fora
+
 window.onclick = (e) => { if(!e.target.matches('.menu-trigger')) document.getElementById("menuDropdown").style.display = "none"; }
 
 function typeWrite(text, elementId) {
@@ -258,7 +258,7 @@ function goHome() {
 }
 
 function openLocalFile() {
-// Redireciona imediatamente ao carregar a página
+
 window.location.href = "ia.html";
 }
 
