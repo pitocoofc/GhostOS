@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GhostOS - Kasparov Engine</title>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #eee;
+            font-family: 'Consolas', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            color: #3b82f6;
+            letter-spacing: 2px;
+            margin-bottom: 2px;
+        }
+
+        .status {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+            height: 18px;
+        }
+
+        /* Seletor de Oponentes Estilo Terminal */
+        .selector-container {
+            width: 90vw;
+            max-width: 360px;
+            margin-bottom: 15px;
+        }
+
+        select {
+            width: 100%;
+            background: #111;
+            border: 1px solid #333;
+            color: #3b82f6;
+            padding: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+        }
+        select:focus {
+            border-color: #3b82f6;
+        }
+
+        /* Grid do Tabuleiro de Xadrez Responsivo */
+        #board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            width: 90vw;
+            max-width: 360px;
+            height: 90vw;
+            max-height: 360px;
+            border: 4px solid #222;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .square {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 7vw; 
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.1s;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        @media (min-width: 400px) {
+            .square {
+                font-size: 32px; 
+            }
+        }
+
+        .light { background-color: #2a2a2a; }
+        .dark { background-color: #141414; }
+
+        .square.selected { background-color: #1d4ed8 !important; }
+        .square.last-move { background-color: #0d301c !important; }
+
+        /* Marcadores de Movimentos Possíveis */
+        .possible-move::after {
+            content: '';
+            position: absolute;
+            width: 24%;
+            height: 24%;
+            background-color: rgba(34, 197, 94, 0.5); 
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .possible-capture {
+            box-shadow: inset 0 0 0 4px rgba(239, 68, 68, 0.6) !important; 
+        }
+
+        /* Console de Logs Psicológicos */
+        #console {
+            width: 90vw;
+            max-width: 360px;
+            height: 90px;
+            background: #000;
+            border: 1px solid #222;
+            margin-top: 15px;
+            padding: 8px;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #0f0;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .btn-reset {
+            margin-top: 15px;
+            background: #111;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: monospace;
+            transition: 0.2s;
+        }
+        .btn-reset:hover { background: #222; border-color: #3b82f6; }
+    </style>
+</head>
+<body>
+
+    <h2>GHOST_CHESS_ENGINE</h2>
+    <div class="status" id="game-status">Injetando Kernel do Motor...</div>
+
+    <div class="selector-container">
+        <select id="bot-selector" onchange="mudarOponente()">
+            <optgroup label="Modo Treinamento (Ratings)">
+                <option value="bot100">Aparício (Rating 100)</option>
+                <option value="bot500">Iniciante (Rating 500)</option>
+                <option value="bot1000" selected>Intermediário (Rating 1000)</option>
+                <option value="bot1500">Avançado (Rating 1500)</option>
+                <option value="bot2000">Mestre de Sala (Rating 2000)</option>
+                <option value="bot3000">Super Computador (Rating 3000)</option>
+            </optgroup>
+            <optgroup label="Grandes Mestres Mundiais">
+                <option value="magnus">Magnus Carlsen (Frio & Preciso)</option>
+                <option value="hikaru">Hikaru Nakamura (Agressivo & Veloz)</option>
+                <option value="kasparov">Garry Kasparov (Destruição Tática)</option>
+                <option value="fischer">Bobby Fischer (Gênio Implacável)</option>
+                <option value="karpov">Anatoly Karpov (Boa Constritora)</option>
+                <option value="tal">Mikhail Tal (O Mago dos Sacrifícios)</option>
+                <option value="leitao">Rafael Leitão (Sólido & Técnico)</option>
+            </optgroup>
+        </select>
+    </div>
+
+    <div id="board"></div>
+
+    <div id="console">> [System]: Contornando bloqueio de segurança CORS via Blob...</div>
+
+    <button class="btn-reset" onclick="reiniciarJogo()">[ RESETAR PARTIDA ]</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+    <script>
+        const boardEl = document.getElementById('board');
+        const statusEl = document.getElementById('game-status');
+        const consoleEl = document.getElementById('console');
+        const botSelector = document.getElementById('bot-selector');
+
+        let game = new Chess();
+        let selectedSquare = null;
+        let stockfish = null;
+        let enginePronta = false;
+
+        // Banco de dados corrigido e unificado com todas as lendas
+        const OPONENTES = {
+            'bot100':   { skill: 0,  depth: 1, contempt: 0,   nome: "Aparício", frases: ["Opa, joguei sem querer.", "Isso é uma dama ou um cavalo?", "Xadrez é legal."] },
+            'bot500':   { skill: 3,  depth: 2, contempt: 10,  nome: "Iniciante", frases: ["Estou tentando não pendurar minha rainha.", "Acho que esse lance foi bom.", "Sua vez."] },
+            'bot1000':  { skill: 7,  depth: 4, contempt: 30,  nome: "Intermediário", frases: ["Desenvolvendo minhas peças estrategicamente.", "Cuidado com o tático.", "Boa jogada."] },
+            'bot1500':  { skill: 12, depth: 6, contempt: 60,  nome: "Avançado", frases: ["Seu rei está ficando exposto.", "Pressão na ala da dama.", "Analisando fraquezas na sua estrutura."] },
+            'bot2000':  { skill: 16, depth: 8, contempt: 90,  nome: "Mestre de Sala", frases: ["Seu plano falhou conceitualmente.", "Vantagem posicional clara para as pretas.", "Calculando linhas forçadas."] },
+            'bot3000':  { skill: 20, depth: 12, contempt: 120, nome: "Super Computador", frases: ["Cálculo absoluto em andamento.", "Derrota humana inevitável.", "01001100 01001111 01010011 01000101"] },
+            'magnus':   { skill: 18, depth: 8, contempt: 50,  nome: "Magnus Carlsen", frases: ["Eu posso jogar esse final por horas até você errar.", "Literalmente não me importo com o seu ataque.", "Você está jogando xadrez de forma muito lenta.", "Só estou relaxando enquanto venço."] },
+            'hikaru':   { skill: 19, depth: 7, contempt: 100, nome: "Hikaru Nakamura", frases: ["Tudo bem, você joga isso, eu jogo aquilo, eu tomo, você toma e eu ganho.", "Isso é mate em 5, literalmente mate em 5 lances.", "Gasp! Espera, você realmente jogou isso?!", "Vamos acelerar esse jogo."] },
+            'kasparov': { skill: 20, depth: 10, contempt: 120, nome: "Garry Kasparov", frases: ["O xadrez é uma agonia mental. Você está pronto para sofrer?", "Seu plano é fraco. Consigo ver sua derrota a 10 lances de distância.", "Você joga com medo. O tabuleiro pune a hesitação.", "A imprecisão é o primeiro passo para o colapso estrutural."] },
+            'fischer':  { skill: 20, depth: 9, contempt: 110, nome: "Bobby Fischer", frases: ["Eu não acredito em psicologia, eu acredito em bons lances.", "Você já pode abandonar, seu posicionamento é patético.", "Xadrez é guerra nas 64 casas.", "Gosto do momento em que quebro o ego do meu oponente."] },
+            'karpov':   { skill: 19, depth: 10, contempt: -20, nome: "Anatoly Karpov", frases: ["Seu ataque não faz sentido. Vou apenas sufocar suas peças.", "Você está correndo em círculos enquanto eu domino o centro.", "O xadrez expressa pura lógica pura.", "Cada fraqueza que você cria se torna meu alvo permanente."] },
+            'tal':      { skill: 18, depth: 7, contempt: 150, nome: "Mikhail Tal", frases: ["Você precisa levar suas peças para um passeio na floresta escura.", "Ah, você achou que aquele cavalo estava seguro? Sacrifício!", "Há dois tipos de sacrifícios: os corretos e os meus.", "Gosto de criar o caos absoluto no tabuleiro."] },
+            'leitao':   { skill: 17, depth: 8, contempt: 40,  nome: "GM Rafael Leitão", frases: ["Calculando com precisão cirúrgica.", "Essa linha teórica é muito perigosa para as brancas.", "Defesa sólida. Não há táticos disponíveis para você aqui.", "Xadrez de alto nível exige respeito à estrutura."] }
+        };
+
+        const PIECES_UNICODE = {
+            'p': '♟', 'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 
+            'P': '♙', 'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔'  
+        };
+
+        async function initEngine() {
+            try {
+                const cdnUrl = 'https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js';
+                const response = await fetch(cdnUrl);
+                if (!response.ok) throw new Error("Erro ao baixar script da CDN");
+                const workerCode = await response.text();
+                
+                const blob = new Blob([workerCode], { type: 'application/javascript' });
+                const blobURL = URL.createObjectURL(blob);
+                
+                stockfish = new Worker(blobURL);
+                stockfish.postMessage('uci');
+                stockfish.postMessage('isready');
+
+                stockfish.onmessage = function(event) {
+                    const msg = event.data;
+                    
+                    if (msg === 'readyok') {
+                        enginePronta = true;
+                        configurarParametrosBot();
+                        printLog("Barramento de IA ativo. Faça seu lance (Brancas).");
+                        updateStatus();
+                    }
+
+                    if (msg.startsWith('bestmove')) {
+                        const move = msg.split(' ')[1];
+                        if (move && move !== '(none)') {
+                            executarLanceOponente(move);
+                        }
+                    }
+                };
+            } catch(e) {
+                console.error(e);
+                printLog("Falha crítica ao subir o Web Worker.");
+                statusEl.innerText = "Erro de Barramento.";
+            }
+        }
+
+        function configurarParametrosBot() {
+            if (!enginePronta) return;
+            const config = OPONENTES[botSelector.value];
+            stockfish.postMessage(`setoption name Skill Level value ${config.skill}`);
+            stockfish.postMessage(`setoption name Contempt value ${config.contempt}`);
+        }
+
+        function mudarOponente() {
+            configurarParametrosBot();
+            const config = OPONENTES[botSelector.value];
+            printLog(`Oponente alterado para: ${config.nome}`);
+            if (game.turn() === 'b' && !game.game_over()) {
+                statusEl.innerText = `${config.nome} está calculando...`;
+                dispararEnginePretas();
+            }
+        }
+
+        /* --- RENDERIZADOR --- */
+        function drawBoard() {
+            boardEl.innerHTML = '';
+            const boardState = game.board();
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const squareEl = document.createElement('div');
+                    const isLight = (r + c) % 2 === 0;
+                    const squareCoord = String.fromCharCode(97 + c) + (8 - r);
+
+                    squareEl.classList.add('square', isLight ? 'light' : 'dark');
+                    squareEl.dataset.coord = squareCoord;
+
+                    const piece = boardState[r][c];
+                    if (piece) {
+                        const pieceKey = piece.color === 'w' ? piece.type.toUpperCase() : piece.type.toLowerCase();
+                        squareEl.innerText = PIECES_UNICODE[pieceKey] || '';
+                        squareEl.style.color = piece.color === 'w' ? '#fff' : '#ff5555'; 
+                    }
+
+                    squareEl.onclick = () => handleSquareClick(squareCoord);
+                    boardEl.appendChild(squareEl);
+                }
+            }
+        }
+
+        function destacarMovimentosPossiveis(coord) {
+            limparDestaquesDeMovimento();
+            const moves = game.moves({ square: coord, verbose: true });
+
+            moves.forEach(move => {
+                const targetSquare = document.querySelector(`[data-coord="${move.to}"]`);
+                if (targetSquare) {
+                    if (move.captured) {
+                        targetSquare.classList.add('possible-capture');
+                    } else {
+                        targetSquare.classList.add('possible-move');
+                    }
+                }
+            });
+        }
+
+        function limparDestaquesDeMovimento() {
+            document.querySelectorAll('.square').forEach(sq => {
+                sq.classList.remove('possible-move', 'possible-capture');
+            });
+        }
+
+        function handleSquareClick(coord) {
+            if (game.turn() !== 'w' || game.game_over() || !enginePronta) return;
+
+            if (selectedSquare === coord) {
+                selectedSquare = null;
+                limparDestaquesDeMovimento();
+                drawBoard();
+                return;
+            }
+
+            if (selectedSquare) {
+                const move = game.move({
+                    from: selectedSquare,
+                    to: coord,
+                    promotion: 'q' 
+                });
+
+                if (move) {
+                    selectedSquare = null;
+                    limparDestaquesDeMovimento();
+                    drawBoard();
+                    highlightLastMove(move.from, move.to);
+                    updateStatus();
+
+                    if (!game.game_over()) {
+                        const config = OPONENTES[botSelector.value];
+                        statusEl.innerText = `${config.nome} está processando...`;
+                        setTimeout(dispararEnginePretas, 300);
+                    }
+                } else {
+                    const piece = game.get(coord);
+                    if (piece && piece.color === 'w') {
+                        selectedSquare = coord;
+                        drawBoard();
+                        document.querySelector(`[data-coord="${coord}"]`).classList.add('selected');
+                        destacarMovimentosPossiveis(coord);
+                    }
+                }
+            } else {
+                const piece = game.get(coord);
+                if (piece && piece.color === 'w') {
+                    selectedSquare = coord;
+                    document.querySelector(`[data-coord="${coord}"]`).classList.add('selected');
+                    destacarMovimentosPossiveis(coord);
+                }
+            }
+        }
+
+        function dispararEnginePretas() {
+            if (!enginePronta) return;
+            const config = OPONENTES[botSelector.value];
+            stockfish.postMessage('position fen ' + game.fen());
+            stockfish.postMessage(`go depth ${config.depth}`); 
+        }
+
+        function executarLanceOponente(moveStr) {
+            const from = moveStr.substring(0, 2);
+            const to = moveStr.substring(2, 4);
+
+            const move = game.move({ from: from, to: to, promotion: 'q' });
+            if (move) {
+                drawBoard();
+                highlightLastMove(from, to);
+                updateStatus();
+                
+                if (Math.random() > 0.3) {
+                    const config = OPONENTES[botSelector.value];
+                    const frase = config.frases[Math.floor(Math.random() * config.frases.length)];
+                    printLog(`${config.nome}: "${frase}"`);
+                }
+            }
+        }
+
+        function highlightLastMove(from, to) {
+            document.querySelector(`[data-coord="${from}"]`)?.classList.add('last-move');
+            document.querySelector(`[data-coord="${to}"]`)?.classList.add('last-move');
+        }
+
+        function printLog(text) {
+            consoleEl.innerHTML += `<br>> ${text}`;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function updateStatus() {
+            if (!enginePronta) return;
+
+            const config = OPONENTES[botSelector.value];
+            let statusText = "Sua vez (Brancas).";
+            
+            if (game.in_checkmate()) {
+                statusText = "XEQUE-MATE! Fim de jogo.";
+                printLog(game.turn() === 'w' ? `System: ${config.nome} venceu o combate.` : "System: Você venceu! Um feito lendário.");
+            } else if (game.in_draw() || game.in_stalemate()) {
+                statusText = "Partida terminou em empate.";
+                printLog("System: Empate computado.");
+            } else if (game.in_check()) {
+                statusText = "Atenção: Seu Rei está em Xeque!";
+            }
+
+            statusEl.innerText = statusText;
+        }
+
+        function reiniciarJogo() {
+            game = new Chess();
+            selectedSquare = null;
+            limparDestaquesDeMovimento();
+            drawBoard();
+            updateStatus();
+            const config = OPONENTES[botSelector.value];
+            printLog(`Partida resetada contra: ${config.nome}`);
+        }
+
+        drawBoard();
+        initEngine();
+    </script>
+</body>
+</html>
