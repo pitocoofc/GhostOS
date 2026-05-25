@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>  <html lang="pt-br">  
 <head>  
     <meta charset="UTF-8">  
@@ -94,11 +92,23 @@
 
     .app-card { display: flex; flex-direction: column; align-items: center; gap: 10px; transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; }  
     .app-card:active { transform: scale(0.9); }  
+    
+    /* MODIFICADO: Mantém o quadrado idêntico */
     .app-icon-box {  
         width: 75px; height: 75px; background: rgba(255,255,255,0.1);  
         backdrop-filter: blur(10px); border-radius: 18px; border: 1px solid rgba(255,255,255,0.2);  
         display: flex; align-items: center; justify-content: center; font-size: 30px;  
+        overflow: hidden; /* Garante que nada saia do limite do card */
     }  
+
+    /* NOVO: Faz a imagem simular exatamente o tamanho e comportamento do emoji */
+    .app-icon-box img {
+        width: 35px;
+        height: 35px;
+        object-fit: contain; /* Mantém a proporção da imagem sem cortar */
+        pointer-events: none; /* Evita bug de arrastar a imagem com o dedo no mobile */
+    }
+
     .app-card span { font-size: 11px; font-weight: 500; text-transform: uppercase; }  
 
     /* --- SISTEMA DE JANELAS --- */  
@@ -160,20 +170,20 @@
     /* --- INTERFACE DE MULTITAREFA (SOBE DE BAIXO) --- */
     #recents-screen {
         position: fixed;
-        bottom: -110%; /* Começa totalmente escondido embaixo */
+        bottom: -110%; 
         left: 0;
         width: 100%;
         height: 100vh;
         background: rgba(0, 0, 0, 0.85);
         backdrop-filter: blur(20px);
-        z-index: 800; /* Fica acima de tudo */
+        z-index: 800; 
         transition: bottom 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         display: flex;
         flex-direction: column;
         padding: 40px 20px;
     }
     #recents-screen.active {
-        bottom: 0; /* Sobe para cobrir a tela */
+        bottom: 0; 
     }
 
     .recents-header {
@@ -196,19 +206,15 @@
         justify-content: center;
     }
 
-    /* Área rolável de baixo para cima */
-        /* Substitua a antiga .recents-container por esta */
     .recents-container {
         flex: 1;
-        overflow-y: auto; /* Permite rolar de baixo para cima */
+        overflow-y: auto; 
         display: grid;
-        grid-template-columns: repeat(3, 1fr); /* Grid de 3 colunas para os apps adicionais */
+        grid-template-columns: repeat(3, 1fr); 
         gap: 25px;
         padding: 20px 10px 60px;
         align-content: start;
     }
-
-  
 
 </style>
 
@@ -240,11 +246,11 @@
             <div class="app-icon-box">🔐</div><span>Debug</span>
         </div>
 
-<div class="app-card" onclick="openAppAndCloseRecents('Security', 't.html')">
+        <div class="app-card" onclick="openAppAndCloseRecents('Security', 't.html')">
             <div class="app-icon-box">🪪</div><span>Security</span>
         </div>
 
-        </div>
+    </div>
 </div>
 
 
@@ -292,64 +298,55 @@
 
 <div id="main-desktop">  
     <div id="app-grid">  
-    <div class="app-card fake-date-app"
-     id="date-app"
-     onclick="openApp('Calendário', 'calendario.html')"> 
+        <div class="app-card fake-date-app" id="date-app" onclick="openApp('Calendário', 'calendario.html')"> 
             <div class="app-icon-box date-icon">  
                 <span id="icon-day-name">DOM</span>  
                 <span id="icon-day-num">00</span>  
             </div>  
             <span>Calendário</span>  
         </div>  
+        
         <div class="app-card" data-id="TRADUTOR" onclick="openApp('Tradutor', 'tradutor.html')">
-    <div class="app-icon-box">🗣️</div><span>Tradutor</span>
+            <div class="app-icon-box"><img src="https://cdn-icons-png.flaticon.com/512/3898/3898082.png" alt="Tradutor"></div><span>Tradutor</span>
         </div>  
 
         <div class="app-card" data-id="MAPA" onclick="openApp('Maps', 'maps.html')">
-    <div class="app-icon-box">🌍</div><span>Maps</span>
+            <div class="app-icon-box">🌍</div><span>Maps</span>
         </div>
 
-        
-
-        
         <div class="app-card" data-id="AJUSTES" onclick="openApp('Ajustes', 'ajustes.html')">
-    <div class="app-icon-box">⚙️</div><span>Ajustes</span>
+            <div class="app-icon-box">⚙️</div><span>Ajustes</span>
         </div> 
 
         <div class="app-card" data-id="GHOSTNET" onclick="openApp('GhostNet', 'navegador/ghostnet.html')">
-    <div class="app-icon-box">🌐</div><span>GhostNet</span>
+            <div class="app-icon-box">🌐</div><span>GhostNet</span>
         </div> 
 
         <div class="app-card" data-id="CALCULADORA" onclick="openApp('Calculadora', 'jogos/calculadora.html')">
-    <div class="app-icon-box">🔢</div><span>Calculadora</span>
+            <div class="app-icon-box">🔢</div><span>Calculadora</span>
         </div> 
 
         <div class="app-card" data-id="ANIME" onclick="openApp('Animes', 'animes.html')">
-    <div class="app-icon-box">🗨️</div><span>Animes</span>
+            <div class="app-icon-box">🗨️</div><span>Animes</span>
         </div> 
         
-        
-
         <div class="app-card" data-id="RELOGIO" onclick="openApp('Relogio', 'relogio.html')">
-    <div class="app-icon-box">🕑</div><span>Relógio</span>
+            <div class="app-icon-box">🕑</div><span>Relógio</span>
         </div> 
-        
-
         
         <div class="app-card" data-id="GALERIA" onclick="openApp('Galeria', 'galeria.html')">
-    <div class="app-icon-box">📷</div><span>Galeria</span>
+            <div class="app-icon-box">📷</div><span>Galeria</span>
         </div> 
         
-
         <div class="app-card" data-id="BUSSOLA" onclick="openApp('Bússola', 'bussola.html')">
-    <div class="app-icon-box">🧭</div><span>Bússola</span>
+            <div class="app-icon-box">🧭</div><span>Bússola</span>
         </div> 
         
-        
-    <div class="app-card" data-id="ARQUIVOS" onclick="openApp('Arquivos', 'files.html')">
-    <div class="app-icon-box">📂</div><span>Arquivos</span>
+        <div class="app-card" data-id="ARQUIVOS" onclick="openApp('Arquivos', 'files.html')">
+            <div class="app-icon-box">📂</div><span>Arquivos</span>
         </div> 
-</div>
+    </div>
+    
     <div id="app-window" class="window">  
         <div class="win-header">  
             <span id="win-title" style="font-size: 12px; font-weight: bold; letter-spacing: 1px;">APP</span>  
@@ -363,7 +360,7 @@
 
     <div id="taskbar">  
         <div class="nav-btn" onclick="goHome()">⚪</div>  
-          <div class="nav-btn" onclick="gamePanel()">🎮</div>  
+        <div class="nav-btn" onclick="gamePanel()">🎮</div>  
         <div class="nav-btn" onclick="toggleRecents(true)">🔳</div> 
     </div>  
 </div>  
@@ -389,9 +386,6 @@
 
     const ALL_APPS = [  
         { name: 'Ajustes', icon: '⚙️', url: 'ajustes.html' },
-        
-         
-        
         { name: 'Notas', icon: '📝', url: 'notas/index.html' },  
         { name: 'Jogos', icon: '📱', url: 'jogos.html' },   
         { name: 'Bússola', icon: '🧭', url: 'bussola.html' },  
@@ -400,8 +394,6 @@
         { name: 'Terminal', icon: '📟', url: 'terminal.html' },  
         { name: 'Galeria', icon: '📸', url: 'galeria.html' },  
         { name: 'Animes', icon: '🗨️', url: 'animes.html' },  
-       
-       
         { name: 'Programação', icon: '🖥️', url: 'programacao.html'}  
     ];  
 
@@ -421,305 +413,282 @@
         }, 1000);  
     }, 5000);  
 
-    //  updateClock atual 
-
-function updateClock() {
-// 1. Puxa a região do cache (se não existir, usa Brasil como padrão)
-const savedRegion = localStorage.getItem('ghost_clock_region') || 'pt-BR';
-
-// 2. Mapeamento de fusos   
-const timeZones = {  
-    "pt-BR": "America/Sao_Paulo",
-
-"ne-NE": "Africa/Niamey",
-"ml-ML": "Africa/Bamako",
-"bf-BF": "Africa/Ouagadougou",
-"tg-TG": "Africa/Lome",
-"bj-BJ": "Africa/Porto-Novo",
-"mr-MR": "Africa/Nouakchott",
-"ss-SS": "Africa/Juba",
-
-"bt-BT": "Asia/Thimphu",
-"mv-MV": "Indian/Maldives",
-"tj-TJ": "Asia/Dushanbe",
-"tm-TM": "Asia/Ashgabat",
-"kg-KG": "Asia/Bishkek",
-
-"ki-KI": "Pacific/Tarawa",
-"nr-NR": "Pacific/Nauru",
-"tv-TV": "Pacific/Funafuti",
-"fm-FM": "Pacific/Pohnpei",
-"mh-MH": "Pacific/Majuro",
-"pw-PW": "Pacific/Palau",
-"al-AL": "Europe/Tirane",
-"gi-GI": "Europe/Gibraltar",
-"im-IM": "Europe/Isle_of_Man",
-"je-JE": "Europe/Jersey",
-"gg-GG": "Europe/Guernsey",
-"cn-HK": "Asia/Hong_Kong",
-"cn-MO": "Asia/Macau",
-"sg-SG": "Asia/Singapore",
-"my-MY": "Asia/Kuala_Lumpur",
-"np-NP": "Asia/Kathmandu",
-"lk-LK": "Asia/Colombo",
-"kz-KZ": "Asia/Almaty",
-"cm-CM": "Africa/Douala",
-"ws-WS": "Pacific/Apia",
-"to-TO": "Pacific/Tongatapu",
-"sb-SB": "Pacific/Guadalcanal",
-"vu-VU": "Pacific/Efate",
-"ci-CI": "Africa/Abidjan",
-"sn-SN": "Africa/Dakar",
-"gl-GL": "America/Godthab", 
-"ht-HT": "America/Port-au-Prince",
-"gy-GY": "America/Guyana",
-"sr-SR": "America/Paramaribo",
-"ug-UG": "Africa/Kampala",
-"tz-TZ": "Africa/Dar_es_Salaam",
-"zw-ZW": "Africa/Harare",
-"mz-MZ": "Africa/Maputo",
-"sd-SD": "Africa/Khartoum",
-"ly-LY": "Africa/Tripoli",
-"uz-UZ": "Asia/Tashkent",
-"qa-QA": "Asia/Qatar",
-"kw-KW": "Asia/Kuwait",
-"om-OM": "Asia/Muscat",
-"ye-YE": "Asia/Aden",
-"xk-XK": "Europe/Belgrade", 
-"za-ZA": "Africa/Johannesburg",
-"eg-EG": "Africa/Cairo",
-"ma-MA": "Africa/Casablanca",
-"ng-NG": "Africa/Lagos",
-"ke-KE": "Africa/Nairobi",
-"dz-DZ": "Africa/Algiers",
-"tn-TN": "Africa/Tunis",
-"gh-GH": "Africa/Accra",
-"et-ET": "Africa/Addis_Ababa",
-"ao-AO": "Africa/Luanda",
-
-"ja-JP": "Asia/Tokyo",
-"ko-KR": "Asia/Seoul",
-"hi-IN": "Asia/Kolkata",
-"th-TH": "Asia/Bangkok",
-"vi-VN": "Asia/Ho_Chi_Minh",
-"id-ID": "Asia/Jakarta",
-"ph-PH": "Asia/Manila",
-"ar-SA": "Asia/Riyadh",
-"he-IL": "Asia/Jerusalem",
-"fa-IR": "Asia/Tehran",
-"ae-AE": "Asia/Dubai",
-"pk-PK": "Asia/Karachi",
-"bd-BD": "Asia/Dhaka",
-
-"en-NZ": "Pacific/Auckland",
-"en-FJ": "Pacific/Fiji",
-"en-PG": "Pacific/Port_Moresby",
-"ba-BA": "Europe/Sarajevo",
-"me-ME": "Europe/Podgorica",
-"mk-MK": "Europe/Skopje",
-"md-MD": "Europe/Chisinau",
-"by-BY": "Europe/Minsk",
-"sk-SK": "Europe/Bratislava",
-
-"ad-AD": "Europe/Andorra",
-"mc-MC": "Europe/Monaco",
-"sm-SM": "Europe/San_Marino",
-"va-VA": "Europe/Vatican",
-"li-LI": "Europe/Vaduz",
-"lu-LU": "Europe/Luxembourg",
-"mt-MT": "Europe/Malta",
-"cy-CY": "Asia/Nicosia",
-
-"fo-FO": "Atlantic/Faroe",
-"aq-MC": "Antarctica/McMurdo",
-"aq-SP": "Antarctica/South_Pole",
-"aq-RO": "Antarctica/Rothera",
-"aq-PA": "Antarctica/Palmer",
-"aq-SY": "Antarctica/Syowa",
-"aq-MA": "Antarctica/Mawson",
-"aq-VO": "Antarctica/Vostok",
-"aq-DA": "Antarctica/Davis",
-"aq-CA": "Antarctica/Casey",
-"aq-DU": "Antarctica/DumontDUrville",
-"aq-TR": "Antarctica/Troll",
-"aq-MQ": "Antarctica/Macquarie",
-"es-AR": "America/Argentina/Buenos_Aires",
-"es-CL": "America/Santiago",
-"es-CO": "America/Bogota",
-"es-PE": "America/Lima",
-"es-VE": "America/Caracas",
-"es-UY": "America/Montevideo",
-"es-PY": "America/Asuncion",
-"es-BO": "America/La_Paz",
-"es-EC": "America/Guayaquil",
-"es-PA": "America/Panama",
-"es-CR": "America/Costa_Rica",
-"es-GT": "America/Guatemala",
-"es-SV": "America/El_Salvador",
-"es-HN": "America/Tegucigalpa",
-"es-NI": "America/Managua",
-"es-BZ": "America/Belize",
-"en-FK": "Atlantic/Stanley",
-"fr-GF": "America/Cayenne",
-"pt-BR-FN": "America/Noronha",
-"es-EC-G": "Pacific/Galapagos",
-"en-GS": "Atlantic/South_Georgia",
-"en-SH": "Atlantic/St_Helena",
-"en-BM": "Atlantic/Bermuda",
-"fr-PM": "America/Miquelon",
-"es-CU": "America/Havana",
-"es-DO": "America/Santo_Domingo",
-"es-PR": "America/Puerto_Rico",
-"en-JM": "America/Jamaica",
-"en-BS": "America/Nassau",
-"en-BB": "America/Barbados",
-"en-TT": "America/Port_of_Spain",
-"en-LC": "America/St_Lucia",
-"en-GD": "America/Grenada",
-"en-VC": "America/St_Vincent",
-"en-AG": "America/Antigua",
-"en-KN": "America/St_Kitts",
-"en-DM": "America/Dominica",
-"nl-AW": "America/Aruba",
-"nl-CW": "America/Curacao",
-"en-KY": "America/Cayman",
-"en-VG": "America/Virgin",
-"en-VI": "America/St_Thomas",
-"fr-GP": "America/Guadeloupe",
-"fr-MQ": "America/Martinique",
-"en-MS": "America/Montserrat",
-"en-AI": "America/Anguilla",
-"en-TC": "America/Grand_Turk",
-"en-US-ET": "America/New_York",
-"en-US-CT": "America/Chicago",
-"en-US-MT": "America/Denver",
-"en-US-AZ": "America/Phoenix",
-"en-US-PT": "America/Los_Angeles",
-"en-US-AK": "America/Anchorage",
-"en-US-HI": "Pacific/Honolulu",
-"en-CA-NF": "America/St_Johns",
-"en-CA-AT": "America/Halifax",
-"en-CA-ET": "America/Toronto",
-"en-CA-CT": "America/Winnipeg",
-"en-CA-MT": "America/Edmonton",
-"en-CA-PT": "America/Vancouver",
-"es-MX-CE": "America/Mexico_City",
-"es-MX-NW": "America/Tijuana",
-"es-MX-PA": "America/Mazatlan",
-"es-MX-QR": "America/Cancun",
-"en-US": "America/New_York",
-"en-CA": "America/Toronto",
-"es-MX": "America/Mexico_City",
-"en-GB": "Europe/London",
-"de-DE": "Europe/Berlin",
-"es-ES": "Europe/Madrid",
-"pt-PT": "Europe/Lisbon",
-"it-IT": "Europe/Rome",
-"nl-NL": "Europe/Amsterdam",
-"be-BE": "Europe/Brussels",
-"pl-PL": "Europe/Warsaw",
-"cz-CZ": "Europe/Prague",
-"at-AT": "Europe/Vienna",
-"de-CH": "Europe/Zurich",
-"sv-SE": "Europe/Stockholm",
-"no-NO": "Europe/Oslo",
-"fi-FI": "Europe/Helsinki",
-"dk-DK": "Europe/Copenhagen",
-"el-GR": "Europe/Athens",
-"tr-TR": "Europe/Istanbul",
-"ua-UA": "Europe/Kyiv",
-"ru-RU": "Europe/Moscow",
-"en-IE": "Europe/Dublin",
-"bg-BG": "Europe/Sofia",
-"hr-HR": "Europe/Zagreb",
-"ee-EE": "Europe/Tallinn",
-"is-IS": "Atlantic/Reykjavik",
-"lv-LV": "Europe/Riga",
-"lt-LT": "Europe/Vilnius",
-"sr-RS": "Europe/Belgrade",
-"sl-SI": "Europe/Ljubljana",
-"bw-BW": "Africa/Gaborone",
-"na-NA": "Africa/Windhoek",
-"ls-LS": "Africa/Maseru",
-"sz-SZ": "Africa/Mbabane",
-"mw-MW": "Africa/Blantyre",
-"mg-MG": "Indian/Antananarivo",
-"gm-GM": "Africa/Banjul",
-"lr-LR": "Africa/Monrovia",
-"sl-SL": "Africa/Freetown",
-"gn-GN": "Africa/Conakry",
-"gw-GW": "Africa/Bissau",
-"gq-GQ": "Africa/Malabo",
-"cf-CF": "Africa/Bangui",
-"td-TD": "Africa/Ndjamena",
-"er-ER": "Africa/Asmara",
-"dj-DJ": "Africa/Djibouti",
-"so-SO": "Africa/Mogadishu",
-"rw-RW": "Africa/Kigali",
-"bi-BI": "Africa/Bujumbura",
-"cg-CG": "Africa/Brazzaville",
-"cd-CD": "Africa/Kinshasa",
-"ga-GA": "Africa/Libreville",
-"st-ST": "Africa/Sao_Tome",
-"cv-CV": "Atlantic/Cape_Verde",
-"km-KM": "Indian/Comoro",
-"sc-SC": "Indian/Mahe",
-"mu-MU": "Indian/Mauritius",
-
-"en-VC": "America/St_Vincent",
-"en-BL": "America/St_Barthelemy",
-"fr-BL": "America/St_Barthelemy",
-"en-SX": "America/Lower_Princes",
-"nl-SX": "America/Lower_Princes",
-
-"mn-MN": "Asia/Ulaanbaatar",
-"kh-KH": "Asia/Phnom_Penh",
-"la-LA": "Asia/Vientiane",
-"mm-MM": "Asia/Yangon",
-"bn-BN": "Asia/Brunei",
-"tl-TL": "Asia/Dili",
-"af-AF": "Asia/Kabul",
-"iq-IQ": "Asia/Baghdad",
-"sy-SY": "Asia/Damascus",
-"jo-JO": "Asia/Amman",
-"lb-LB": "Asia/Beirut",
-"am-AM": "Asia/Yerevan",
-"az-AZ": "Asia/Baku",
-"ge-GE": "Asia/Tbilisi",
-
-"rs-RS": "Europe/Belgrade",
-
-"zh-CN": "Asia/Shanghai",  
+    // updateClock atual 
+    function updateClock() {
+        const savedRegion = localStorage.getItem('ghost_clock_region') || 'pt-BR';
+        const timeZones = {  
+            "pt-BR": "America/Sao_Paulo",
+            "ne-NE": "Africa/Niamey",
+            "ml-ML": "Africa/Bamako",
+            "bf-BF": "Africa/Ouagadougou",
+            "tg-TG": "Africa/Lome",
+            "bj-BJ": "Africa/Porto-Novo",
+            "mr-MR": "Africa/Nouakchott",
+            "ss-SS": "Africa/Juba",
+            "bt-BT": "Asia/Thimphu",
+            "mv-MV": "Indian/Maldives",
+            "tj-TJ": "Asia/Dushanbe",
+            "tm-TM": "Asia/Ashgabat",
+            "kg-KG": "Asia/Bishkek",
+            "ki-KI": "Pacific/Tarawa",
+            "nr-NR": "Pacific/Nauru",
+            "tv-TV": "Pacific/Funafuti",
+            "fm-FM": "Pacific/Pohnpei",
+            "mh-MH": "Pacific/Majuro",
+            "pw-PW": "Pacific/Palau",
+            "al-AL": "Europe/Tirane",
+            "gi-GI": "Europe/Gibraltar",
+            "im-IM": "Europe/Isle_of_Man",
+            "je-JE": "Europe/Jersey",
+            "gg-GG": "Europe/Guernsey",
+            "cn-HK": "Asia/Hong_Kong",
+            "cn-MO": "Asia/Macau",
+            "sg-SG": "Asia/Singapore",
+            "my-MY": "Asia/Kuala_Lumpur",
+            "np-NP": "Asia/Kathmandu",
+            "lk-LK": "Asia/Colombo",
+            "kz-KZ": "Asia/Almaty",
+            "cm-CM": "Africa/Douala",
+            "ws-WS": "Pacific/Apia",
+            "to-TO": "Pacific/Tongatapu",
+            "sb-SB": "Pacific/Guadalcanal",
+            "vu-VU": "Pacific/Efate",
+            "ci-CI": "Africa/Abidjan",
+            "sn-SN": "Africa/Dakar",
+            "gl-GL": "America/Godthab", 
+            "ht-HT": "America/Port-au-Prince",
+            "gy-GY": "America/Guyana",
+            "sr-SR": "America/Paramaribo",
+            "ug-UG": "Africa/Kampala",
+            "tz-TZ": "Africa/Dar_es_Salaam",
+            "zw-ZW": "Africa/Harare",
+            "mz-MZ": "Africa/Maputo",
+            "sd-SD": "Africa/Khartoum",
+            "ly-LY": "Africa/Tripoli",
+            "uz-UZ": "Asia/Tashkent",
+            "qa-QA": "Asia/Qatar",
+            "kw-KW": "Asia/Kuwait",
+            "om-OM": "Asia/Muscat",
+            "ye-YE": "Asia/Aden",
+            "xk-XK": "Europe/Belgrade", 
+            "za-ZA": "Africa/Johannesburg",
+            "eg-EG": "Africa/Cairo",
+            "ma-MA": "Africa/Casablanca",
+            "ng-NG": "Africa/Lagos",
+            "ke-KE": "Africa/Nairobi",
+            "dz-DZ": "Africa/Algiers",
+            "tn-TN": "Africa/Tunis",
+            "gh-GH": "Africa/Accra",
+            "et-ET": "Africa/Addis_Ababa",
+            "ao-AO": "Africa/Luanda",
+            "ja-JP": "Asia/Tokyo",
+            "ko-KR": "Asia/Seoul",
+            "hi-IN": "Asia/Kolkata",
+            "th-TH": "Asia/Bangkok",
+            "vi-VN": "Asia/Ho_Chi_Minh",
+            "id-ID": "Asia/Jakarta",
+            "ph-PH": "Asia/Manila",
+            "ar-SA": "Asia/Riyadh",
+            "he-IL": "Asia/Jerusalem",
+            "fa-IR": "Asia/Tehran",
+            "ae-AE": "Asia/Dubai",
+            "pk-PK": "Asia/Karachi",
+            "bd-BD": "Asia/Dhaka",
+            "en-NZ": "Pacific/Auckland",
+            "en-FJ": "Pacific/Fiji",
+            "en-PG": "Pacific/Port_Moresby",
+            "ba-BA": "Europe/Sarajevo",
+            "me-ME": "Europe/Podgorica",
+            "mk-MK": "Europe/Skopje",
+            "md-MD": "Europe/Chisinau",
+            "by-BY": "Europe/Minsk",
+            "sk-SK": "Europe/Bratislava",
+            "ad-AD": "Europe/Andorra",
+            "mc-MC": "Europe/Monaco",
+            "sm-SM": "Europe/San_Marino",
+            "va-VA": "Europe/Vatican",
+            "li-LI": "Europe/Vaduz",
+            "lu-LU": "Europe/Luxembourg",
+            "mt-MT": "Europe/Malta",
+            "cy-CY": "Asia/Nicosia",
+            "fo-FO": "Atlantic/Faroe",
+            "aq-MC": "Antarctica/McMurdo",
+            "aq-SP": "Antarctica/South_Pole",
+            "aq-RO": "Antarctica/Rothera",
+            "aq-PA": "Antarctica/Palmer",
+            "aq-SY": "Antarctica/Syowa",
+            "aq-MA": "Antarctica/Mawson",
+            "aq-VO": "Antarctica/Vostok",
+            "aq-DA": "Antarctica/Davis",
+            "aq-CA": "Antarctica/Casey",
+            "aq-DU": "Antarctica/DumontDUrville",
+            "aq-TR": "Antarctica/Troll",
+            "aq-MQ": "Antarctica/Macquarie",
+            "es-AR": "America/Argentina/Buenos_Aires",
+            "es-CL": "America/Santiago",
+            "es-CO": "America/Bogota",
+            "es-PE": "America/Lima",
+            "es-VE": "America/Caracas",
+            "es-UY": "America/Montevideo",
+            "es-PY": "America/Asuncion",
+            "es-BO": "America/La_Paz",
+            "es-EC": "America/Guayaquil",
+            "es-PA": "America/Panama",
+            "es-CR": "America/Costa_Rica",
+            "es-GT": "America/Guatemala",
+            "es-SV": "America/El_Salvador",
+            "es-HN": "America/Tegucigalpa",
+            "es-NI": "America/Managua",
+            "es-BZ": "America/Belize",
+            "en-FK": "Atlantic/Stanley",
+            "fr-GF": "America/Cayenne",
+            "pt-BR-FN": "America/Noronha",
+            "es-EC-G": "Pacific/Galapagos",
+            "en-GS": "Atlantic/South_Georgia",
+            "en-SH": "Atlantic/St_Helena",
+            "en-BM": "Atlantic/Bermuda",
+            "fr-PM": "America/Miquelon",
+            "es-CU": "America/Havana",
+            "es-DO": "America/Santo_Domingo",
+            "es-PR": "America/Puerto_Rico",
+            "en-JM": "America/Jamaica",
+            "en-BS": "America/Nassau",
+            "en-BB": "America/Barbados",
+            "en-TT": "America/Port_of_Spain",
+            "en-LC": "America/St_Lucia",
+            "en-GD": "America/Grenada",
+            "en-VC": "America/St_Vincent",
+            "en-AG": "America/Antigua",
+            "en-KN": "America/St_Kitts",
+            "en-DM": "America/Dominica",
+            "nl-AW": "America/Aruba",
+            "nl-CW": "America/Curacao",
+            "en-KY": "America/Cayman",
+            "en-VG": "America/Virgin",
+            "en-VI": "America/St_Thomas",
+            "fr-GP": "America/Guadeloupe",
+            "fr-MQ": "America/Martinique",
+            "en-MS": "America/Montserrat",
+            "en-AI": "America/Anguilla",
+            "en-TC": "America/Grand_Turk",
+            "en-US-ET": "America/New_York",
+            "en-US-CT": "America/Chicago",
+            "en-US-MT": "America/Denver",
+            "en-US-AZ": "America/Phoenix",
+            "en-US-PT": "America/Los_Angeles",
+            "en-US-AK": "America/Anchorage",
+            "en-US-HI": "Pacific/Honolulu",
+            "en-CA-NF": "America/St_Johns",
+            "en-CA-AT": "America/Halifax",
+            "en-CA-ET": "America/Toronto",
+            "en-CA-CT": "America/Winnipeg",
+            "en-CA-MT": "America/Edmonton",
+            "en-CA-PT": "America/Vancouver",
+            "es-MX-CE": "America/Mexico_City",
+            "es-MX-NW": "America/Tijuana",
+            "es-MX-PA": "America/Mazatlan",
+            "es-MX-QR": "America/Cancun",
+            "en-US": "America/New_York",
+            "en-CA": "America/Toronto",
+            "es-MX": "America/Mexico_City",
+            "en-GB": "Europe/London",
+            "de-DE": "Europe/Berlin",
+            "es-ES": "Europe/Madrid",
+            "pt-PT": "Europe/Lisbon",
+            "it-IT": "Europe/Rome",
+            "nl-NL": "Europe/Amsterdam",
+            "be-BE": "Europe/Brussels",
+            "pl-PL": "Europe/Warsaw",
+            "cz-CZ": "Europe/Prague",
+            "at-AT": "Europe/Vienna",
+            "de-CH": "Europe/Zurich",
+            "sv-SE": "Europe/Stockholm",
+            "no-NO": "Europe/Oslo",
+            "fi-FI": "Europe/Helsinki",
+            "dk-DK": "Europe/Copenhagen",
+            "el-GR": "Europe/Athens",
+            "tr-TR": "Europe/Istanbul",
+            "ua-UA": "Europe/Kyiv",
+            "ru-RU": "Europe/Moscow",
+            "en-IE": "Europe/Dublin",
+            "bg-BG": "Europe/Sofia",
+            "hr-HR": "Europe/Zagreb",
+            "ee-EE": "Europe/Tallinn",
+            "is-IS": "Atlantic/Reykjavik",
+            "lv-LV": "Europe/Riga",
+            "lt-LT": "Europe/Vilnius",
+            "sr-RS": "Europe/Belgrade",
+            "sl-SI": "Europe/Ljubljana",
+            "bw-BW": "Africa/Gaborone",
+            "na-NA": "Africa/Windhoek",
+            "ls-LS": "Africa/Maseru",
+            "sz-SZ": "Africa/Mbabane",
+            "mw-MW": "Africa/Blantyre",
+            "mg-MG": "Indian/Antananarivo",
+            "gm-GM": "Africa/Banjul",
+            "lr-LR": "Africa/Monrovia",
+            "sl-SL": "Africa/Freetown",
+            "gn-GN": "Africa/Conakry",
+            "gw-GW": "Africa/Bissau",
+            "gq-GQ": "Africa/Malabo",
+            "cf-CF": "Africa/Bangui",
+            "td-TD": "Africa/Ndjamena",
+            "er-ER": "Africa/Asmara",
+            "dj-DJ": "Africa/Djibouti",
+            "so-SO": "Africa/Mogadishu",
+            "rw-RW": "Africa/Kigali",
+            "bi-BI": "Africa/Bujumbura",
+            "cg-CG": "Africa/Brazzaville",
+            "cd-CD": "Africa/Kinshasa",
+            "ga-GA": "Africa/Libreville",
+            "st-ST": "Africa/Sao_Tome",
+            "cv-CV": "Atlantic/Cape_Verde",
+            "km-KM": "Indian/Comoro",
+            "sc-SC": "Indian/Mahe",
+            "mu-MU": "Indian/Mauritius",
+            "en-VC": "America/St_Vincent",
+            "en-BL": "America/St_Barthelemy",
+            "fr-BL": "America/St_Barthelemy",
+            "en-SX": "America/Lower_Princes",
+            "nl-SX": "America/Lower_Princes",
+            "mn-MN": "Asia/Ulaanbaatar",
+            "kh-KH": "Asia/Phnom_Penh",
+            "la-LA": "Asia/Vientiane",
+            "mm-MM": "Asia/Yangon",
+            "bn-BN": "Asia/Brunei",
+            "tl-TL": "Asia/Dili",
+            "af-AF": "Asia/Kabul",
+            "iq-IQ": "Asia/Baghdad",
+            "sy-SY": "Asia/Damascus",
+            "jo-JO": "Asia/Amman",
+            "lb-LB": "Asia/Beirut",
+            "am-AM": "America/Yerevan",
+            "az-AZ": "Asia/Baku",
+            "ge-GE": "Asia/Tbilisi",
+            "rs-RS": "Europe/Belgrade",
+            "zh-CN": "Asia/Shanghai",  
             "fr-FR": "Europe/Paris",  
             "en-AU": "Australia/Sydney",  
+        };  
 
-};  
+        const now = new Date();  
+        const timeZone = timeZones[savedRegion];  
+        const timeStr = now.toLocaleTimeString('pt-BR', {   
+            timeZone: timeZone,   
+            hour: '2-digit',   
+            minute: '2-digit'   
+        });  
 
-const now = new Date();  
-const timeZone = timeZones[savedRegion];  
+        const dateOptions = { weekday: 'long', day: 'numeric', month: 'long', timeZone: timeZone };  
+        const dateStr = now.toLocaleDateString(savedRegion, dateOptions).toUpperCase();  
 
-// 3. Formata o Horário (HH:MM)  
-const timeStr = now.toLocaleTimeString('pt-BR', {   
-    timeZone: timeZone,   
-    hour: '2-digit',   
-    minute: '2-digit'   
-});  
+        document.getElementById('clock').innerText = timeStr;  
+        document.getElementById('status-time').innerText = timeStr;  
+        document.getElementById('date').innerText = dateStr;
+    }
 
-// 4. Formata a Data da Lockscreen baseada na localidade salva  
-const dateOptions = { weekday: 'long', day: 'numeric', month: 'long', timeZone: timeZone };  
-const dateStr = now.toLocaleDateString(savedRegion, dateOptions).toUpperCase();  
-
-// 5. Aplica nos elementos  
-document.getElementById('clock').innerText = timeStr;  
-document.getElementById('status-time').innerText = timeStr;  
-document.getElementById('date').innerText = dateStr;
-
-}
-
-// Mantém o intervalo para atualizar todo segundo
-setInterval(updateClock, 1000);
-updateClock();
-
+    setInterval(updateClock, 1000);
+    updateClock();
 
     function unlockSystem() {  
         document.getElementById('lock-screen').style.transform = 'translateY(-100%)';  
@@ -730,18 +699,18 @@ updateClock();
     }  
 
     const savedColor = localStorage.getItem('clock_color');
-if(savedColor){
-    document.getElementById('clock').style.color = savedColor;
-}
+    if(savedColor){
+        document.getElementById('clock').style.color = savedColor;
+    }
 
-const savedFont = localStorage.getItem('clock_font');
-if(savedFont){
-    document.getElementById('clock').style.fontFamily = savedFont;
-}
+    const savedFont = localStorage.getItem('clock_font');
+    if(savedFont){
+        document.getElementById('clock').style.fontFamily = savedFont;
+    }
 
-const savedToggle = localStorage.getItem('clock_toggle');
-if(savedToggle === 'false'){
-    document.getElementById('clock').style.display = 'none';
+    const savedToggle = localStorage.getItem('clock_toggle');
+    if(savedToggle === 'false'){
+        document.getElementById('clock').style.display = 'none';
     }
     
     function openApp(name, url) {  
@@ -797,7 +766,7 @@ if(savedToggle === 'false'){
             const url = event.data.url;  
             document.getElementById('main-desktop').style.backgroundImage = `url('${url}')`;  
             document.getElementById('lock-screen').style.backgroundImage = `url('${url}')`;  
-localStorage.setItem("ghost_wallpaper", url);
+            localStorage.setItem("ghost_wallpaper", url);
         }  
     });  
 
@@ -810,122 +779,102 @@ localStorage.setItem("ghost_wallpaper", url);
     updateFakeDateApp();  
     setInterval(updateFakeDateApp, 3600000);  
 
-    // FUNÇÃO DO PAINEL  
     function toggleQuickPanel(show) {  
         const panel = document.getElementById('quick-panel');  
         if(show) panel.classList.add('active');  
         else panel.classList.remove('active');  
     }  
-    // --- KERNEL MESSAGE ROUTER (os.html) ---
 
-// Memória do Sistema
-let hackAtivo = false;
+    let hackAtivo = false;
 
-window.addEventListener('message', (event) => {
-// 1. O Terminal avisa que o hack terminou
-if (event.data.type === 'HACK_SUCCESS') {
-hackAtivo = true;
-console.log("Kernel: Status de Hack salvo na memória.");
-}
-
-// 2. Sempre que QUALQUER iframe carregar, o Kernel tenta injetar o sinal  
-  
-if (event.data.type === 'IFRAME_LOADED' || hackAtivo) {  
-    const frames = document.querySelectorAll('iframe');  
-    frames.forEach(frame => {  
-        // Se o arquivo sendo aberto for o wifi  
-        if (frame.src.includes('wifi.html')) {  
-            // Dá um tempinho para o HTML do wifi carregar e envia  
-            setTimeout(() => {  
-                frame.contentWindow.postMessage({ type: 'ACTIVATE_RUNET' }, '*');  
-                console.log("Kernel: Proxy Russo injetado no novo frame de Wi-Fi.");  
-            }, 100);   
-        }  
-    });  
-}
-
-});
     window.addEventListener('message', (event) => {
-    if (event.data.type === 'rename_app') {
-        const { id, newName } = event.data;
-        
-        // Ele vai procurar apenas o card que tenha o ID exato
-        const card = document.querySelector(`.app-card[data-id="${id}"]`);
-        
-        if (card) {
-            const span = card.querySelector('span');
-            if (span) {
-                span.innerText = newName;
-            }
+        if (event.data.type === 'HACK_SUCCESS') {
+            hackAtivo = true;
+            console.log("Kernel: Status de Hack salvo na memória.");
         }
-let apps = JSON.parse(localStorage.getItem("ghost_apps")) || {};
-    apps[id] = newName;
-    localStorage.setItem("ghost_apps", JSON.stringify(apps));
-    }
-});
-
-    const savedWP = localStorage.getItem("ghost_wallpaper");
-if (savedWP) {
-    document.getElementById('main-desktop').style.backgroundImage = `url('${savedWP}')`;
-    document.getElementById('lock-screen').style.backgroundImage = `url('${savedWP}')`;
-}
-function loadAppNames() {
-    const apps = JSON.parse(localStorage.getItem("ghost_apps")) || {};
-
-    Object.keys(apps).forEach(id => {
-        const card = document.querySelector(`.app-card[data-id="${id}"]`);
-        if (card) {
-            const span = card.querySelector('span');
-            if (span) {
-                span.innerText = apps[id];
-            }
+          
+        if (event.data.type === 'IFRAME_LOADED' || hackAtivo) {  
+            const frames = document.querySelectorAll('iframe');  
+            frames.forEach(frame => {  
+                if (frame.src.includes('wifi.html')) {  
+                    setTimeout(() => {  
+                        frame.contentWindow.postMessage({ type: 'ACTIVATE_RUNET' }, '*');  
+                        console.log("Kernel: Proxy Russo injetado no novo frame de Wi-Fi.");  
+                    }, 100);   
+                }  
+            });  
         }
     });
-}
 
     window.addEventListener('message', (event) => {
+        if (event.data.type === 'rename_app') {
+            const { id, newName } = event.data;
+            const card = document.querySelector(`.app-card[data-id="${id}"]`);
+            if (card) {
+                const span = card.querySelector('span');
+                if (span) {
+                    span.innerText = newName;
+                }
+            }
+            let apps = JSON.parse(localStorage.getItem("ghost_apps")) || {};
+            apps[id] = newName;
+            localStorage.setItem("ghost_apps", JSON.stringify(apps));
+        }
+    });
 
-    if(event.data.type === 'clock_color'){
-        document.getElementById('clock').style.color = event.data.value;
-        localStorage.setItem('clock_color', event.data.value);
+    const savedWP = localStorage.getItem("ghost_wallpaper");
+    if (savedWP) {
+        document.getElementById('main-desktop').style.backgroundImage = `url('${savedWP}')`;
+        document.getElementById('lock-screen').style.backgroundImage = `url('${savedWP}')`;
     }
 
-    if(event.data.type === 'clock_font'){
-        document.getElementById('clock').style.fontFamily = event.data.value;
-        localStorage.setItem('clock_font', event.data.value);
+    function loadAppNames() {
+        const apps = JSON.parse(localStorage.getItem("ghost_apps")) || {};
+        Object.keys(apps).forEach(id => {
+            const card = document.querySelector(`.app-card[data-id="${id}"]`);
+            if (card) {
+                const span = card.querySelector('span');
+                if (span) {
+                    span.innerText = apps[id];
+                }
+            }
+        });
     }
 
-    if(event.data.type === 'clock_toggle'){
-        document.getElementById('clock').style.display = event.data.value ? 'block' : 'none';
-        localStorage.setItem('clock_toggle', event.data.value);
-    }
+    window.addEventListener('message', (event) => {
+        if(event.data.type === 'clock_color'){
+            document.getElementById('clock').style.color = event.data.value;
+            localStorage.setItem('clock_color', event.data.value);
+        }
+        if(event.data.type === 'clock_font'){
+            document.getElementById('clock').style.fontFamily = event.data.value;
+            localStorage.setItem('clock_font', event.data.value);
+        }
+        if(event.data.type === 'clock_toggle'){
+            document.getElementById('clock').style.display = event.data.value ? 'block' : 'none';
+            localStorage.setItem('clock_toggle', event.data.value);
+        }
+    });
 
-});
-loadAppNames();
+    loadAppNames();
 
-
-        // FUNÇÕES DA MULTITAREFA (EXTENSÃO)
     function toggleRecents(show) {
         const recentsScreen = document.getElementById('recents-screen');
         if (show) {
-            recentsScreen.classList.add('active'); // Sobe de baixo para cima
+            recentsScreen.classList.add('active'); 
         } else {
-            recentsScreen.classList.remove('active'); // Desce e fecha
+            recentsScreen.classList.remove('active'); 
         }
     }
 
-    // NOVA: Abre o aplicativo clicado e fecha o painel descendo a animação
     function openAppAndCloseRecents(name, url) {
-        openApp(name, url); // Chama sua função nativa de abrir na janela
-        toggleRecents(false); // Faz o painel descer
+        openApp(name, url); 
+        toggleRecents(false); 
     }
 
-// Painel Gamer
-function gamePanel() {  
+    function gamePanel() {  
         alert("Disponível em breve")
     }  
-
 </script>
-
 </body>  
 </html>
