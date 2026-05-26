@@ -5,93 +5,218 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Personalização</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;500;700&family=Share+Tech+Mono&family=Cinzel:wght@500&display=swap" rel="stylesheet">
+
 <style>
+    * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+
     body {
         margin: 0;
-        font-family: 'Segoe UI', sans-serif;
-        background: #111;
-        color: #fff;
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
+        background: #09090b;
+        color: #f4f4f5;
         padding: 20px;
+        padding-top: 35px; /* Evita ficar colado na statusbar do WebOS */
+        min-height: 100vh;
+    }
+
+    header {
+        margin-bottom: 25px;
+        text-align: center;
     }
 
     h1 {
-        font-size: 20px;
-        margin-bottom: 20px;
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: 1px;
+        background: linear-gradient(to right, #3b82f6, #a855f7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    p.subtitle {
+        font-size: 11px;
+        color: #71717a;
+        margin: 5px 0 0 0;
+        text-transform: uppercase;
+        letter-spacing: 2px;
     }
 
     .section {
-        margin-bottom: 25px;
-        padding: 15px;
-        background: #1c1c1c;
-        border-radius: 12px;
-        border: 1px solid #333;
+        margin-bottom: 20px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .section:focus-within {
+        border-color: rgba(59, 130, 246, 0.4);
     }
 
     label {
-        display: block;
-        margin-bottom: 8px;
-        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #a1a1aa;
     }
 
-    input, select, button {
-        width: 100%;
-        padding: 10px;
-        border-radius: 8px;
-        border: none;
-        outline: none;
-        margin-bottom: 10px;
+    /* Customização dos inputs e seletores */
+    .input-wrapper {
+        display: flex;
+        gap: 10px;
+    }
+
+    input[type="text"], select {
+        flex: 1;
+        padding: 12px 14px;
+        background: #18181b;
+        border: 1px solid #27272a;
+        border-radius: 10px;
+        color: #fff;
         font-size: 14px;
+        font-family: inherit;
+        outline: none;
+        transition: 0.2s;
+    }
+
+    input[type="text"]:focus, select:focus {
+        border-color: #3b82f6;
+        background: #202024;
+    }
+
+    /* Color picker estilizado */
+    .color-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #18181b;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid #27272a;
     }
 
     input[type="color"] {
-        height: 50px;
-        padding: 5px;
+        -webkit-appearance: none;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        cursor: pointer;
+        background: none;
+        padding: 0;
     }
 
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch { border: none; border-radius: 8px; }
+
+    .color-val-text {
+        font-size: 13px;
+        color: #e4e4e7;
+        font-family: monospace;
+        text-transform: uppercase;
+    }
+
+    /* Botões Modernos */
     button {
+        padding: 12px 20px;
+        border-radius: 10px;
+        border: none;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        font-family: inherit;
+    }
+
+    .btn-primary {
         background: #3b82f6;
         color: white;
-        cursor: pointer;
     }
 
-    button:active {
-        transform: scale(0.95);
+    .btn-primary:hover { background: #2563eb; }
+    .btn-primary:active { transform: scale(0.96); }
+
+    /* Grupo de botões lado a lado */
+    .btn-group {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
     }
+
+    .btn-outline {
+        background: #18181b;
+        border: 1px solid #27272a;
+        color: #e4e4e7;
+    }
+    .btn-outline.active {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: #3b82f6;
+        color: #3b82f6;
+    }
+    .btn-outline:active { transform: scale(0.96); }
+
 </style>
 </head>
 
 <body>
 
-<h1>🎨 Personalização</h1>
+<header>
+    <h1>🎨 Personalização</h1>
+    <p class="subtitle">WebOS Custom Center</p>
+</header>
 
 <div class="section">
-    <label>Cor do Relógio</label>
-    <input type="color" id="colorPicker">
-    <button onclick="applyColor()">Aplicar Cor</button>
+    <label>⏱️ Cor do Relógio</label>
+    <div class="input-wrapper" style="flex-direction: column;">
+        <div class="color-container">
+            <input type="color" id="colorPicker" oninput="updateColorText(this.value)">
+            <span id="colorHex" class="color-val-text">#ffffff</span>
+        </div>
+        <button class="btn-primary" style="width: 100%; margin-top: 5px;" onclick="applyColor()">Salvar Cor</button>
+    </div>
 </div>
 
 <div class="section">
-    <label>Fonte do Relógio</label>
-    <select id="fontSelect">
-        <option value="Segoe UI">Padrão</option>
-        <option value="Arial">Arial</option>
-        <option value="Courier New">Courier</option>
-        <option value="monospace">Monospace</option>
-        <option value="fantasy">Fantasy</option>
-    </select>
-    <button onclick="applyFont()">Aplicar Fonte</button>
+    <label>🔤 Estilo da Fonte</label>
+    <div class="input-wrapper">
+        <select id="fontSelect">
+            <option value="Poppins">Poppins (Clean)</option>
+            <option value="Segoe UI">Segoe UI (Sistema)</option>
+            <option value="Orbitron">Orbitron (Futurista Sci-Fi)</option>
+            <option value="Share Tech Mono">Digital-7 (Relógio Digital)</option>
+            <option value="Cinzel">Cinzel (Clássico/Elegante)</option>
+            <option value="Courier New">Courier (Terminal Style)</option>
+        </select>
+        <button class="btn-primary" onclick="applyFont()">Aplicar</button>
+    </div>
 </div>
 
 <div class="section">
-    <label>Mostrar / Ocultar Relógio</label>
-    <button onclick="toggleClock(true)">Mostrar</button>
-    <button onclick="toggleClock(false)">Ocultar</button>
+    <label>👁️ Visibilidade do Relógio</label>
+    <div class="btn-group">
+        <button id="btn-show" class="btn-outline active" onclick="setClockVisibility(true)">Mostrar</button>
+        <button id="btn-hide" class="btn-outline" onclick="setClockVisibility(false)">Ocultar</button>
+    </div>
 </div>
 
 <div class="section">
-    <label>Wallpaper (URL da imagem)</label>
-    <input type="text" id="wallInput" placeholder="https://...">
-    <button onclick="applyWallpaper()">Aplicar Wallpaper</button>
+    <label>🖼️ Plano de Fundo</label>
+    <div class="input-wrapper" style="flex-direction: column; gap: 8px;">
+        <input type="text" id="wallInput" placeholder="Insira a URL da imagem (https://...)">
+        <button class="btn-primary" style="width: 100%;" onclick="applyWallpaper()">Definir Wallpaper</button>
+    </div>
 </div>
 
 <script>
@@ -99,26 +224,35 @@ function send(data){
     window.parent.postMessage(data, '*');
 }
 
+function updateColorText(val) {
+    document.getElementById('colorHex').innerText = val;
+}
 
 function applyColor(){
     const color = document.getElementById('colorPicker').value;
     send({ type: 'clock_color', value: color });
 }
 
-
 function applyFont(){
     const font = document.getElementById('fontSelect').value;
     send({ type: 'clock_font', value: font });
 }
 
-
-function toggleClock(state){
+function setClockVisibility(state){
+    // Atualiza o estado visual dos botões de alternância
+    if(state) {
+        document.getElementById('btn-show').classList.add('active');
+        document.getElementById('btn-hide').classList.remove('active');
+    } else {
+        document.getElementById('btn-hide').classList.add('active');
+        document.getElementById('btn-show').classList.remove('active');
+    }
     send({ type: 'clock_toggle', value: state });
 }
 
-
 function applyWallpaper(){
-    const url = document.getElementById('wallInput').value;
+    const url = document.getElementById('wallInput').value.trim();
+    if(url === "") return alert("Insira uma URL válida!");
 
     send({
         type: 'SET_WALLPAPER',
@@ -126,16 +260,21 @@ function applyWallpaper(){
     });
 }
 
-
 window.onload = () => {
-    const savedColor = localStorage.getItem('clock_color');
-    if(savedColor){
-        document.getElementById('colorPicker').value = savedColor;
-    }
+    const savedColor = localStorage.getItem('clock_color') || '#ffffff';
+    document.getElementById('colorPicker').value = savedColor;
+    document.getElementById('colorHex').innerText = savedColor;
 
     const savedFont = localStorage.getItem('clock_font');
     if(savedFont){
         document.getElementById('fontSelect').value = savedFont;
+    }
+
+    const savedToggle = localStorage.getItem('clock_toggle');
+    if(savedToggle === 'false') {
+        setClockVisibility(false);
+    } else {
+        setClockVisibility(true);
     }
 }
 </script>
