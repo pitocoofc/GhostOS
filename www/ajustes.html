@@ -168,6 +168,15 @@
     </div>
 
     <script>
+        function dispararNotificacao(titulo, mensagem, icone = '🔔') {
+    window.parent.postMessage({
+        type: 'SHOW_TOAST',
+        title: titulo,
+        message: mensagem,
+        icon: icone
+    }, '*');
+        }
+        
         function applyConfig() {
             if (typeof GHOST_SYS !== 'undefined') {
                 const s = GHOST_SYS;
@@ -226,10 +235,16 @@
 
         function completeInstallation(mode) {
             if (mode === 'essentials') {
+                
+// Exemplos de como você pode chamar ela no seu app:
+dispararNotificacao('Drivers', 'Drivers atualizados', '⚙️');
+                
                 parent.driver_video = "on";
                 document.getElementById('v-status').innerText = "ON";
                 document.getElementById('v-status').style.color = "#4ade80";
             } else {
+                dispararNotificacao('Drivers', 'Drivers atualizados', '⚙️');
+                
                 parent.driver_video = "on";
                 parent.driver_ndj = "on";
                 document.getElementById('v-status').innerText = "ON";
@@ -237,7 +252,8 @@
                 document.getElementById('v-status').style.color = "#4ade80";
                 document.getElementById('n-status').style.color = "#4ade80";
             }
-            alert("Sincronização com Kernel concluída!");
+            dispararNotificacao('Drivers', 'Finalizado', '⚙️');
+
             document.getElementById('progress-container').style.display = 'none';
         }
 
