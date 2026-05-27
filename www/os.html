@@ -1012,13 +1012,19 @@ setTimeout(() => {
     function gamePanel() {  
         alert("Disponível em breve")
     }  
-    window.addEventListener('message', (event) => {
-        // 3. Modificações do Relógio de Ajustes.html
+        window.addEventListener('message', (event) => {
+        // EVENTO DE NOTIFICAÇÕES (Para outros apps dispararem alertas na tela)
+        if (event.data.type === 'SHOW_TOAST') {
+            showNotification(event.data.title, event.data.message, event.data.icon);
+        }
+
+        // Modificações do Relógio de Ajustes.html
         if(event.data.type === 'clock_color'){
             document.getElementById('clock').style.color = event.data.value;
             localStorage.setItem('clock_color', event.data.value);
         }
     });
+
     
 
 </script>
