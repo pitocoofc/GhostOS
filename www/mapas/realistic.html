@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>3D Earth - Tactical Uplink</title>
+ <link rel="icon" href="favicon.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --neon: #00f2ff;
+    --bg-dark: #050505;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--neon);
+}
+
+canvas { display: block; z-index: 1; }
+
+#boot-layer {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-dark);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 1.5s ease;
+}
+
+.boot-text {
+    font-family: 'Orbitron';
+    font-size: 14px;
+    letter-spacing: 5px;
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse { from { opacity: 1; } to { opacity: 0.2; } }
+
+#hud {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 2s ease-out;
+}
+
+.top-interface {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.hud-panel {
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    background: rgba(0, 15, 25, 0.6);
+    padding: 15px;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.hud-panel::before {
+    content: " ";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+    background-size: 100% 3px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.top-left { border-left: 4px solid var(--neon); }
+.top-right { border-right: 4px solid var(--neon); text-align: right; }
+
+.label { font-size: 10px; color: rgba(0, 242, 255, 0.6); text-transform: uppercase; margin-bottom: 4px;}
+.value { font-size: 16px; font-weight: bold; text-shadow: 0 0 10px var(--neon); }
+
+.footer-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.minimap-wrapper {
+    width: 220px;
+    height: 110px;
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    background: rgba(0, 0, 0, 0.8);
+    position: relative;
+    pointer-events: auto; 
+    cursor: crosshair;
+}
+
+#minimap-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.footer-branding {
+    text-align: center;
+    font-size: 8px;
+    letter-spacing: 8px;
+    padding-bottom: 5px;
+    opacity: 0.7;
+    font-family: 'Orbitron';
+    color: var(--neon);
+}
+
+.bracket {
+    position: fixed;
+    width: 30px;
+    height: 30px;
+    border: 1.5px solid var(--neon);
+    opacity: 0.4;
+}
+.tl { top: 10px; left: 10px; border-right: 0; border-bottom: 0; }
+.tr { top: 10px; right: 10px; border-left: 0; border-bottom: 0; }
+.bl { bottom: 10px; left: 10px; border-right: 0; border-top: 0; }
+.br { bottom: 10px; right: 10px; border-left: 0; border-top: 0; }
+
+</style>
+</head>
+
+<body>
+
+<div class="bracket tl"></div><div class="bracket tr"></div>
+<div class="bracket bl"></div><div class="bracket br"></div>
+
+<div id="boot-layer">
+    <div class="boot-text">UPLINK ESTABLISHED</div>
+</div>
+
+<div id="hud">
+    <div class="top-interface">
+        <div class="hud-panel top-left">
+            <div class="label">Satellite Telemetry</div>
+            <div id="geo-coords" class="value">LAT: 0.00 | LNG: 0.00</div>
+            <div id="zoom-level" class="label" style="margin-top:5px">ALTITUDE: --</div>
+        </div>
+        
+        <div class="hud-panel top-right">
+            <div class="label">System Clock (UTC)</div>
+            <div id="utc-time" class="value">00:00:00</div>
+            <div class="label" style="color:#0f0; margin-top:5px">STATUS: OPTIMAL</div>
+        </div>
+    </div>
+    
+    <div class="footer-container">
+        <div class="minimap-wrapper" id="minimap-click-zone">
+            <canvas id="minimap-canvas"></canvas>
+        </div>
+        <div class="footer-branding">
+            BY NAKUL
+        </div>
+    </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const mapCanvas = document.getElementById('minimap-canvas');
+const mapCtx = mapCanvas.getContext('2d');
+const mapImg = new Image();
+
+mapImg.crossOrigin = "anonymous";
+mapImg.src = 'https://upload.wikimedia.org/wikipedia/commons/8/83/Equirectangular_projection_SW.jpg';
+
+window.onload = () => {
+    setTimeout(() => {
+        document.getElementById('boot-layer').style.opacity = '0';
+        document.getElementById('hud').style.opacity = '1';
+        setTimeout(() => document.getElementById('boot-layer').remove(), 1500);
+    }, 1500);
+    
+    mapCanvas.width = mapCanvas.offsetWidth;
+    mapCanvas.height = mapCanvas.offsetHeight;
+};
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 5000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.appendChild(renderer.domElement);
+
+const cubeLoader = new THREE.CubeTextureLoader();
+const space = cubeLoader.load([
+    'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_px.jpg',
+    'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_nx.jpg',
+    'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_py.jpg',
+    'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_ny.jpg',
+    'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_pz.jpg',
+    'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/cube/MilkyWay/dark-s_nz.jpg'
+]);
+scene.background = space;
+
+const loader = new THREE.TextureLoader();
+function tex(url) {
+    const t = loader.load(url);
+    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return t;
+}
+
+const earth = new THREE.Mesh(
+    new THREE.SphereGeometry(20, 128, 128),
+    new THREE.MeshStandardMaterial({
+        map: tex('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg'),
+        normalMap: tex('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_normal_2048.jpg'),
+        normalScale: new THREE.Vector2(1, 1),
+        roughnessMap: tex('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg'),
+        roughness: 0.8
+    })
+);
+
+// SYNC FIX 1: Set the initial rotation so the Prime Meridian aligns with the map center
+earth.rotation.y = -Math.PI / 2; 
+
+scene.add(earth);
+
+const markerGroup = new THREE.Group();
+const core = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), new THREE.MeshBasicMaterial({ color: 0x00f2ff }));
+const ring1 = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.02, 2, 64), new THREE.MeshBasicMaterial({ color: 0x00f2ff, transparent: true, opacity: 0.8 }));
+ring1.rotation.x = Math.PI / 2;
+const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.015, 2, 64), new THREE.MeshBasicMaterial({ color: 0x00f2ff, transparent: true, opacity: 0.4 }));
+ring2.rotation.x = Math.PI / 2;
+const ring3 = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.01, 2, 64), new THREE.MeshBasicMaterial({ color: 0x00f2ff, transparent: true, opacity: 0.2 }));
+ring3.rotation.x = Math.PI / 2;
+markerGroup.add(core, ring1, ring2, ring3);
+markerGroup.visible = false;
+earth.add(markerGroup); 
+
+const sun = new THREE.DirectionalLight(0xffffff, 2.5);
+sun.position.set(50, 20, 50);
+scene.add(sun);
+scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+
+camera.position.set(0, 0, 100);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.rotateSpeed = 0.6;
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+window.addEventListener('click', (event) => {
+    if (event.target.closest('#hud')) return;
+    
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObject(earth);
+    if (intersects.length > 0) {
+        const localPoint = earth.worldToLocal(intersects[0].point.clone());
+        markerGroup.position.copy(localPoint);
+        markerGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), localPoint.clone().normalize());
+        markerGroup.visible = true;
+    }
+});
+
+document.getElementById('minimap-click-zone').addEventListener('click', (e) => {
+    const rect = mapCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const clickLng = (x / rect.width) * 360 - 180;
+    const clickLat = 90 - (y / rect.height) * 180;
+    
+    const phi = THREE.MathUtils.degToRad(90 - clickLat);
+    // SYNC FIX 2: Correct theta calculation to match the new rotation logic
+    const theta = THREE.MathUtils.degToRad(clickLng) + earth.rotation.y + Math.PI/2;
+    
+    const distance = camera.position.length();
+    camera.position.setFromSphericalCoords(distance, phi, theta);
+    controls.update();
+});
+
+function updateHUD() {
+    const spherical = new THREE.Spherical();
+    spherical.setFromVector3(camera.position);
+
+    const latDeg = 90 - THREE.MathUtils.radToDeg(spherical.phi);
+    
+    // SYNC FIX 3: Adjusted the longitude offset so it tracks the landmass perfectly
+    let lngDeg = THREE.MathUtils.radToDeg(spherical.theta - earth.rotation.y - Math.PI/2);
+    lngDeg = ((lngDeg + 180) % 360 + 360) % 360 - 180;
+
+    document.getElementById("geo-coords").innerText = `LAT: ${latDeg.toFixed(2)}° | LNG: ${lngDeg.toFixed(2)}°`;
+    document.getElementById("zoom-level").innerText = `ALTITUDE: ${camera.position.length().toFixed(1)} UNITS`;
+    document.getElementById("utc-time").innerText = new Date().toISOString().split('T')[1].split('.')[0];
+
+    if (mapCtx) {
+        mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+        
+        if (mapImg.complete && mapImg.naturalWidth !== 0) {
+            mapCtx.globalAlpha = 0.5;
+            mapCtx.drawImage(mapImg, 0, 0, mapCanvas.width, mapCanvas.height);
+        }
+
+        const px = ((lngDeg + 180) / 360) * mapCanvas.width;
+        const py = ((90 - latDeg) / 180) * mapCanvas.height;
+
+        mapCtx.globalAlpha = 1.0;
+        mapCtx.strokeStyle = 'rgba(0, 242, 255, 0.6)';
+        mapCtx.lineWidth = 1;
+        mapCtx.beginPath();
+        mapCtx.moveTo(px, 0); mapCtx.lineTo(px, mapCanvas.height);
+        mapCtx.moveTo(0, py); mapCtx.lineTo(mapCanvas.width, py);
+        mapCtx.stroke();
+
+        mapCtx.fillStyle = '#00f2ff';
+        mapCtx.shadowBlur = 10;
+        mapCtx.shadowColor = '#00f2ff';
+        mapCtx.beginPath();
+        mapCtx.arc(px, py, 3, 0, Math.PI * 2);
+        mapCtx.fill();
+        mapCtx.shadowBlur = 0;
+    }
+}
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    mapCanvas.width = mapCanvas.offsetWidth;
+    mapCanvas.height = mapCanvas.offsetHeight;
+});
+
+function updateLogic() {
+    earth.rotation.y += 0.0004;
+
+    if(markerGroup.visible) {
+        ring1.rotation.z += 0.04; 
+        ring2.rotation.z -= 0.02;
+        ring3.rotation.z += 0.01;
+        const s = 1 + Math.sin(Date.now() * 0.006) * 0.15;
+        ring2.scale.set(s, s, 1);
+        ring3.scale.set(1/s, 1/s, 1);
+    }
+    
+    controls.update();
+    updateHUD();
+}
+
+setInterval(updateLogic, 1000 / 60);
+
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+}
+animate();
+</script>
+
+</body>
+</html>
