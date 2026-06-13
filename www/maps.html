@@ -40,7 +40,7 @@
 </head>
 <body>
 
-    <div id="hub-title">SYS/GAMES/BIN_ROOT</div>
+    <div id="hub-title">SYS/ASSETS/MAPS</div>
     <div class="grid" id="game-list">
         </div>
 
@@ -55,7 +55,7 @@
         const games = [
             "mapas/maps.html",
             "mapas/globo_simples.html", // Sim, você pode tratar como "jogo" se quiser testar
-            "programacao/lua.html"
+            "mapas/realistic.html"
         ];
 
         const listContainer = document.getElementById('game-list');
@@ -72,8 +72,8 @@
                 // Lógica de ícone genérico ou específico
                 let icon = "🖥️";
                 if(file.includes("maps")) icon = "🌍";
-                if(file.includes("lua")) icon = "🌕";
-                if(file.includes("python")) icon = "🐍";
+                if(file.includes("realistic")) icon = "🗺️";
+                if(file.includes("globo_simples")) icon = "🌐";
 
                 btn.innerHTML = `
                     <div class="icon">${icon}</div>
