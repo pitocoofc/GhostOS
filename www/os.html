@@ -292,7 +292,26 @@
         from { transform: translateY(0) scale(1); opacity: 1; }
         to { transform: translateY(-20px) scale(0.9); opacity: 0; }
     }
-
+#update-btn {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: rgba(59,130,246,0.9);
+    color: #fff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    z-index: 9998;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+#update-btn.show {
+    display: flex;
+}
 </style>
 
 </head>  
@@ -445,7 +464,51 @@
 </div>  
 <div id="notification-container"></div>
 
+<div id="update-panel" style="
+position:fixed;
+bottom:-120%;
+left:0;
+width:100%;
+height:70%;
+background:rgba(0,0,0,0.95);
+backdrop-filter:blur(20px);
+z-index:9999;
+transition:0.5s;
+padding:20px;
+color:#fff;
+">
 
+    <h2>Atualização do Sistema</h2>
+
+    <p id="ver-info"></p>
+
+    <div id="changelog"></div>
+
+    <button onclick="openTutorial()" style="
+        margin-top:20px;
+        padding:10px;
+        width:100%;
+        border:none;
+        border-radius:10px;
+        background:#3b82f6;
+        color:#fff;
+        font-weight:bold;
+    ">
+        Abrir tutorial de atualização
+    </button>
+
+    <button onclick="closeUpdatePanel()" style="
+        margin-top:10px;
+        padding:10px;
+        width:100%;
+        border:none;
+        border-radius:10px;
+        background:#222;
+        color:#fff;
+    ">
+        Fechar
+    </button>
+</div>
 <script>  
     // Drivers
     var driver_video = "off";  
@@ -1025,7 +1088,84 @@ setTimeout(() => {
         }
     });
 
-    
+    let remoteVersionData = null;
+let updateAvailable = false;
+
+const CURRENT_VERSION = "6.0.0.a.c.a.r.a.j.e"; 
+async function checkUpdateFromGithub() {
+    try {
+        const res = await fetch("https://raw.githubusercontent.com/pitocoofc/GhostOS/main/version.json");
+        const data = await res.json();
+
+        remoteVersionData = data;
+
+        if (data.version !== CURRENT_VERSION) {
+            updateAvailable = true;
+
+            showNotification(
+                "Atualização disponível",
+                `Nova versão ${data.version} encontrada!`,
+                "⬆️"
+            );
+
+            createUpdateButton();
+        } else {
+            console.log("Sistema atualizado.");
+        }
+
+    } catch (err) {
+        console.log("Erro ao verificar update:", err);
+
+        driver_failed = "on";
+        driver_user_erro = "on";
+
+        showNotification(
+            "Update System",
+            "Não foi possível verificar atualizações",
+            "⚠️"
+        );
+    }
+}
+function createUpdateButton() {
+    if (document.getElementById("update-btn")) return;
+
+    const btn = document.createElement("div");
+    btn.id = "update-btn";
+    btn.innerHTML = "⬆️";
+    btn.onclick = openUpdatePanel;
+
+    document.body.appendChild(btn);
+
+    setTimeout(() => {
+        btn.classList.add("show");
+    }, 500);
+}
+function openUpdatePanel() {
+    const panel = document.getElementById("update-panel");
+
+    document.getElementById("ver-info").innerText =
+        `Atual: ${CURRENT_VERSION} → Nova: ${remoteVersionData.version}`;
+
+    const changelog = document.getElementById("changelog");
+    changelog.innerHTML = "";
+
+    remoteVersionData.changes.forEach(c => {
+        const p = document.createElement("p");
+        p.innerText = "• " + c;
+        changelog.appendChild(p);
+    });
+
+    panel.style.bottom = "0";
+}
+
+function closeUpdatePanel() {
+    document.getElementById("update-panel").style.bottom = "-120%";
+}
+function openTutorial() {
+    openApp("Update Tutorial", remoteVersionData.tutorial_url);
+}
+checkUpdateFromGithub();
+
 
 </script>
 </body>  
