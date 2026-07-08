@@ -116,7 +116,7 @@
         const biosImage = localStorage.getItem('ghost_bios_image');
         
         // Se não existir nada no localStorage OU se o conteúdo não contiver "thisisvalid"
-        if (!biosImage || !biosImage.includes('thisisvalid')) {
+        if (!biosImage || !biosImage.includes('010101001010001001')) {
             // Redireciona imediatamente para a tela de erro de firmware
             window.location.href = "bios_error.html";
         }
