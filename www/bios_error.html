@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GhostOS - BIOS CRITICAL ERROR</title>
+    <style>
+        :root { 
+            --error-red: #ff3b30; 
+            --neon-blue: #00f2ff; 
+            --bg: #050505;
+        }
+        
+        body, html {
+            margin: 0; padding: 0; height: 100vh;
+            background: var(--bg); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Courier New', monospace;
+            overflow: hidden; user-select: none;
+        }
+
+        /* Efeito de linhas CRT clássico do GhostOS */
+        body::before {
+            content: " ";
+            position: fixed; inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
+            background-size: 100% 3px;
+            z-index: 1000; pointer-events: none;
+        }
+
+        .error-container {
+            width: 90%;
+            max-width: 650px;
+            border: 2px solid var(--error-red);
+            background: rgba(15, 5, 5, 0.85);
+            padding: 30px;
+            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.2);
+            position: relative;
+        }
+
+        h1 {
+            color: var(--error-red);
+            font-size: 20px;
+            margin-top: 0;
+            border-bottom: 1px solid var(--error-red);
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .error-code {
+            background: #110505;
+            padding: 12px;
+            border-left: 4px solid var(--error-red);
+            margin: 20px 0;
+            color: #ffb3b3;
+            font-size: 13px;
+        }
+
+        .blink {
+            animation: blinker 1s linear infinite;
+        }
+        @keyframes blinker { 50% { opacity: 0; } }
+
+        p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #ddd;
+        }
+
+        /* Console Log de Flashing */
+        #flash-log {
+            font-size: 11px;
+            color: #888;
+            max-height: 100px;
+            overflow-y: hidden;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+
+        .success-text {
+            color: var(--neon-blue) !important;
+            font-weight: bold;
+        }
+
+        /* Botões Estilizados */
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            background: none;
+            border: 1px solid #555;
+            color: #aaa;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            border-color: #fff;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        button.action-btn {
+            border-color: var(--error-red);
+            color: var(--error-red);
+        }
+
+        button.action-btn:hover {
+            background: var(--error-red);
+            color: #000;
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.4);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="error-container">
+        <h1>[ Hardware Abstraction Layer Error ]</h1>
+        
+        <p>The system had problems with the BIOS image. <span class="blink">SYSTEM HALTED.</span></p>
+        
+        <div class="error-code">
+            STATUS_CODE: BIOSKERNEL_44<br>
+            REASON: ROM_SIGNATURE_MISSING_OR_INVALID<br>
+            OFFSET: 0x0000F4A2
+        </div>
+
+        <div id="flash-log">Awaiting operator action...</div>
+
+        <div class="btn-group">
+            <button class="action-btn" id="btn-generate" onclick="generateNewBios()">Gerar Nova BIOS</button>
+            <button onclick="tryAgain()">Tentar Novamente</button>
+        </div>
+    </div>
+
+    <script>
+        // Redireciona de volta para o boot sem fazer nenhuma alteração
+        function tryAgain() {
+            window.location.href = "index.html";
+        }
+
+        // Gera a matriz puramente binária com o token escondido
+        function generateNewBios() {
+            const log = document.getElementById('flash-log');
+            const btnGen = document.getElementById('btn-generate');
+            
+            // Trava o botão para não clicar duas vezes
+            btnGen.disabled = true;
+            btnGen.innerText = "Injetando...";
+
+            log.innerText = "Connecting to Motherboard EEPROM...\n";
+            
+            setTimeout(() => {
+                log.innerText += "Erasing corrupted sectors (0x000000 - 0xFFFFFF)...\n";
+                
+                setTimeout(() => {
+                    log.innerText += "Generating raw matrix binary from A to Z...\n";
+                    
+                    // --- GERAÇÃO DO BINÁRIO ---
+                    let binaryMatrix = "";
+                    const totalRows = 30; // Tamanho do "arquivo" firmware
+                    
+                    // Escolhe uma linha aleatória entre a 5 e a 25 para esconder a assinatura
+                    const targetRow = Math.floor(Math.random() * (25 - 5 + 1)) + 5;
+
+                    for (let i = 0; i < totalRows; i++) {
+                        if (i === targetRow) {
+                            // Injeta o token cercado por binários para camuflar
+                            binaryMatrix += "01101011 01110011 thisisvalid 01101111 01110011\n";
+                        } else {
+                            // Gera uma linha normal de bits aleatórios espelhados em bytes
+                            let row = "";
+                            for(let b = 0; b < 4; b++) {
+                                let byte = "";
+                                for(let bit = 0; bit < 8; bit++) {
+                                    byte += Math.round(Math.random());
+                                }
+                                row += byte + " ";
+                            }
+                            binaryMatrix += row.trim() + "\n";
+                        }
+                    }
+
+                    // Salva a estrutura recém-criada no LocalStorage
+                    localStorage.setItem('ghost_bios_image', binaryMatrix);
+
+                    log.innerText += "Writing signature payload to block offset...\n";
+                    
+                    setTimeout(() => {
+                        log.innerHTML += "<span class='success-text'>[ SUCCESS ] ROM successfully flashed! Re-booting...</span>";
+                        
+                        // Espera 1.5 segundos após o sucesso para o usuário ler e retona ao boot
+                        setTimeout(() => {
+                            window.location.href = "index.html";
+                        }, 15000); // 1.5s
+                    }, 800);
+                }, 800);
+            }, 600);
+        }
+    </script>
+</body>
+</html>
