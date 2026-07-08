@@ -15,7 +15,7 @@
             gap: 15px; 
         }
 
-        /* Botão gerado automaticamente */
+        
         .game-btn {
             background: #0a0a0a; border: 1px solid #222;
             padding: 15px; border-radius: 8px; cursor: pointer;
@@ -26,7 +26,7 @@
         .game-btn .icon { font-size: 24px; margin-bottom: 10px; }
         .game-btn .name { font-size: 10px; color: #eee; text-align: center; overflow: hidden; }
 
-        /* Viewport do Jogo */
+        
         #viewport {
             display: none; position: fixed; inset: 0; background: #000; z-index: 999;
         }
@@ -54,7 +54,7 @@
         // O sistema cuida do ícone e do botão sozinho.
         const games = [
             "mapas/maps.html",
-            "mapas/globo_simples.html", // Sim, você pode tratar como "jogo" se quiser testar
+            "mapas/globo_simples.html", 
             "mapas/realistic.html"
         ];
 
@@ -62,14 +62,14 @@
 
         function initHub() {
             games.forEach(file => {
-                // Limpa o nome do arquivo para o botão (ex: ball_desviante.html -> BALL DESVIANTE)
+                
                 let cleanName = file.replace('.html', '').replace('_', ' ').toUpperCase();
                 
                 const btn = document.createElement('div');
                 btn.className = 'game-btn';
                 btn.onclick = () => launch(file);
                 
-                // Lógica de ícone genérico ou específico
+                
                 let icon = "🖥️";
                 if(file.includes("maps")) icon = "🌍";
                 if(file.includes("realistic")) icon = "🗺️";
