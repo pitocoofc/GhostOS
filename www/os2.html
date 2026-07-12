@@ -33,7 +33,7 @@
             color: #0c0; line-height: 1.5;
         }
 
-        /* TELA DE OPÇÕES (MODAL) */
+
         #options-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.95);
             display: none; flex-direction: column; padding: 30px; z-index: 100;
@@ -49,7 +49,7 @@
 </head>
 <body>
 
-    <h2>NEXO_KERNEL_UTILITY v2.0</h2>
+    <h2>NEXO_KERNEL_UTILITY v3.0</h2>
 
     <div id="term-box" id="log-output">
         > SYSTEM READY...<br>
@@ -93,7 +93,7 @@
             output.scrollTop = output.scrollHeight;
         }
 
-        // 1. HARD RESET
+
         function fullReset() {
             if(confirm("LIMPAR TODO O CACHE DO SISTEMA?")) {
                 localStorage.clear();
@@ -102,9 +102,9 @@
             }
         }
 
-        // 2. VERIFICAÇÃO DE SOFTWARE (SIMULADA)
+
         async function verifySoftware() {
-    // Substitua pela URL bruta (raw) do seu arquivo no GitHub
+
     const url = 'https://raw.githubusercontent.com/pitocoofc/Vonnect/main/check.json';
     
     log("Connecting to the integrity server...");
@@ -119,7 +119,7 @@
         log(`Checking binary version  ${data.version}:`);
         
         for (let app of data.binaries) {
-            await new Promise(r => setTimeout(r, 400)); // Delay para efeito visual
+            await new Promise(r => setTimeout(r, 400)); 
             log(`[${app.status}] -> ${app.name}`);
         }
         
@@ -443,7 +443,7 @@ log("Finalizando...")
 
 
 
-    // 🔥 detalhe pra dar realismo
+
     if (Math.random() < 0.2) {
         log("WARNING: Minor inconsistency detected...");
         await wait(700);
@@ -462,9 +462,9 @@ btn2.style.opacity = "1";
 }
 
 
-        // 3. OPÇÕES E VARIÁVEIS
+
         function openOptions() {
-            // Carrega estado visual dos switches
+
             document.getElementById('sw-unknown').innerText = localStorage.getItem('unknown_sources') === 'on' ? 'X' : '';
             document.getElementById('sw-graphics').innerText = localStorage.getItem('adv_graphics') === 'on' ? 'X' : '';
             document.getElementById('options-modal').style.display = 'flex';
@@ -475,7 +475,7 @@ btn2.style.opacity = "1";
             const newState = current === 'on' ? 'off' : 'on';
             localStorage.setItem(key, newState);
             
-            // Atualiza o visual na hora
+
             const id = key === 'unknown_sources' ? 'sw-unknown' : 'sw-graphics';
             document.getElementById(id).innerText = newState === 'on' ? 'X' : '';
             log(`VAR ${key} SET TO ${newState.toUpperCase()}`);
