@@ -120,7 +120,7 @@
 
         
         async function fetchSimplyTranslate(text, source, target) {
-            // Rota pública funcional e atualizada do SimplyTranslate
+
             const url = `https://simplytranslate.org/api/translate/?engine=google&text=${encodeURIComponent(text)}&current=${source}&target=${target}`;
             const res = await fetch(url);
             const data = await res.json();
