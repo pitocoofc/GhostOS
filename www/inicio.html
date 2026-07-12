@@ -14,7 +14,7 @@
         }
         canvas { display: block; }
         
-        /* Tremor mantido, mas aplicado ao canvas agora */
+
         .shake-impact { animation: impact 0.5s ease-out; }
         @keyframes impact {
             0% { transform: scale(1.1); filter: blur(5px); }
@@ -47,7 +47,7 @@
 
         function mapText() {
             textPixels = [];
-            const fontSize = Math.min(width * 0.22, 130); // Texto maior
+            const fontSize = Math.min(width * 0.22, 130);
             ctx.font = `900 ${fontSize}px sans-serif`;
             const text = "GHOSTOS";
             
@@ -61,7 +61,7 @@
             tCtx.fillText(text, width/2, height/2 + fontSize/3);
 
             const data = tCtx.getImageData(0, 0, width, height).data;
-            // Densidade máxima: passo de 2px
+
             for (let y = 0; y < height; y += 2) { 
                 for (let x = 0; x < width; x += 2) {
                     if (data[(y * width + x) * 4] > 128) {
@@ -93,7 +93,7 @@
             }
 
             update() {
-                if (stage === 1) { // Entrada
+                if (stage === 1) {
                     let speed = 20;
                     if(this.group==='red') this.x -= speed;
                     else if(this.group==='blue') this.x += speed;
@@ -101,13 +101,13 @@
                     else if(this.group==='yellow') this.y -= speed;
                     else { this.x += Math.cos(this.angle)*6; this.y += Math.sin(this.angle)*6; }
                 } 
-                else if (stage === 2) { // Vórtice
+                else if (stage === 2) {
                     this.angle += 0.15;
                     let radius = (frame - 360) * 3;
                     this.x = width/2 + Math.cos(this.angle) * radius;
                     this.y = height/2 + Math.sin(this.angle) * radius;
                 }
-                else if (stage === 3) { // Convergência Alinhada
+                else if (stage === 3) {
                     if (!this.target && textPixels.length > 0) {
                         this.target = textPixels[Math.floor(Math.random() * textPixels.length)];
                     }
@@ -115,7 +115,7 @@
                         this.x += (this.target.x - this.x) * 0.18;
                         this.y += (this.target.y - this.y) * 0.18;
                         
-                        // Lógica do Scanner: Brilha quando a linha passa
+
                         if (Math.abs(this.y - scanY) < 15) {
                             this.glow = true;
                             this.currentSize = 4;
@@ -143,7 +143,7 @@
 
         function createParticles() {
             particles = [];
-            // Aumentado para 150 por cor + 600 brancos = 1200 partículas totais
+
             ['red','blue','green','yellow'].forEach(c => {
                 for(let i=0; i<150; i++) particles.push(new Particle(c));
             });
@@ -155,10 +155,10 @@
             ctx.fillRect(0,0,width,height);
             frame++;
 
-            // TIMELINE
-            if(frame < 300) stage = 0; // DELAY 5 SEG (60fps * 5)
-            else if(frame < 360) stage = 1; // Entrada
-            else if(frame < 480) stage = 2; // Vórtice
+
+            if(frame < 300) stage = 0; 
+            else if(frame < 360) stage = 1; 
+            else if(frame < 480) stage = 2; 
             else if(frame >= 480) {
                 if(stage !== 3) {
                     stage = 3;
@@ -170,7 +170,7 @@
                 scanY += 5;
                 if(scanY > height + 200) {
                     scanY = -100;
-                    // Redireciona após completar um scan completo no final
+
                     if(frame > 800) window.location.href = "login.html";
                 }
             }
