@@ -1,3 +1,13 @@
+# Update 6.5.0 Acarajé 
+"What's new?"
+
+-minor bug fixes
+- additions of new maps
+- optimizations
+
+
+
+
 # Update 6.0.0 Acarajé 
 "What's new?"
 
