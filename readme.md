@@ -1,4 +1,9 @@
 # Update 6.5.0 Acarajé 
+"what's new?"
+
+- A radio and nothing more.
+
+# Update 6.5.0 Acarajé 
 "What's new?"
 
 - minor bug fixes
