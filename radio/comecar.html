@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGNAL — High Performance Radio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #121620;
+    --border: #202635;
+    --text: #e1e7f0;
+    --accent: #2be8ff;
+    --accent-dim: rgba(43,232,255,0.1);
+    --dim: #78839b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+  body { background: var(--bg); color: var(--text); padding-bottom: 90px; font-size: 14px; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+  
+  /* TOP NAV */
+  nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 15px; margin-bottom: 25px; }
+  .logo { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 20px; color: var(--accent); }
+  .nav-status { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--dim); }
+
+  /* GRID DE INFOS */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 25px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); padding: 15px; border-radius: 4px; }
+  .stat-card div { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; color: var(--accent); }
+  .stat-card span { font-size: 11px; color: var(--dim); text-transform: uppercase; }
+
+  /* CONSOLE CONTROLS & LCD */
+  .lcd-panel { background: #000; border: 1px solid var(--border); padding: 15px; border-radius: 4px; font-family: 'Space Mono', monospace; margin-bottom: 20px; }
+  .lcd-meta { display: flex; justify-content: space-between; color: var(--accent); font-size: 12px; margin-bottom: 5px; }
+  .lcd-display { font-size: 16px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .controls-row { display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; margin-bottom: 15px; }
+  @media (max-width: 600px) { .controls-row { grid-template-columns: 1fr; } }
+  
+  input, select, button { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 10px 15px; font-size: 13px; border-radius: 4px; outline: none; }
+  input:focus, select:focus { border-color: var(--accent); }
+  button { font-family: 'Space Mono', monospace; cursor: pointer; font-weight: 700; background: var(--border); transition: background 0.1s; }
+  button:hover { background: var(--surface); border-color: var(--accent); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  
+  .chips-container { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+  .chip { background: var(--surface); border: 1px solid var(--border); padding: 5px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; }
+  .chip.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+  /* SECTION HEADER */
+  .section-hdr { font-family: 'Space Mono', monospace; font-size: 14px; margin-bottom: 15px; color: var(--dim); display: flex; align-items: center; justify-content: space-between; }
+  .back-btn { background: none; border: none; color: var(--accent); padding: 0; font-size: 12px; }
+
+  /* GRID PRINCIPAL */
+  .stations-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .station-card { background: var(--surface); border: 1px solid var(--border); padding: 15px; border-radius: 4px; cursor: pointer; position: relative; }
+  .station-card:hover { border-color: var(--accent); }
+  .station-card.playing { border-color: var(--accent); background: var(--accent-dim); }
+  .station-title { font-weight: 700; font-size: 14px; margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .station-sub { font-size: 11px; color: var(--dim); font-family: 'Space Mono', monospace; }
+  .fav-star { position: absolute; top: 12px; right: 12px; background: none; border: none; padding: 0; color: var(--dim); font-size: 16px; }
+  .fav-star.active { color: #ffc233; }
+
+  /* BOTTOM MINIMAL PLAYER BAR */
+  .player-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #07090e; border-top: 2px solid var(--border); padding: 12px 20px; z-index: 100; }
+  .player-container { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+  .player-info { min-width: 0; flex: 1; }
+  .player-title { font-weight: 700; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .player-sub { font-size: 11px; color: var(--dim); font-family: 'Space Mono', monospace; }
+  .player-actions { display: flex; align-items: center; gap: 10px; }
+  
+  .vol-ctrl { display: flex; align-items: center; gap: 5px; font-family: 'Space Mono', monospace; font-size: 11px; }
+  .vol-ctrl input { width: 70px; height: 4px; accent-color: var(--accent); padding: 0; }
+  
+  /* FIXED EQ BOX */
+  .eq-container { position: relative; }
+  .eq-flyout { position: absolute; bottom: 45px; right: 0; background: #000; border: 1px solid var(--border); padding: 15px; border-radius: 4px; display: none; flex-direction: column; gap: 10px; width: 200px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
+  .eq-flyout.open { display: flex; }
+  .eq-row { display: flex; align-items: center; justify-content: space-between; font-family: 'Space Mono', monospace; font-size: 11px; }
+  .eq-row input { width: 100px; height: 4px; accent-color: var(--accent); padding: 0; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <nav>
+    <div class="logo">SIGNAL // WIRELESS</div>
+    <div class="nav-status" id="navStat">SYS_CONNECTED</div>
+  </nav>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div id="statStations">—</div><span>Estações Ativas</span></div>
+    <div class="stat-card"><div id="statCountries">—</div><span>Países Mapeados</span></div>
+    <div class="stat-card"><div id="statTags">—</div><span>Gêneros / Tags</span></div>
+  </div>
+
+  <div class="lcd-panel">
+    <div class="lcd-meta"><span id="lcdFreq">00.0 MHz</span><span>SYS_STATUS</span></div>
+    <div class="lcd-display" id="lcdStatic">CONSOLE IDLE // AGUARDANDO COMANDO</div>
+  </div>
+
+  <div class="controls-row">
+    <input id="searchInput" type="text" placeholder="Filtrar por nome, gênero, tag..." autocomplete="off">
+    <select id="countrySelect">
+      <option value="">Filtrar por País...</option>
+      <option value="br">Brasil</option>
+      <option value="us">Estados Unidos</option>
+      <option value="gb">Reino Unido</option>
+      <option value="de">Alemanha</option>
+      <option value="fr">França</option>
+      <option value="jp">Japão</option>
+    </select>
+    <button id="btnRandom">🎲 ALEATÓRIO</button>
+  </div>
+
+  <div class="chips-container" id="chipRow"></div>
+
+  <div class="section-hdr" id="gridLabel">NAVEGAR POR PAÍS</div>
+  <div class="stations-grid" id="grid"></div>
+  <div id="loadMoreWrap" style="text-align: center; margin-top: 20px;"></div>
+</div>
+
+<div class="player-bar">
+  <div class="player-container">
+    <div class="player-info">
+      <div class="player-title" id="pName">Nenhum sinal conectado</div>
+      <div class="player-sub" id="pSub">Selecione uma transmissão na lista acima</div>
+    </div>
+    
+    <div class="player-actions">
+      <div class="vol-ctrl">
+        <span>VOL</span>
+        <input type="range" id="volSlider" min="0" max="1" step="0.05" value="0.80">
+      </div>
+      
+      <div class="eq-container">
+        <button id="eqBtn" style="padding: 5px 10px; font-size: 11px;">EQ</button>
+        <div class="eq-flyout" id="eqPanel">
+          <div class="eq-row"><label>BASS</label><input type="range" id="eqBass" min="-15" max="15" value="0"></div>
+          <div class="eq-row"><label>MID</label><input type="range" id="eqMid" min="-15" max="15" value="0"></div>
+          <div class="eq-row"><label>TREB</label><input type="range" id="eqTreble" min="-15" max="15" value="0"></div>
+        </div>
+      </div>
+      
+      <button id="pFav" style="padding: 5px 10px;">☆</button>
+      <button id="playBtn" style="padding: 5px 15px; border-color: var(--accent);">PLAY</button>
+      <button id="ejectBtn" style="padding: 5px 10px; background: #2a1215; border-color: #551a22;">✕</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const MIRRORS = ['de1.api.radio-browser.info','de2.api.radio-browser.info','nl1.api.radio-browser.info','at1.api.radio-browser.info'];
+  const GENRES = ['Pop','Rock','Jazz','Electronic','News','Classical','Talk','80s'];
+  const PAGE_SIZE = 30;
+
+  const grid = document.getElementById('grid');
+  const gridLabel = document.getElementById('gridLabel');
+  const loadMoreWrap = document.getElementById('loadMoreWrap');
+  const searchInput = document.getElementById('searchInput');
+  const countrySelect = document.getElementById('countrySelect');
+  const chipRow = document.getElementById('chipRow');
+  const navStat = document.getElementById('navStat');
+  const lcdFreq = document.getElementById('lcdFreq');
+  const lcdStatic = document.getElementById('lcdStatic');
+  const playBtn = document.getElementById('playBtn');
+  const pName = document.getElementById('pName');
+  const pSub = document.getElementById('pSub');
+  const pFav = document.getElementById('pFav');
+  const ejectBtn = document.getElementById('ejectBtn');
+  const volSlider = document.getElementById('volSlider');
+  const eqBtn = document.getElementById('eqBtn');
+  const eqPanel = document.getElementById('eqPanel');
+  const eqBass = document.getElementById('eqBass');
+  const eqMid = document.getElementById('eqMid');
+  const eqTreble = document.getElementById('eqTreble');
+  const btnRandom = document.getElementById('btnRandom');
+
+  const audio = new Audio();
+  audio.volume = 0.80;
+
+  let activeTag = null;
+  let currentStation = null;
+  let isPlaying = false;
+  const favorites = new Set();
+  const allStationsById = new Map();
+  const cardElsByUuid = new Map();
+  let viewMode = 'countries';
+  let countryQuery = null;
+  let countryLabel = '';
+  let countryOffset = 0;
+
+  // Web Audio Graph
+  let audioCtx = null, bassFilter = null, midFilter = null, trebleFilter = null;
+  function ensureAudioGraph(){
+    if(audioCtx) return;
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioCtx.createMediaElementSource(audio);
+      bassFilter = audioCtx.createBiquadFilter(); bassFilter.type = 'lowshelf'; bassFilter.frequency.value = 200;
+      midFilter = audioCtx.createBiquadFilter(); midFilter.type = 'peaking'; midFilter.frequency.value = 1000; midFilter.Q.value = 0.8;
+      trebleFilter = audioCtx.createBiquadFilter(); trebleFilter.type = 'highshelf'; trebleFilter.frequency.value = 3000;
+      source.connect(bassFilter).connect(midFilter).connect(trebleFilter).connect(audioCtx.destination);
+    } catch(e){}
+  }
+
+  eqBtn.addEventListener('click', (e)=>{ e.stopPropagation(); ensureAudioGraph(); eqPanel.classList.toggle('open'); });
+  document.addEventListener('click', ()=>eqPanel.classList.remove('open'));
+  eqPanel.addEventListener('click', (e)=>e.stopPropagation());
+  eqBass.addEventListener('input', ()=>{ if(bassFilter) bassFilter.gain.value = parseFloat(eqBass.value); });
+  eqMid.addEventListener('input', ()=>{ if(midFilter) midFilter.gain.value = parseFloat(eqMid.value); });
+  eqTreble.addEventListener('input', ()=>{ if(trebleFilter) trebleFilter.gain.value = parseFloat(eqTreble.value); });
+
+  async function apiGet(path){
+    for(const host of MIRRORS){
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(()=>ctrl.abort(), 5000);
+        const res = await fetch(`https://${host}${path}`, { signal: ctrl.signal, headers:{'Accept':'application/json'} });
+        clearTimeout(t);
+        if(res.ok) return await res.json();
+      }catch(e){}
+    }
+    throw new Error('Mirrors down');
+  }
+
+  function renderChips(){
+    chipRow.innerHTML = '';
+    const favChip = document.createElement('div');
+    favChip.className = 'chip' + (viewMode==='favorites' ? ' active':'');
+    favChip.textContent = '★ Favoritos';
+    favChip.onclick = ()=>showFavorites();
+    chipRow.appendChild(favChip);
+
+    GENRES.forEach(g=>{
+      const c = document.createElement('div');
+      c.className = 'chip' + (activeTag===g ? ' active':'');
+      c.textContent = g;
+      c.onclick = ()=>{
+        if(activeTag===g) { activeTag = null; loadCountries(); } 
+        else { activeTag = g; viewMode='tag'; loadTag(g); }
+        renderChips();
+      };
+      chipRow.appendChild(c);
+    });
+  }
+
+  async function loadCountries(){
+    viewMode = 'countries'; activeTag = null; renderChips(); loadMoreWrap.innerHTML = '';
+    gridLabel.textContent = 'NAVEGAR POR PAÍS';
+    grid.innerHTML = '<div>Carregando rede de transmissão...</div>';
+    try {
+      const codes = await apiGet('/json/countrycodes?order=stationcount&reverse=true&limit=60');
+      grid.innerHTML = '';
+      codes.filter(c=>c.stationcount > 0 && c.name).forEach(c=>{
+        const card = document.createElement('div');
+        card.className = 'card country-card station-card';
+        card.innerHTML = `<div class="station-title">${c.name.toUpperCase()}</div><div class="station-sub">${c.stationcount} Estações</div>`;
+        card.onclick = ()=>loadCountryStations({code: c.name.toLowerCase()}, c.name);
+        grid.appendChild(card);
+      });
+    } catch(e) { grid.innerHTML = 'Erro ao conectar. Tente atualizar.'; }
+  }
+
+  async function loadCountryStations(query, label, opts={}){
+    countryQuery = query; countryLabel = label;
+    if(!opts.append){ countryOffset = 0; loadMoreWrap.innerHTML = ''; grid.innerHTML = ''; }
+    gridLabel.innerHTML = `<button class="back-btn" id="backBtn">← PAÍSES</button> / ESTAÇÕES: ${label.toUpperCase()}`;
+    document.getElementById('backBtn').onclick = ()=>loadCountries();
+
+    try {
+      const data = await apiGet(`/json/stations/bycountrycodeexact/${encodeURIComponent(query.code)}?limit=${PAGE_SIZE}&offset=${countryOffset}&hidebroken=true&order=clickcount&reverse=true`);
+      if(data.length === 0 && !opts.append) {
+        grid.innerHTML = '<div style="padding:20px; color:var(--dim)">Nenhuma estação ativa encontrada para este código.</div>';
+        return;
+      }
+      data.forEach(s=>allStationsById.set(s.stationuuid, s));
+      renderStations(data, opts.append);
+      countryOffset += data.length;
+      if(data.length === PAGE_SIZE){
+        loadMoreWrap.innerHTML = '<button id="loadMore">CARREGAR MAIS</button>';
+        document.getElementById('loadMore').onclick = ()=>loadCountryStations(countryQuery, countryLabel, {append:true});
+      } else { loadMoreWrap.innerHTML = ''; }
+    } catch(e){
+      grid.innerHTML = 'Erro ao buscar estações.';
+    }
+  }
+
+  function renderStations(list, append=false){
+    if(!append){ grid.innerHTML = ''; cardElsByUuid.clear(); }
+    list.forEach(st=>{
+      const isCur = currentStation && currentStation.stationuuid === st.stationuuid && isPlaying;
+      const card = document.createElement('div');
+      card.className = 'station-card' + (isCur ? ' playing' : '');
+      card.innerHTML = `
+        <button class="fav-star ${favorites.has(st.stationuuid)?'active':''}">★</button>
+        <div class="station-title">${st.name.trim() || 'Untitled'}</div>
+        <div class="station-sub">${st.bitrate?st.bitrate+'kbps':'—'} // ${st.codec || 'RAW'}</div>
+      `;
+      card.querySelector('.fav-star').onclick = (e)=>{
+        e.stopPropagation();
+        if(favorites.has(st.stationuuid)) favorites.delete(st.stationuuid); else favorites.add(st.stationuuid);
+        card.querySelector('.fav-star').classList.toggle('active', favorites.has(st.stationuuid));
+      };
+      card.onclick = ()=>playStation(st);
+      cardElsByUuid.set(st.stationuuid, card);
+      grid.appendChild(card);
+    });
+  }
+
+  async function runSearch(q){
+    viewMode = 'search'; activeTag = null; renderChips(); loadMoreWrap.innerHTML = '';
+    gridLabel.textContent = `RESULTADOS DA BUSCA: ${q.toUpperCase()}`;
+    try {
+      const data = await apiGet(`/json/stations/search?name=${encodeURIComponent(q)}&limit=50&hidebroken=true`);
+      data.forEach(s=>allStationsById.set(s.stationuuid, s));
+      renderStations(data);
+    } catch(e){}
+  }
+
+  async function loadTag(tag){
+    gridLabel.textContent = `GÊNERO: ${tag.toUpperCase()}`;
+    try {
+      const data = await apiGet(`/json/stations/bytagexact/${encodeURIComponent(tag.toLowerCase())}?limit=50&hidebroken=true`);
+      data.forEach(s=>allStationsById.set(s.stationuuid, s));
+      renderStations(data);
+    } catch(e){}
+  }
+
+  function showFavorites(){
+    viewMode = 'favorites'; activeTag = null; renderChips(); loadMoreWrap.innerHTML = '';
+    gridLabel.textContent = 'ESTAÇÕES FAVORITAS';
+    const list = Array.from(allStationsById.values()).filter(s=>favorites.has(s.stationuuid));
+    if(list.length === 0) grid.innerHTML = '<div style="padding:20px; color:var(--dim)">Nenhum sinal salvo nesta sessão.</div>';
+    else renderStations(list);
+  }
+
+  function playStation(st){
+    ensureAudioGraph();
+    currentStation = st;
+    audio.src = st.url_resolved || st.url;
+    
+    // Configura o crossOrigin caso o servidor envie headers de CORS
+    audio.crossOrigin = "anonymous"; 
+
+    audio.play()
+      .then(()=>{ 
+        isPlaying = true; 
+        updateUI(); 
+      })
+      .catch((err)=>{ 
+        isPlaying = false; 
+        console.error(err);
+        alert('Erro ao carregar sinal de áudio. Algumas estações bloqueiam conexões diretas ou estão fora do ar.'); 
+        updateUI();
+      });
+    updateUI();
+  }
+
+  function updateUI(){
+    if(!currentStation) {
+      pName.textContent = 'Nenhum sinal conectado'; pSub.textContent = 'Selecione uma transmissão';
+      lcdStatic.textContent = 'CONSOLE IDLE // AGUARDANDO TRANSMISSÃO';
+      playBtn.textContent = 'PLAY'; return;
+    }
+    pName.textContent = currentStation.name;
+    pSub.textContent = `${currentStation.country || 'GLOBAL'} // ${currentStation.bitrate || '—'} KBPS`;
+    lcdStatic.textContent = `STREAMING: ${currentStation.name.toUpperCase()}`;
+    lcdFreq.textContent = `${(87 + Math.random()*20).toFixed(1)} MHz`;
+    playBtn.textContent = isPlaying ? 'PAUSE' : 'PLAY';
+
+    cardElsByUuid.forEach((el, id)=>{
+      el.classList.toggle('playing', currentStation.stationuuid === id && isPlaying);
+    });
+    pFav.textContent = favorites.has(currentStation.stationuuid) ? '★' : '☆';
+  }
+
+  playBtn.onclick = ()=>{
+    if(!currentStation) return;
+    if(isPlaying){ audio.pause(); isPlaying = false; } else { audio.play(); isPlaying = true; }
+    updateUI();
+  };
+  ejectBtn.onclick = ()=>{ audio.removeAttribute('src'); audio.load(); currentStation = null; isPlaying = false; updateUI(); };
+  volSlider.oninput = ()=>{ audio.volume = parseFloat(volSlider.value); };
+
+  btnRandom.onclick = async ()=>{
+    lcdStatic.textContent = 'VARRENDO FREQUÊNCIAS...';
+    try {
+      const pool = await apiGet('/json/stations/topclick/30?hidebroken=true');
+      if(pool.length) {
+        const rand = pool[Math.floor(Math.random()*pool.length)];
+        allStationsById.set(rand.stationuuid, rand);
+        playStation(rand);
+      }
+    } catch(e){}
+  };
+
+  let searchTimer;
+  searchInput.oninput = ()=>{
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(()=>{
+      const q = searchInput.value.trim();
+      if(q.length === 0) loadCountries(); else if(q.length > 1) runSearch(q);
+    }, 400);
+  };
+
+  countrySelect.onchange = ()=>{
+    if(countrySelect.value) loadCountryStations({code: countrySelect.value}, countrySelect.value);
+    else loadCountries();
+  };
+
+  async function init(){
+    try {
+      const s = await apiGet('/json/stats');
+      document.getElementById('statStations').textContent = s.stations.toLocaleString();
+      document.getElementById('statCountries').textContent = s.countries.toString();
+      document.getElementById('statTags').textContent = s.tags.toLocaleString();
+    } catch(e){}
+    loadCountries();
+  }
+  init();
+})();
+</script>
+</body>
+</html>
