@@ -334,6 +334,10 @@
             <div class="app-icon-box">📁</div><span>Extra</span>
         </div>
 
+
+        <div class="app-card" onclick="openAppAndCloseRecents('Linux', 'Subsistemas/linux.html')">
+            <div class="app-icon-box">📟</div><span>Linux</span>
+        </div>
         
         <div class="app-card" onclick="openAppAndCloseRecents('Terminal', 'terminal.html')">
             <div class="app-icon-box">📟</div><span>Terminal</span>
@@ -534,7 +538,8 @@ color:#fff;
     var driver_security_internal = "off";  
     var driver_optimization = "off";  
     var driver_failed = "off";  
-    var driver_beta = "off";  
+    var driver_beta = "off"; 
+    
 
     // --- FUNÇÃO DO SISTEMA: DISPARAR NOTIFICAÇÃO ---
     function showNotification(title, message, icon = '🔔') {
