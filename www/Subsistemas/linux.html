@@ -152,6 +152,9 @@ Digite 'help' para listar utilitários de sistema.
     </div>
 
     <script>
+         if (localStorage.getItem('FLAG_KEY') !== 'true') {
+    window.location.href = 'erro.html';
+         }
         const wrapper = document.getElementById('terminal-wrapper');
         const output = document.getElementById('output');
         const input = document.getElementById('cmd');
