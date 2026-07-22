@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GhostOS - Advanced Bash Shell</title>
+    <title>Nexus OS</title>
     <style>
         * { box-sizing: border-box; }
         body { 
-            background: #0c0c0c; 
-            color: #4ade80; 
-            font-family: 'Consolas', 'Courier New', monospace; 
+            background: #090a0f; 
+            color: #00f3ff; 
+            font-family: 'Fira Code', 'Consolas', 'Courier New', monospace; 
             padding: 0; 
             margin: 0; 
             height: 100vh;
-            height: 100dvh; /* Garante tamanho dinâmico considerando teclado mobile */
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -22,20 +22,21 @@
         #terminal-wrapper {
             flex: 1;
             overflow-y: auto;
-            padding: 10px 10px 5px 10px;
+            padding: 12px 12px 5px 12px;
         }
 
         #output { 
             white-space: pre-wrap; 
-            font-size: 14px; 
+            font-size: 13.5px; 
             line-height: 1.5;
+            text-shadow: 0 0 2px rgba(0, 243, 255, 0.3);
         }
 
         #input-line { 
             display: flex; 
-            gap: 5px; 
+            gap: 6px; 
             align-items: center;
-            padding: 5px 10px;
+            padding: 6px 12px;
         }
 
         input, textarea { 
@@ -44,42 +45,45 @@
             color: #ffffff; 
             outline: none; 
             font-family: inherit; 
-            font-size: 14px; 
+            font-size: 13.5px; 
         }
 
-        input { flex: 1; }
+        input { flex: 1; color: #e2e8f0; }
 
-        /* BARRA DE ATALHOS ESTILO TERMUX (Acompanha o teclado nativamente) */
+        /* BARRA DE ATALHOS - NEON STYLE */
         #termux-bar {
-            background: #141414;
+            background: #11131f;
             display: flex;
             justify-content: space-around;
             align-items: center;
             padding: 6px 2px;
-            border-top: 1px solid #222;
+            border-top: 1px solid #1e2238;
             user-select: none;
             width: 100%;
         }
         .termux-btn {
-            color: #ffffff;
-            font-size: 12px;
+            color: #8b9bb4;
+            font-size: 11px;
             font-weight: bold;
             padding: 8px 0;
             cursor: pointer;
             text-align: center;
             flex: 1;
             max-width: 60px;
-            border-radius: 3px;
+            border-radius: 4px;
+            transition: all 0.2s;
         }
         .termux-btn:active {
-            background: #333333;
+            background: #252b48;
+            color: #00f3ff;
         }
         .termux-btn.active {
-            background: #22c55e;
-            color: #000;
+            background: #bd00ff;
+            color: #fff;
+            box-shadow: 0 0 8px #bd00ff;
         }
 
-        /* Interface do Nano Editor (Ajustado para ocupar a viewport sem quebrar a pilha) */
+        /* Interface do Nexus Code Editor */
         #nano-ui {
             display: none;
             position: fixed;
@@ -88,44 +92,81 @@
             width: 100vw;
             height: 100vh;
             height: 100dvh;
-            background: #000088;
+            background: #0d0f18;
             color: #ffffff;
             flex-direction: column;
-            padding: 5px;
+            padding: 6px;
             z-index: 9999;
         }
-        #nano-header { background: #ffffff; color: #000088; text-align: center; font-weight: bold; font-size: 13px; padding: 2px 0; }
-        #nano-editor { flex: 1; width: 100%; resize: none; background: transparent; color: #ffffff; border: none; padding: 10px 5px; font-size: 14px; line-height: 1.4; }
-        #nano-footer { background: transparent; color: #ffffff; font-size: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; border-top: 1px solid #ffffff; padding-top: 5px; }
-        .nano-btn { background: #222; border: 1px solid #555; color: #fff; text-align: center; padding: 4px; cursor: pointer; border-radius: 3px; }
+        #nano-header { 
+            background: #bd00ff; 
+            color: #ffffff; 
+            text-align: center; 
+            font-weight: bold; 
+            font-size: 12px; 
+            padding: 4px 0; 
+            letter-spacing: 1px;
+            border-radius: 3px 3px 0 0;
+        }
+        #nano-editor { 
+            flex: 1; 
+            width: 100%; 
+            resize: none; 
+            background: #06070a; 
+            color: #00f3ff; 
+            border: 1px solid #1e2238; 
+            padding: 10px; 
+            font-size: 13.5px; 
+            line-height: 1.4; 
+        }
+        #nano-footer { 
+            background: #11131f; 
+            color: #ffffff; 
+            font-size: 11px; 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 6px; 
+            border-top: 1px solid #1e2238; 
+            padding-top: 6px; 
+        }
+        .nano-btn { 
+            background: #1a1d30; 
+            border: 1px solid #2b3254; 
+            color: #00f3ff; 
+            text-align: center; 
+            padding: 5px; 
+            cursor: pointer; 
+            border-radius: 3px; 
+        }
 
-        /* Cores Bash */
-        .user { color: #22c55e; font-weight: bold; }
-        .at { color: #ffffff; }
-        .host { color: #22c55e; font-weight: bold; }
-        .separator { color: #ffffff; }
-        .dir { color: #3b82f6; font-weight: bold; }
-        .char { color: #ffffff; }
+        /* Cores do Shell */
+        .user { color: #bd00ff; font-weight: bold; }
+        .at { color: #8b9bb4; }
+        .host { color: #00f3ff; font-weight: bold; }
+        .separator { color: #8b9bb4; }
+        .dir { color: #ff0055; font-weight: bold; }
+        .char { color: #ffb700; }
         
-        .error { color: #ef4444; }
-        .success { color: #22c55e; }
-        .ls-dir { color: #3b82f6; font-weight: bold; }
-        .ls-file { color: #ffffff; }
-        .help-cmd { color: #eab308; }
+        .error { color: #ff3366; }
+        .success { color: #00ff66; }
+        .ls-dir { color: #ff0055; font-weight: bold; }
+        .ls-file { color: #00f3ff; }
+        .help-cmd { color: #ffb700; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="terminal-wrapper" onclick="focarInput()">
-        <div id="output">GhostOS GNU/Linux v2.9.2-release (kernel_arm64)
-Sincronizado via LocalStorage Virtual File System.
-Digite 'help' para listar utilitários de sistema.
+        <div id="output">=== NEXUS CORE OS v4.0.1 (arch_x64) ===
+Conectado ao FileSystem Virtual (LocalStorage Ativo).
+Digite '<span class="help-cmd">help</span>' para listar os comandos executáveis.
 
 </div>
         <div id="input-line">
             <span class="prompt-container" id="prompt-box">
-                <span class="user">ghost</span><span class="at">@</span><span class="host">root</span><span class="separator">:</span><span class="dir" id="current-dir">~</span><span class="char">#</span>
+                <span class="user">operator</span><span class="at">@</span><span class="host">nexus-core</span><span class="separator">:</span><span class="dir" id="current-dir">~</span><span class="char">&gt;</span>
             </span>
+            
             <input type="text" id="cmd" autofocus spellcheck="false" autocomplete="off">
         </div>
     </div>
@@ -142,12 +183,12 @@ Digite 'help' para listar utilitários de sistema.
     </div>
 
     <div id="nano-ui">
-        <div id="nano-header">GNU nano 5.4 - arquivo.txt</div>
+        <div id="nano-header">NEXUS CODE EDITOR - arquivo.txt</div>
         <textarea id="nano-editor" spellcheck="false"></textarea>
         <div id="nano-footer">
             <div class="nano-btn" onclick="salvarNano()">^S Salvar</div>
             <div class="nano-btn" onclick="fecharNano()">^X Sair</div>
-            <div style="grid-column: span 2; color: #aaa; text-align: right; padding-right: 5px; font-size: 11px;">Interface Nano de alta fidelidade.</div>
+            <div style="grid-column: span 2; color: #8b9bb4; text-align: right; padding-right: 5px; font-size: 11px;">Modo Interativo Nexus</div>
         </div>
     </div>
 
@@ -172,29 +213,28 @@ Digite 'help' para listar utilitários de sistema.
             "root": {
                 "type": "dir",
                 "content": {
-                    "home": {
+                    "sys": {
                         "type": "dir",
                         "content": {
-                            "ghost": {
+                            "operator": {
                                 "type": "dir",
                                 "content": {
-                                    "projetos": { "type": "dir", "content": {} },
-                                    "index.js": { "type": "file", "content": "console.log('Testando Runtime Node do GhostOS...');\nlet a = 10;\nlet b = 20;\nconsole.log('Resultado da soma:', a + b);" },
-                                    "readme.txt": { "type": "file", "content": "Bem-vindo ao GhostOS v2.9.\nUse 'nano <arquivo>' para escrever códigos e 'node <arquivo>' para rodar JavaScript." }
+                                    "scripts": { "type": "dir", "content": {} },
+                                    "app.js": { "type": "file", "content": "console.log('Iniciando subsistema Nexus...');\nconst core = 'Ativo';\nconsole.log('Status do Core:', core);" },
+                                    "info.txt": { "type": "file", "content": "Bem-vindo ao STFG.\nUse 'edit <arquivo>' para modificar arquivos e 'run <arquivo>' para executar scripts." }
                                 }
                             }
                         }
                     },
-                    "etc": { "type": "dir", "content": {} },
-                    "var": { "type": "dir", "content": {} }
+                    "config": { "type": "dir", "content": {} }
                 }
             }
         };
 
-        let FS = JSON.parse(localStorage.getItem('ghost_fs')) || DEFAULT_FS;
-        let currentPath = ["root", "home", "ghost"]; 
+        let FS = JSON.parse(localStorage.getItem('nexus_fs')) || DEFAULT_FS;
+        let currentPath = ["root", "sys", "operator"]; 
 
-        function salvarFS() { localStorage.setItem('ghost_fs', JSON.stringify(FS)); }
+        function salvarFS() { localStorage.setItem('nexus_fs', JSON.stringify(FS)); }
         function focarInput() { if (!isNanoAberto) input.focus(); else nanoEditor.focus(); }
 
         function getDiretorioAtual() {
@@ -204,7 +244,7 @@ Digite 'help' para listar utilitários de sistema.
         }
 
         function obterCaminhoVisual() {
-            if (currentPath[1] === "home" && currentPath[2] === "ghost") {
+            if (currentPath[1] === "sys" && currentPath[2] === "operator") {
                 let sub = currentPath.slice(3).join('/');
                 return sub ? `~/${sub}` : `~`;
             }
@@ -265,36 +305,56 @@ Digite 'help' para listar utilitários de sistema.
             input.focus();
         }
 
-        /* --- ENGINE DE COMANDOS --- */
+
         const shell = {
             'help': () => {
-                return `Utilitários GNU Avançados Emulados:
-  <span class="help-cmd">ls</span>               Lista o diretório atual
-  <span class="help-cmd">cd [dir]</span>         Navega entre caminhos
-  <span class="help-cmd">mkdir [nome]</span>     Cria diretórios
-  <span class="help-cmd">touch [arq]</span>      Cria arquivos vazios
-  <span class="help-cmd">cat [arq]</span>        Exibe o conteúdo do arquivo
-  <span class="help-cmd">rm [alvo]</span>        Remove arquivos ou pastas vazias
-  <span class="help-cmd">mv [origem] [dest]</span>Move ou renomeia alvos
-  <span class="help-cmd">cp [origem] [dest]</span>Copia arquivos
-  <span class="help-cmd">pwd</span>              Imprime o diretório atual
-  <span class="help-cmd">whoami</span>           Identidade do usuário ativo
-  <span class="help-cmd">uname -a</span>         Informações do Kernel
-  <span class="help-cmd">echo [texto]</span>     Exibe texto na tela
-  <span class="help-cmd">nano [arq]</span>       Abre o editor de texto interativo
-  <span class="help-cmd">node [arq.js]</span>    Executa o interpretador JavaScript
-  <span class="help-cmd">git clone [url]</span>  Clona repositórios reais do GitHub`;
+                return `Comandos de Sistema Disponíveis:
+  <span class="help-cmd">termux/linux-SubSystem</span> Permite baixar um subsistema Linux
+  <span class="help-cmd">scan</span>            Escaneia o diretório atual
+  <span class="help-cmd">jump [dir]</span>      Navega para um diretório
+  <span class="help-cmd">make-dir [nome]</span> Cria uma nova pasta
+  <span class="help-cmd">mkfile [arq]</span>    Cria um novo arquivo
+  <span class="help-cmd">read [arq]</span>      Lê o conteúdo de um arquivo
+  <span class="help-cmd">purge [alvo]</span>    Deleta arquivo ou pasta
+  <span class="help-cmd">move [orig] [dest]</span>Move ou renomeia arquivo
+  <span class="help-cmd">clone [orig] [dest]</span>Copia um arquivo
+  <span class="help-cmd">where</span>           Exibe o caminho absoluto atual
+  <span class="help-cmd">who</span>             Identidade do usuário ativo
+  <span class="help-cmd">sysinfo</span>         Exibe dados da máquina e Kernel
+  <span class="help-cmd">echo [texto]</span>    Imprime texto na tela
+  <span class="help-cmd">edit [arq]</span>      Abre o editor de texto
+  <span class="help-cmd">run [arq.js]</span>    Executa um arquivo JS
+  <span class="help-cmd">fetch-repo [url]</span>Clona repositórios públicos do GitHub
+  <span class="help-cmd">cls</span>             Limpa a tela do terminal`;
             },
 
-            'ls': () => {
+            'scan': () => {
                 let dir = getDiretorioAtual();
                 let itens = Object.keys(dir);
                 if (itens.length === 0) return '';
-                return itens.map(item => dir[item].type === 'dir' ? `<span class="ls-dir">${item}/</span>` : `<span class="ls-file">${item}</span>`).join('   ');
+                return itens.map(item => dir[item].type === 'dir' ? `<span class="ls-dir">${item}/</span>` : `<span class="ls-file">${item}</span>`).join('    ');
             },
 
-            'cd': (args) => {
-                if (!args[0]) { currentPath = ["root", "home", "ghost"]; atualizarPrompt(); return ''; }
+'termux/linux-subsystem': () => {
+    const FLAG_KEY = 'nexus_subsystem_installed';
+
+
+    if (localStorage.getItem(FLAG_KEY)) {
+        delete shell['termux/linux-subsystem'];
+        return `<span class="error">nexus: termux/linux-subsystem: Sistema ja baixado</span>`;
+    }
+
+
+    localStorage.setItem(FLAG_KEY, 'true');
+
+
+    delete shell['termux/linux-subsystem'];
+
+    return `<span class="success">Subsistema Linux instalado com sucesso</span>`;
+},
+
+            'jump': (args) => {
+                if (!args[0]) { currentPath = ["root", "sys", "operator"]; atualizarPrompt(); return ''; }
                 let destino = args[0];
                 let dirOriginal = [...currentPath];
 
@@ -319,95 +379,95 @@ Digite 'help' para listar utilitários de sistema.
                         escopo = escopo[parte].content;
                     } else {
                         currentPath = dirOriginal;
-                        return `<span class="error">bash: cd: ${destino}: No such file or directory</span>`;
+                        return `<span class="error">nexus: jump: '${destino}' não encontrado.</span>`;
                     }
                 }
                 atualizarPrompt();
                 return '';
             },
 
-            'mkdir': (args) => {
-                if (!args[0]) return `<span class="error">mkdir: missing operand</span>`;
+            'make-dir': (args) => {
+                if (!args[0]) return `<span class="error">make-dir: nome da pasta obrigatório.</span>`;
                 let dir = getDiretorioAtual();
-                if (dir[args[0]]) return `<span class="error">mkdir: cannot create directory '${args[0]}': File exists</span>`;
+                if (dir[args[0]]) return `<span class="error">make-dir: '${args[0]}' já existe.</span>`;
                 dir[args[0]] = { "type": "dir", "content": {} };
                 salvarFS();
                 return '';
             },
 
-            'touch': (args) => {
-                if (!args[0]) return `<span class="error">touch: missing file operand</span>`;
+            'mkfile': (args) => {
+                if (!args[0]) return `<span class="error">mkfile: nome do arquivo obrigatório.</span>`;
                 let dir = getDiretorioAtual();
                 if (!dir[args[0]]) { dir[args[0]] = { "type": "file", "content": "" }; salvarFS(); }
                 return '';
             },
 
-            'cat': (args) => {
-                if (!args[0]) return `<span class="error">cat: missing file operand</span>`;
+            'read': (args) => {
+                if (!args[0]) return `<span class="error">read: arquivo obrigatório.</span>`;
                 let dir = getDiretorioAtual();
-                if (!dir[args[0]]) return `<span class="error">cat: ${args[0]}: No such file or directory</span>`;
-                if (dir[args[0]].type === 'dir') return `<span class="error">cat: ${args[0]}: Is a directory</span>`;
+                if (!dir[args[0]]) return `<span class="error">read: '${args[0]}' não encontrado.</span>`;
+                if (dir[args[0]].type === 'dir') return `<span class="error">read: '${args[0]}' é uma pasta.</span>`;
                 return dir[args[0]].content;
             },
 
-            'rm': (args) => {
-                if (!args[0]) return `<span class="error">rm: missing operand</span>`;
+            'purge': (args) => {
+                if (!args[0]) return `<span class="error">purge: especifique o alvo.</span>`;
                 let dir = getDiretorioAtual();
-                if (!dir[args[0]]) return `<span class="error">rm: cannot remove '${args[0]}': No such file or directory</span>`;
+                if (!dir[args[0]]) return `<span class="error">purge: '${args[0]}' não encontrado.</span>`;
                 delete dir[args[0]];
                 salvarFS();
                 return '';
             },
 
-            'mv': (args) => {
-                if (!args[0] || !args[1]) return `<span class="error">mv: missing file operand</span>`;
+            'move': (args) => {
+                if (!args[0] || !args[1]) return `<span class="error">move: informe a origem e o destino.</span>`;
                 let dir = getDiretorioAtual();
-                if (!dir[args[0]]) return `<span class="error">mv: cannot stat '${args[0]}': No such file or directory</span>`;
+                if (!dir[args[0]]) return `<span class="error">move: '${args[0]}' não encontrado.</span>`;
                 dir[args[1]] = dir[args[0]];
                 delete dir[args[0]];
                 salvarFS();
                 return '';
             },
 
-            'cp': (args) => {
-                if (!args[0] || !args[1]) return `<span class="error">cp: missing file operand</span>`;
+            'clone': (args) => {
+                if (!args[0] || !args[1]) return `<span class="error">clone: informe a origem e o destino.</span>`;
                 let dir = getDiretorioAtual();
-                if (!dir[args[0]]) return `<span class="error">cp: cannot stat '${args[0]}': No such file or directory</span>`;
-                if (dir[args[0]].type === 'dir') return `<span class="error">cp: -r not specified, omitting directory '${args[0]}'</span>`;
+                if (!dir[args[0]]) return `<span class="error">clone: '${args[0]}' não encontrado.</span>`;
+                if (dir[args[0]].type === 'dir') return `<span class="error">clone: cópia de pastas não suportada diretamente.</span>`;
                 dir[args[1]] = { "type": "file", "content": dir[args[0]].content };
                 salvarFS();
                 return '';
             },
 
-            'pwd': () => "/" + currentPath.slice(1).join('/'),
-            'whoami': () => "ghost",
-            'uname': (args) => args[0] === '-a' ? "GhostOS GNU/Linux 5.15.0-72-generic #79-Ubuntu SMP arm64 aarch64 GNU/Linux" : "GhostOS",
+            'where': () => "/" + currentPath.slice(1).join('/'),
+            'who': () => "operator",
+            'sysinfo': () => "Nexus Kernel v4.0.1 (x86_64-nexus-linux-gnu)",
             'echo': (args) => args.join(' '),
 
-            'nano': (args) => {
-                if (!args[0]) return `<span class="error">nano: Arquivo obrigatório. Uso: nano &lt;nome&gt;</span>`;
+            'edit': (args) => {
+                if (!args[0]) return `<span class="error">edit: informe o arquivo. Uso: edit &lt;nome&gt;</span>`;
                 arquivoSendoEditado = args[0];
                 let dir = getDiretorioAtual();
                 
                 if (!dir[arquivoSendoEditado]) {
                     nanoEditor.value = "";
                 } else {
-                    if (dir[arquivoSendoEditado].type === 'dir') return `<span class="error">nano: '${arquivoSendoEditado}' é um diretório.</span>`;
+                    if (dir[arquivoSendoEditado].type === 'dir') return `<span class="error">edit: '${arquivoSendoEditado}' é uma pasta.</span>`;
                     nanoEditor.value = dir[arquivoSendoEditado].content;
                 }
 
                 isNanoAberto = true;
-                nanoHeader.innerText = `GNU nano 5.4 - ${arquivoSendoEditado}`;
+                nanoHeader.innerText = `NEXUS CODE EDITOR - ${arquivoSendoEditado}`;
                 nanoUi.style.display = "flex";
                 setTimeout(() => { nanoEditor.focus(); }, 50);
                 return "OPEN_NANO_SIGNAL";
             },
 
-            'node': (args) => {
-                if (!args[0]) return `<span class="error">Uso: node &lt;arquivo.js&gt;</span>`;
+            'run': (args) => {
+                if (!args[0]) return `<span class="error">Uso: run &lt;arquivo.js&gt;</span>`;
                 let dir = getDiretorioAtual();
-                if (!dir[args[0]]) return `<span class="error">node: internal/modules/cjs/loader: Cannot find module './${args[0]}'</span>`;
-                if (dir[args[0]].type === 'dir') return `<span class="error">node: Is a directory</span>`;
+                if (!dir[args[0]]) return `<span class="error">run: Módulo '${args[0]}' não encontrado.</span>`;
+                if (dir[args[0]].type === 'dir') return `<span class="error">run: '${args[0]}' é uma pasta.</span>`;
 
                 let codigoJS = dir[args[0]].content;
                 let logsCapturados = [];
@@ -420,28 +480,28 @@ Digite 'help' para listar utilitários de sistema.
                     let executor = new Function('console', codigoJS);
                     executor(simularConsole);
 
-                    return logsCapturados.length > 0 ? logsCapturados.join('\n') : 'Process executado com sucesso.';
+                    return logsCapturados.length > 0 ? logsCapturados.join('\n') : 'Processo finalizado sem saída.';
                 } catch (err) {
-                    return `<span class="error">RuntimeError: ${err.message}</span>`;
+                    return `<span class="error">ExecutionError: ${err.message}</span>`;
                 }
             },
 
-            'git': async (args) => {
-                if (args[0] !== 'clone' || !args[1]) return `<span class="error">Uso: git clone &lt;url-do-github.git&gt;</span>`;
-                let url = args[1].trim();
+            'fetch-repo': async (args) => {
+                if (!args[0]) return `<span class="error">Uso: fetch-repo &lt;url-do-github.git&gt;</span>`;
+                let url = args[0].trim();
                 
                 let match = url.match(/github\.com\/([^\/]+)\/([^\/\.]+)/);
-                if (!match) return `<span class="error">fatal: URL do GitHub inválida.</span>`;
+                if (!match) return `<span class="error">Nexus Fetch Error: URL do GitHub inválida.</span>`;
                 
                 let usuario = match[1];
                 let repoNome = match[2].replace('.git', '');
 
-                printLiveOutput(`Clonando em '${repoNome}'...\nBuscando árvore via api.github.com...`);
+                printLiveOutput(`Conectando a '${repoNome}'...\nBaixando estrutura via GitHub API...`);
 
                 try {
                     let apiUrl = `https://api.github.com/repos/${usuario}/${repoNome}/contents`;
                     let response = await fetch(apiUrl);
-                    if (!response.ok) throw new Error("Repositório público não encontrado.");
+                    if (!response.ok) throw new Error("Repositório não localizado ou privado.");
                     
                     let arquivos = await response.json();
                     let dir = getDiretorioAtual();
@@ -460,9 +520,9 @@ Digite 'help' para listar utilitários de sistema.
                     }
 
                     salvarFS();
-                    return `<span class="success">Clonagem concluída! Diretório '${repoNome}' salvo.</span>`;
+                    return `<span class="success">Sucesso! Repositório '${repoNome}' sincronizado.</span>`;
                 } catch (err) {
-                    return `<span class="error">fatal: erro ao clonar: ${err.message}</span>`;
+                    return `<span class="error">Nexus Fetch Failed: ${err.message}</span>`;
                 }
             }
         };
@@ -477,7 +537,7 @@ Digite 'help' para listar utilitários de sistema.
         function fecharNano() {
             isNanoAberto = false;
             nanoUi.style.display = "none";
-            output.innerHTML += `> Editor Nano fechado. Retornando ao terminal.\n\n`;
+            output.innerHTML += `> Nexus Code Editor fechado.\n\n`;
             wrapper.scrollTop = wrapper.scrollHeight;
             if(ctrlPressionado) toggleCtrl();
             setTimeout(() => { input.focus(); }, 50);
@@ -508,7 +568,7 @@ Digite 'help' para listar utilitários de sistema.
                 historicoIndex = historicoComandos.length;
 
                 let visualPrompt = obterCaminhoVisual();
-                output.innerHTML += `<span><span class="user">ghost</span><span class="at">@</span><span class="host">root</span><span class="separator">:</span><span class="dir">${visualPrompt}</span><span class="char">#</span> ${rawInput}</span>\n`;
+                output.innerHTML += `<span><span class="user">operator</span><span class="at">@</span><span class="host">nexus-core</span><span class="separator">:</span><span class="dir">${visualPrompt}</span><span class="char">&gt;</span> ${rawInput}</span>\n`;
 
                 input.value = '';
 
@@ -517,7 +577,7 @@ Digite 'help' para listar utilitários de sistema.
                     let cmd = tokens[0].toLowerCase();
                     let args = tokens.slice(1);
 
-                    if (cmd === 'clear') {
+                    if (cmd === 'cls') {
                         output.innerHTML = '';
                     } else if (shell[cmd]) {
                         let result = await shell[cmd](args);
@@ -525,7 +585,7 @@ Digite 'help' para listar utilitários de sistema.
                             if (result !== null && result !== undefined) output.innerHTML += result + "\n\n";
                         }
                     } else {
-                        output.innerHTML += `<span class="error">bash: ${cmd}: comando não encontrado</span>\n\n`;
+                        output.innerHTML += `<span class="error">nexus: ${cmd}: comando não reconhecido</span>\n\n`;
                     }
                 } else {
                     output.innerHTML += "\n";
@@ -535,7 +595,6 @@ Digite 'help' para listar utilitários de sistema.
             }
         });
 
-        // Evento para forçar a barra do Termux a se reajustar à Viewport Virtual se o teclado subir/mudar
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', () => {
                 document.body.style.height = window.visualViewport.height + 'px';
@@ -544,6 +603,10 @@ Digite 'help' para listar utilitários de sistema.
         }
 
         atualizarPrompt();
+
+if (localStorage.getItem('nexus_subsystem_installed')) {
+    delete shell['termux/linux-subsystem'];
+}
     </script>
 </body>
 </html>
