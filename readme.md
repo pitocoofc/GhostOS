@@ -1,6 +1,15 @@
+# Sad news
+
+I had to remove the new emulator for a few reasons, and it probably won't be returning anytime soon.
+
+I will be considering new updates or implementations to temporarily replace it.
+
+
 # Update 7.0.0 Bolinha de queijo 
 "What's new?"
-
+- full Linux/Node JS emulator
+- New terminal
+- optimizations 
 
 # Update 6.5.0 Acarajé 
 "what's new?"
