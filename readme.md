@@ -1,3 +1,8 @@
+# Update 7.0.0 Bolinha de queijo (2)
+"What's new?"
+- new games
+
+
 # Sad news
 
 I had to remove the new emulator for a few reasons, and it probably won't be returning anytime soon.
