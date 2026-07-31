@@ -887,6 +887,9 @@ color:#fff;
     updateClock();
 
     function unlockSystem() {  
+            const bootAudio = new Audio('assets/audios/tudobem.wav'); 
+    bootAudio.volume = 0.5; // Volume de 0.0 a 1.0
+    bootAudio.play().catch(err => console.log("Erro ao tocar áudio:", err));
         document.getElementById('lock-screen').style.transform = 'translateY(-100%)';  
 setTimeout(() => {
     showNotification('System', 'Todos os drivers foram carregados com sucesso!', '🛡️');
