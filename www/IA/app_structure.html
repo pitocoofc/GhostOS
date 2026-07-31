@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -6,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ndj-Neo v2 | Image Studio</title>
     <style>
-        /* CSS PR?PRIO DO M?DULO (Mantendo a identidade da Ndj-AI) */
         :root {
             --bg-primary: #0a0a0a;
             --accent-color: #00ff88; /* Verde Neo */
             --glass-bg: rgba(255, 255, 255, 0.05);
             --text-main: #e0e0e0;
-            --border-color: #333;
+            --border-color: #222;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
@@ -28,37 +26,64 @@
         .voltar-btn { background: var(--glass-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: 0.3s; }
         .voltar-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); }
 
-        /* ?REA DE EXIBI??O DA IMAGEM */
+        /* ÁREA DE EXIBIÇÃO DA IMAGEM */
         #studio-container {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px;
-            height: calc(100% - 160px); /* Desconta header e footer */
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+            height: calc(100% - 160px);
         }
 
         #image-viewer {
-            width: 100%; max-width: 500px; height: 350px;
-            background: #000; border: 2px solid var(--border-color); border-radius: 15px;
+            width: 100%; max-width: 550px; height: 380px;
+            background: #050505; border: 2px solid var(--border-color); border-radius: 18px;
             display: flex; align-items: center; justify-content: center;
             overflow: hidden; position: relative;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        /* Efeito de processamento na borda */
+        #image-viewer.generating {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.3);
+            animation: pulseGlow 2s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); }
+            100% { box-shadow: 0 0 30px rgba(0, 255, 136, 0.5); }
         }
 
         #generated-image {
-            width: 100%; height: 100%; object-fit: cover;
-            opacity: 0; /* Come?a invis?vel para a anima??o */
-            transition: opacity 3s ease; /* Anima??o de 3 segundos */
+            width: 100%; height: 100%; object-fit: contain;
+            opacity: 0;
+            transition: opacity 1.5s ease;
         }
 
         #generated-image.visible { opacity: 1; }
 
-        /* LOADER (Seta girando) */
-        #loader {
-            display: none; /* Come?a escondido */
-            width: 50px; height: 50px;
-            border: 5px solid rgba(255,255,255,0.1);
-            border-top: 5px solid var(--accent-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        /* LOADER */
+        #loader-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
             position: absolute;
+            z-index: 10;
+        }
+
+        #loader {
+            width: 50px; height: 50px;
+            border: 4px solid rgba(255,255,255,0.05);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        #loader-text {
+            font-size: 0.85rem;
+            color: #888;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
         @keyframes spin {
@@ -66,25 +91,35 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* FOOTER DE ENTRADA (O Prompt "falso") */
+        /* FOOTER DE ENTRADA */
         #neo-footer {
             position: fixed; bottom: 0; width: 100%; padding: 20px;
-            background: transparent;
+            background: linear-gradient(180deg, transparent 0%, #0a0a0a 100%);
+            display: flex; justify-content: center;
         }
         .input-prompt-wrapper {
-            display: flex; align-items: center; background: #161616;
-            border-radius: 18px; padding: 6px 16px; border: 1px solid #252525;
-            box-shadow: 0 -5px 30px rgba(0,0,0,0.3);
+            display: flex; align-items: center; background: #121212;
+            border-radius: 18px; padding: 6px 12px 6px 18px; border: 1px solid #222;
+            box-shadow: 0 -5px 30px rgba(0,0,0,0.5);
+            width: 100%; max-width: 600px;
+            transition: border-color 0.3s;
         }
-        #promptInput { flex: 1; border: none; background: transparent; color: #fff; padding: 12px; font-size: 0.95rem; }
+        .input-prompt-wrapper:focus-within {
+            border-color: rgba(0, 255, 136, 0.4);
+        }
+
+        #promptInput { 
+            flex: 1; border: none; background: transparent; color: #fff; 
+            padding: 10px 10px 10px 0; font-size: 0.95rem; 
+        }
         
         #generateBtn {
             background: var(--accent-color); color: #000; border: none;
-            padding: 10px 20px; border-radius: 12px; font-weight: bold; font-size: 0.9rem;
-            cursor: pointer; transition: 0.3s;
+            padding: 12px 24px; border-radius: 12px; font-weight: bold; font-size: 0.9rem;
+            cursor: pointer; transition: 0.3s; white-space: nowrap;
         }
-        #generateBtn:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(0,255,136,0.5); }
-        #generateBtn:disabled { background: #333; color: #888; cursor: not-allowed; transform: scale(1); box-shadow: none; }
+        #generateBtn:hover { transform: scale(1.03); box-shadow: 0 0 20px rgba(0,255,136,0.4); }
+        #generateBtn:disabled { background: #222; color: #555; cursor: not-allowed; transform: scale(1); box-shadow: none; }
 
     </style>
 </head>
@@ -97,65 +132,80 @@
 
     <div id="studio-container">
         <div id="image-viewer">
-            <div id="loader"></div> <img id="generated-image" src="" alt="Sua imagem gerada aparecer? aqui">
+            <div id="loader-container">
+                <div id="loader"></div>
+                <div id="loader-text">Sintetizando Imagem...</div>
+            </div>
+            <img id="generated-image" src="" alt="Sua imagem aparecerá aqui">
         </div>
     </div>
 
     <div id="neo-footer">
         <div class="input-prompt-wrapper">
-            <input type="text" id="promptInput" placeholder="Descreva a imagem que deseja criar... (ex: Gato astronauta em Marte)">
-            <button id="generateBtn" onclick="simularGeracaoDeImagem()">Gerar Imagem</button>
+            <input type="text" id="promptInput" placeholder="Descreva a imagem que deseja criar..." onkeydown="handleKeyPress(event)">
+            <button id="generateBtn" onclick="gerarImagemPollinations()">Gerar Imagem</button>
         </div>
     </div>
 
     <script>
-        // JAVASCRIPT EXCLUSIVO DA v2
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                gerarImagemPollinations();
+            }
+        }
 
-        function simularGeracaoDeImagem() {
+        function gerarImagemPollinations() {
             const input = document.getElementById('promptInput');
             const btn = document.getElementById('generateBtn');
-            const loader = document.getElementById('loader');
+            const loaderContainer = document.getElementById('loader-container');
             const img = document.getElementById('generated-image');
+            const viewer = document.getElementById('image-viewer');
             const prompt = input.value.trim();
 
             if (!prompt) {
-                alert("Por favor, descreva a imagem primeiro!");
+                alert("Por favor, digite uma descrição para a imagem!");
                 return;
             }
 
-            // 1. Prepara a UI (Desativa bot?o, limpa imagem anterior, mostra loader)
+            // 1. Atualiza interface para estado de "Carregando"
             btn.disabled = true;
-            btn.textContent = "Processando...";
+            btn.textContent = "Gerando...";
             input.disabled = true;
-            img.classList.remove('visible'); // Esconde a imagem antiga
-            img.src = ""; // Limpa a fonte
+            
+            img.classList.remove('visible'); // Esconde imagem anterior
+            viewer.classList.add('generating'); // Aplica efeito de brilho neon no quadro
+            loaderContainer.style.display = "flex"; // Exibe o indicador de progresso
 
-            // 2. Mostra o Loader (seta girando)
-            loader.style.display = "block";
+            // 2. Monta a URL da API da Pollinations com semente aleatória para evitar cache
+            const seed = Math.floor(Math.random() * 999999);
+            const encodedPrompt = encodeURIComponent(prompt);
+            const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?seed=${seed}&width=1024&height=768&nologo=true`;
 
-            // 3. Simula o tempo de "gera??o consciente" (2 segundos girando)
-            setTimeout(() => {
-                // 4. Loader some
-                loader.style.display = "none";
-                
-                // 5. Define a URL da imagem (Usando Picsum Photos WebP para performance)
-                // Usamos o prompt como semente aleat?ria para fingir conex?o
-                const randomId = btoa(prompt).substring(0, 10); // Gera um ID baseado no texto
-                img.src = `https://picsum.photos/500/350.webp?blur=1&random=${randomId}`;
+            // 3. Evento disparado APENAS quando a IA terminar de gerar e enviar a imagem completa
+            img.onload = function() {
+                loaderContainer.style.display = "none";
+                viewer.classList.remove('generating');
+                img.classList.add('visible');
 
-                // 6. Faz a imagem aparecer lentamente (Anima??o de 3 segundos via CSS)
-                img.onload = function() {
-                    img.classList.add('visible');
-                    
-                    // 7. Reativa a UI ap?s a anima??o de opacidade come?ar
-                    setTimeout(() => {
-                        btn.disabled = false;
-                        btn.textContent = "Gerar Novamente";
-                        input.disabled = false;
-                    }, 3000); // Aguarda a anima??o de opacidade terminar
-                };
+                // Reativa a interface
+                btn.disabled = false;
+                btn.textContent = "Gerar Novamente";
+                input.disabled = false;
+            };
 
-            }, 2000); // 2 segundos de loading (seta girando)
+            // 4. Tratamento caso ocorra erro na requisição
+            img.onerror = function() {
+                loaderContainer.style.display = "none";
+                viewer.classList.remove('generating');
+                alert("Erro ao conectar à API do Pollinations. Tente novamente.");
+
+                btn.disabled = false;
+                btn.textContent = "Tentar Novamente";
+                input.disabled = false;
+            };
+
+            // 5. Inicia o download da imagem da API
+            img.src = imageUrl;
         }
     </script>
 </body>
