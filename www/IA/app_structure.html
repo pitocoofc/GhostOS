@@ -29,7 +29,7 @@
         /* ÁREA DE EXIBIÇÃO DA IMAGEM */
         #studio-container {
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
-            height: calc(100% - 160px);
+            height: calc(100% - 170px);
         }
 
         #image-viewer {
@@ -41,7 +41,6 @@
             transition: border-color 0.4s ease, box-shadow 0.4s ease;
         }
 
-        /* Efeito de processamento na borda */
         #image-viewer.generating {
             border-color: var(--accent-color);
             box-shadow: 0 0 25px rgba(0, 255, 136, 0.3);
@@ -91,12 +90,22 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* FOOTER DE ENTRADA */
+        /* FOOTER COM OPÇÕES E PROMPT */
         #neo-footer {
-            position: fixed; bottom: 0; width: 100%; padding: 20px;
+            position: fixed; bottom: 0; width: 100%; padding: 15px 20px;
             background: linear-gradient(180deg, transparent 0%, #0a0a0a 100%);
-            display: flex; justify-content: center;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
         }
+
+        .controls-wrapper {
+            display: flex; gap: 10px; width: 100%; max-width: 600px; justify-content: flex-end;
+        }
+
+        .model-select {
+            background: #121212; color: #aaa; border: 1px solid #222;
+            padding: 6px 12px; border-radius: 10px; font-size: 0.8rem; cursor: pointer;
+        }
+
         .input-prompt-wrapper {
             display: flex; align-items: center; background: #121212;
             border-radius: 18px; padding: 6px 12px 6px 18px; border: 1px solid #222;
@@ -104,6 +113,7 @@
             width: 100%; max-width: 600px;
             transition: border-color 0.3s;
         }
+        
         .input-prompt-wrapper:focus-within {
             border-color: rgba(0, 255, 136, 0.4);
         }
@@ -141,6 +151,15 @@
     </div>
 
     <div id="neo-footer">
+        <div class="controls-wrapper">
+            <!-- Seletor de Modelo -->
+            <select id="modelSelect" class="model-select">
+                <option value="flux">Modelo: Flux (Realista/Ultra)</option>
+                <option value="turbo">Modelo: Turbo (Rápido)</option>
+                <option value="anime">Modelo: Anime</option>
+            </select>
+        </div>
+
         <div class="input-prompt-wrapper">
             <input type="text" id="promptInput" placeholder="Descreva a imagem que deseja criar..." onkeydown="handleKeyPress(event)">
             <button id="generateBtn" onclick="gerarImagemPollinations()">Gerar Imagem</button>
@@ -160,51 +179,55 @@
             const loaderContainer = document.getElementById('loader-container');
             const img = document.getElementById('generated-image');
             const viewer = document.getElementById('image-viewer');
-            const prompt = input.value.trim();
+            const selectedModel = document.getElementById('modelSelect').value;
+
+            let prompt = input.value.trim();
 
             if (!prompt) {
                 alert("Por favor, digite uma descrição para a imagem!");
                 return;
             }
 
-            // 1. Atualiza interface para estado de "Carregando"
+            // A "Régua" de Qualidade: adiciona sufixos de renderização de alta definição
+            const qualityBoost = ", highly detailed, cinematic lighting, 8k resolution, masterpiece";
+            const finalPrompt = prompt + qualityBoost;
+
+            // 1. Atualiza interface
             btn.disabled = true;
             btn.textContent = "Gerando...";
             input.disabled = true;
             
-            img.classList.remove('visible'); // Esconde imagem anterior
-            viewer.classList.add('generating'); // Aplica efeito de brilho neon no quadro
-            loaderContainer.style.display = "flex"; // Exibe o indicador de progresso
+            img.classList.remove('visible'); 
+            viewer.classList.add('generating'); 
+            loaderContainer.style.display = "flex"; 
 
-            // 2. Monta a URL da API da Pollinations com semente aleatória para evitar cache
+            // 2. Monta a URL com o modelo escolhido
             const seed = Math.floor(Math.random() * 999999);
-            const encodedPrompt = encodeURIComponent(prompt);
-            const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?seed=${seed}&width=1024&height=768&nologo=true`;
+            const encodedPrompt = encodeURIComponent(finalPrompt);
+            const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?model=${selectedModel}&seed=${seed}&width=1024&height=768&nologo=true`;
 
-            // 3. Evento disparado APENAS quando a IA terminar de gerar e enviar a imagem completa
+            // 3. Quando a imagem carregar
             img.onload = function() {
                 loaderContainer.style.display = "none";
                 viewer.classList.remove('generating');
                 img.classList.add('visible');
 
-                // Reativa a interface
                 btn.disabled = false;
                 btn.textContent = "Gerar Novamente";
                 input.disabled = false;
             };
 
-            // 4. Tratamento caso ocorra erro na requisição
+            // 4. Se der erro
             img.onerror = function() {
                 loaderContainer.style.display = "none";
                 viewer.classList.remove('generating');
-                alert("Erro ao conectar à API do Pollinations. Tente novamente.");
+                alert("Erro ao conectar à API do Pollinations. Tente outro modelo.");
 
                 btn.disabled = false;
                 btn.textContent = "Tentar Novamente";
                 input.disabled = false;
             };
 
-            // 5. Inicia o download da imagem da API
             img.src = imageUrl;
         }
     </script>
