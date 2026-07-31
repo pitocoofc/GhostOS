@@ -149,6 +149,16 @@
     </div>
 
     <script>
+
+        function speakWelcome() {
+    if ('speechSynthesis' in window) {
+        const msg = new SpeechSynthesisUtterance('Verificando compatibilidade do sistema...');
+        msg.lang = 'pt-BR';
+        msg.rate = 1.0; // Velocidade da fala
+        msg.pitch = 0.9; // Tom (mais grave para soar robótico/futurista)
+        window.speechSynthesis.speak(msg);
+    }
+}
         // Redireciona de volta para o boot sem fazer nenhuma alteração
         function tryAgain() {
             window.location.href = "index.html";
@@ -156,6 +166,7 @@
 
         // Gera a matriz puramente binária com o token escondido
         function generateNewBios() {
+            speakWelcome();
             const log = document.getElementById('flash-log');
             const btnGen = document.getElementById('btn-generate');
             
