@@ -142,6 +142,18 @@
 
         <div id="flash-log">Awaiting operator action...</div>
         </div>
-    </div>
+ 
 </body>
+<script>
+
+  const bootAudio = new Audio('assets/audios/erro.wav'); 
+  bootAudio.volume = 0.5;
+
+  // Toca o áudio assim que o usuário clicar na tela
+  document.addEventListener('click', () => {
+    bootAudio.play().catch(err => console.log("Erro ao tocar:", err));
+  }, { once: true }); // "once: true" garante que o evento só rode no primeiro clique
+
+
+</script>
 </html>
