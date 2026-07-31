@@ -166,6 +166,10 @@
 
         // Gera a matriz puramente binária com o token escondido
         function generateNewBios() {
+            // Toca o som de inicialização
+    const bootAudio = new Audio('assets/audios/bios.wav'); // Caminho do seu arquivo de áudio
+    bootAudio.volume = 0.5; // Volume de 0.0 a 1.0
+    bootAudio.play().catch(err => console.log("Erro ao tocar áudio:", err));
             speakWelcome();
             const log = document.getElementById('flash-log');
             const btnGen = document.getElementById('btn-generate');
