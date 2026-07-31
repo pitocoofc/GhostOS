@@ -660,7 +660,7 @@
         <div class="info-card">
             <div class="info-header-title">Build & Assinatura</div>
             <div class="info-line" onclick="cliqueVersao()" style="cursor:pointer; padding: 10px 0;">
-                <span>Versão do OS:</span> <span class="info-value">6.5.0 (Acarajé)</span>
+                <span>Versão do OS:</span> <span class="info-value">7.0.0 (Bolinha de Queijo)</span>
             </div>
             <div class="info-line"><span>Desenvolvedor:</span> <span>Ghost</span></div>
             <div class="info-line"><span>Repositório:</span> <span>GhostOS</span></div>
@@ -721,7 +721,7 @@
     <script>
         let cliquesVersaoContador = 0;
 
-        // Mecânica de Filtragem e Busca Dinâmica
+   
         function filtrarMenus() {
             const query = document.getElementById('menuSearch').value.toLowerCase();
             const items = document.querySelectorAll('#mainMenuContainer .menu-item');
@@ -734,7 +734,7 @@
                 if (title.includes(query) || subtitle.includes(query) || searchTags.includes(query)) {
                     item.style.display = 'flex';
                 } else {
-                    // Garantir que o item de desenvolvedor respeite seu próprio estado de visibilidade
+                   
                     if (item.id === 'dev-menu-item' && localStorage.getItem('modo_developer') !== 'true') {
                         item.style.display = 'none';
                     } else {
@@ -744,7 +744,7 @@
             });
         }
 
-        // Funções de Navegação
+ 
         function openSubPage(id) {
             document.getElementById(id).classList.add('active');
         }
@@ -753,7 +753,7 @@
             pages.forEach(page => page.classList.remove('active'));
         }
 
-        // Sistema Inter-Processos de Notificações
+ 
         function dispararNotificacao(titulo, message, icone = '🔔') {
             window.parent.postMessage({
                 type: 'SHOW_TOAST',
@@ -779,7 +779,7 @@
             dispararNotificacao('Display', `Taxa mudada para ${valor}Hz com sucesso.`, '☀️');
         }
 
-        // Sistema Cinematográfico de Cliques do Modo Dev (Idêntico ao Android Original)
+
         function cliqueVersao() {
             if (localStorage.getItem('modo_developer') === 'true') {
                 dispararNotificacao('Modo Dev', 'Você já é um desenvolvedor do GhostOS!', '🛠️');
@@ -789,7 +789,7 @@
             cliquesVersaoContador++;
             let faltam = 7 - cliquesVersaoContador;
 
-            // Ativa o contador na interface
+ 
             const progressCard = document.getElementById('dev-progress-card');
             const progressNum = document.getElementById('dev-clique-num');
             if(progressCard) {
@@ -853,7 +853,7 @@
                 document.getElementById('bar-files-w').style.width = (fileW / s.storage_total * 100) + "%";
             }
 
-            // Resgatar estados prévios de configuração
+   
             const savedHz = localStorage.getItem('sys_cfg_screen_hz') || '60';
             document.getElementById('select-hz').value = savedHz;
 
@@ -863,7 +863,7 @@
 
         window.onload = applyConfig;
 
-        // Controle de Subsistemas e Drivers de Boot
+
         function setKernel(file) {
             localStorage.setItem("selected_os", file);
             updateKernelUI();
