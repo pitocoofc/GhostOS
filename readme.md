@@ -1,3 +1,8 @@
+# Update 7.0.0 Bolinha de queijo (3)
+"What's new?"
+- New IA
+- optimizations
+
 # Update 7.0.0 Bolinha de queijo (2)
 "What's new?"
 - new games
