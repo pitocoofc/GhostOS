@@ -202,6 +202,9 @@
             document.getElementById('confirm-selection').disabled = true;
 
             if (type === 'RAM') {
+                const bootAudio = new Audio('assets/audios/overclock.wav'); 
+    bootAudio.volume = 0.5; // Volume de 0.0 a 1.0
+    bootAudio.play().catch(err => console.log("Erro ao tocar áudio:", err));
                 document.getElementById('select-title').innerText = "Alocação de Swap ZRAM (Atual: " + (s.specs.ram) + "GB):";
                 const options = [
                     {val: 4, desc: "+4GB Virtual (Perfil Seguro)"},
@@ -211,6 +214,9 @@
                 ];
                 options.forEach(opt => createRow(opt.desc, opt.val, container));
             } else {
+                 const bootAudio = new Audio('assets/audios/overclock.wav'); 
+    bootAudio.volume = 0.5; // Volume de 0.0 a 1.0
+    bootAudio.play().catch(err => console.log("Erro ao tocar áudio:", err));
                 document.getElementById('select-title').innerText = "Frequência Base do Governador CPU:";
                 const options = [
                     {val: 2.8, desc: "Stock Mode @ 2.80 GHz"},
@@ -236,6 +242,9 @@
         }
 
         function confirmOverclock() {
+             const bootAudio = new Audio('assets/audios/overclock.wav'); 
+    bootAudio.volume = 0.5; // Volume de 0.0 a 1.0
+    bootAudio.play().catch(err => console.log("Erro ao tocar áudio:", err));
             startKernelCompileFlow();
         }
 
