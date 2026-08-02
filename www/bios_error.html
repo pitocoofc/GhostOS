@@ -163,7 +163,6 @@
         window.location.href = "index.html";
     }
 
-    // Helper para adicionar texto ao log sem quebrar a renderização de tags HTML
     function appendLog(element, text, isHTML = false) {
         if (isHTML) {
             element.innerHTML += text;
@@ -174,9 +173,26 @@
     }
 
     async function generateNewBios() {
+        let parentDirHandle = null;
+
+        // 1. SOLICITA PERMISSÃO DE PASTA IMEDIATAMENTE (No topo do evento de clique)
+        if ('showDirectoryPicker' in window && (!window.Capacitor || !window.Capacitor.Plugins.Filesystem)) {
+            try {
+                // Abre a janela para o usuário selecionar onde quer salvar no dispositivo
+                parentDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    alert("Ação cancelada pelo usuário.");
+                    return;
+                }
+                console.warn("Seletor de diretório não autorizado:", err);
+            }
+        }
+
+        // 2. Efeitos Sonoros e Interface
         const bootAudio = new Audio('assets/audios/bios.wav'); 
         bootAudio.volume = 0.5; 
-        bootAudio.play().catch(err => console.log("Erro ao tocar áudio:", err));
+        bootAudio.play().catch(err => console.log("Erro de áudio:", err));
         speakWelcome();
         
         const log = document.getElementById('flash-log');
@@ -184,16 +200,15 @@
         
         btnGen.disabled = true;
         btnGen.innerText = "Injetando...";
-
         log.innerText = "Connecting to Motherboard EEPROM...\n";
-        
+
         setTimeout(() => {
             appendLog(log, "Erasing corrupted sectors (0x000000 - 0xFFFFFF)...\n");
             
             setTimeout(async () => {
                 appendLog(log, "Generating raw matrix binary from A to Z...\n");
                 
-                // --- GERAÇÃO DO BINÁRIO ---
+                // 3. GERAÇÃO DO BINÁRIO DA BIOS
                 let binaryMatrix = "";
                 const totalRows = 30;
                 const targetRow = Math.floor(Math.random() * (25 - 5 + 1)) + 5;
@@ -214,10 +229,12 @@
                     }
                 }
 
-                // 1. Salva no Cache Local / Storage Web
+                // 4. PERSISTÊNCIA DOS DADOS
+
+                // A. Grava no LocalStorage do navegador
                 localStorage.setItem('ghost_bios_image', binaryMatrix);
 
-                // 2. Tenta salvar com o Capacitor Filesystem (Android/iOS)
+                // B. Grava via Capacitor Filesystem (Se rodando em app nativo Android/iOS)
                 if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) {
                     try {
                         const { Filesystem } = window.Capacitor.Plugins;
@@ -235,18 +252,27 @@
                         console.error("Erro no Capacitor Filesystem:", capErr);
                         appendLog(log, "Filesystem write deferred to Web Storage.\n");
                     }
-                } else if ('showDirectoryPicker' in window) {
-                    // Fallback para navegador Chromium desktop
+                } 
+                // C. Grava via File System Access API (Navegador/Chromium)
+                else if (parentDirHandle) {
                     try {
-                        const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-                        const fileHandle = await dirHandle.getFileHandle("ghost_bios.rom", { create: true });
+                        // Cria a subpasta "GhostOS" dentro da pasta que o usuário escolheu
+                        const subDirHandle = await parentDirHandle.getDirectoryHandle("GhostOS", { create: true });
+                        
+                        // Cria/Abre o arquivo ghost_bios.rom dentro da subpasta GhostOS
+                        const fileHandle = await subDirHandle.getFileHandle("ghost_bios.rom", { create: true });
                         const writable = await fileHandle.createWritable();
+                        
                         await writable.write(binaryMatrix);
                         await writable.close();
-                        appendLog(log, "Writing to external directory...\n");
+                        
+                        appendLog(log, `Writing to: /${parentDirHandle.name}/GhostOS/ghost_bios.rom...\n`);
                     } catch (dirErr) {
-                        appendLog(log, "<span class='error-code'>[ AVISO ] Diretório não selecionado. Armazenado via WebStorage.</span>\n", true);
+                        console.error("Erro ao gravar na pasta:", dirErr);
+                        appendLog(log, "<span class='error-code'>[ AVISO ] Erro de gravação na pasta. Armazenado no WebStorage.</span>\n", true);
                     }
+                } else {
+                    appendLog(log, "Saved to Local Storage (GhostOS Memory).\n");
                 }
 
                 appendLog(log, "Writing signature payload to block offset...\n");
