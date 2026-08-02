@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -32,6 +31,8 @@
         display: block;
         margin-bottom: 8px;
         font-size: 14px;
+        font-weight: 500;
+        color: #ccc;
     }
 
     input, select, button {
@@ -42,21 +43,41 @@
         outline: none;
         margin-bottom: 10px;
         font-size: 14px;
+        box-sizing: border-box;
     }
 
     input[type="color"] {
         height: 50px;
         padding: 5px;
+        cursor: pointer;
+        background: #222;
+    }
+
+    select, input[type="text"] {
+        background: #222;
+        color: #fff;
+        border: 1px solid #444;
     }
 
     button {
         background: #3b82f6;
         color: white;
         cursor: pointer;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+
+    button:hover {
+        background: #2563eb;
     }
 
     button:active {
-        transform: scale(0.95);
+        transform: scale(0.98);
+    }
+
+    .row-btns {
+        display: flex;
+        gap: 10px;
     }
 </style>
 </head>
@@ -65,16 +86,18 @@
 
 <h1>🎨 Personalização</h1>
 
+<!-- Relógio: Cor -->
 <div class="section">
     <label>Cor do Relógio</label>
     <input type="color" id="colorPicker">
     <button onclick="applyColor()">Aplicar Cor</button>
 </div>
 
+<!-- Relógio: Fonte -->
 <div class="section">
     <label>Fonte do Relógio</label>
     <select id="fontSelect">
-        <option value="Segoe UI">Padrão</option>
+        <option value="Segoe UI">Padrão (Segoe UI)</option>
         <option value="Arial">Arial</option>
         <option value="Courier New">Courier</option>
         <option value="monospace">Monospace</option>
@@ -83,16 +106,40 @@
     <button onclick="applyFont()">Aplicar Fonte</button>
 </div>
 
+<!-- Relógio: Mostrar/Ocultar -->
 <div class="section">
-    <label>Mostrar / Ocultar Relógio</label>
-    <button onclick="toggleClock(true)">Mostrar</button>
-    <button onclick="toggleClock(false)">Ocultar</button>
+    <label>Exibir Relógio</label>
+    <div class="row-btns">
+        <button onclick="toggleClock(true)">Mostrar</button>
+        <button onclick="toggleClock(false)" style="background: #ef4444;">Ocultar</button>
+    </div>
 </div>
 
+<!-- Wallpaper -->
 <div class="section">
     <label>Wallpaper (URL da imagem)</label>
     <input type="text" id="wallInput" placeholder="https://...">
     <button onclick="applyWallpaper()">Aplicar Wallpaper</button>
+</div>
+
+<!-- NOVAS OPÇÕES: Font Size Global, Inverter Cores e Ocultar Textos -->
+<div class="section">
+    <label>Tamanho da Fonte Global</label>
+    <select id="fontSizeSelect" onchange="applyFontSize(this.value)">
+        <option value="12px">Pequena</option>
+        <option value="16px" selected>Normal</option>
+        <option value="20px">Grande</option>
+    </select>
+</div>
+
+<div class="section">
+    <label>Modo de Cores</label>
+    <button onclick="toggleInvert()" style="background: #8b5cf6;">Alternar Inversão de Cores</button>
+</div>
+
+<div class="section">
+    <label>Textos dos Aplicativos</label>
+    <button onclick="toggleAppText()" style="background: #10b981;">Mostrar / Ocultar Textos</button>
 </div>
 
 <script>
@@ -100,44 +147,58 @@ function send(data){
     window.parent.postMessage(data, '*');
 }
 
-
 function applyColor(){
     const color = document.getElementById('colorPicker').value;
+    localStorage.setItem('clock_color', color);
     send({ type: 'clock_color', value: color });
 }
 
-
 function applyFont(){
     const font = document.getElementById('fontSelect').value;
+    localStorage.setItem('clock_font', font);
     send({ type: 'clock_font', value: font });
 }
 
-
 function toggleClock(state){
+    localStorage.setItem('clock_toggle', state);
     send({ type: 'clock_toggle', value: state });
 }
 
-
 function applyWallpaper(){
     const url = document.getElementById('wallInput').value;
-
-    send({
-        type: 'SET_WALLPAPER',
-        url: url
-    });
+    if(url) {
+        localStorage.setItem('ghost_wallpaper', url);
+        send({ type: 'SET_WALLPAPER', url: url });
+    }
 }
 
+function applyFontSize(val){
+    localStorage.setItem('sys_font_size', val);
+    send({ type: 'sys_font_size', value: val });
+}
 
+function toggleInvert(){
+    let atual = localStorage.getItem('sys_invert') === 'true';
+    localStorage.setItem('sys_invert', !atual);
+    send({ type: 'sys_invert', value: !atual });
+}
+
+function toggleAppText(){
+    let atual = localStorage.getItem('sys_hide_text') === 'true';
+    localStorage.setItem('sys_hide_text', !atual);
+    send({ type: 'sys_hide_text', value: !atual });
+}
+
+// Carregar estados salvos ao abrir o app
 window.onload = () => {
     const savedColor = localStorage.getItem('clock_color');
-    if(savedColor){
-        document.getElementById('colorPicker').value = savedColor;
-    }
+    if(savedColor) document.getElementById('colorPicker').value = savedColor;
 
     const savedFont = localStorage.getItem('clock_font');
-    if(savedFont){
-        document.getElementById('fontSelect').value = savedFont;
-    }
+    if(savedFont) document.getElementById('fontSelect').value = savedFont;
+
+    const savedFontSize = localStorage.getItem('sys_font_size');
+    if(savedFontSize) document.getElementById('fontSizeSelect').value = savedFontSize;
 }
 </script>
 
