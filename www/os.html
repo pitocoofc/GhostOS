@@ -1187,37 +1187,116 @@ checkUpdateFromGithub();
 
 
 
+// --- SISTEMA DE PERSONALIZAÇÃO AVANÇADA  ---
 (function() {
+    // 1. Tamanho da Fonte Global
+    const savedFont = localStorage.getItem('sys_font_size');
+    if (savedFont) document.body.style.fontSize = savedFont;
+
+    // 2. Inverter Cores
+    if (localStorage.getItem('sys_invert') === 'true') {
+        const style = document.createElement('style');
+        style.id = 'style-invert';
+        style.innerHTML = 'body { filter: invert(1) hue-rotate(180deg); }';
+        document.head.appendChild(style);
+    }
+
+    // 3. Ocultar Textos dos Apps
+    if (localStorage.getItem('sys_hide_text') === 'true') {
+        const style = document.createElement('style');
+        style.id = 'style-hide-text';
+        style.innerHTML = '.app-card span { display: none !important; }';
+        document.head.appendChild(style);
+    }
+
+    // 4. Status Bar
     if (localStorage.getItem('sys_hide_statusbar') === 'true') {
         const sb = document.getElementById('status-bar');
         if(sb) sb.style.display = 'none';
     }
-    
-    // 1. Tamanho da fonte
-    const savedFont = localStorage.getItem('sys_font_size');
-    if (savedFont) {
-        document.body.style.fontSize = savedFont;
-    }
 
-    
-    if (localStorage.getItem('sys_invert') === 'true') {
-        const style = document.createElement('style');
-        style.innerHTML = 'body { filter: invert(1) hue-rotate(180deg); }';
-        document.head.appendChild(style);
-    }
-const hiddenApps = JSON.parse(localStorage.getItem('sys_hidden_apps')) || [];
-    hiddenApps.forEach(id => {
-        const card = document.querySelector(`.app-card[data-id="${id}"]`);
-        if(card) card.style.display = 'none';
-    }
+    // 5. Botões da Taskbar
+    const hiddenBtns = JSON.parse(localStorage.getItem('sys_hidden_taskbar_btns')) || [];
+    applyTaskbarBtns(hiddenBtns);
 
-    
-    if (localStorage.getItem('sys_hide_text') === 'true') {
-        const style = document.createElement('style');
-        style.innerHTML = '.app-card span { display: none !important; }';
-        document.head.appendChild(style);
+    // 6. Apps Invisíveis
+    const hiddenApps = JSON.parse(localStorage.getItem('sys_hidden_apps')) || [];
+    applyHiddenApps(hiddenApps);
+
+    // 7. Modo Imersivo
+    if (localStorage.getItem('sys_immersive') === 'true') {
+        applyImmersive(true);
     }
 })();
+
+function applyTaskbarBtns(hiddenBtns) {
+    const navBtns = document.querySelectorAll('#taskbar .nav-btn');
+    if(navBtns.length >= 3) {
+        navBtns[0].style.display = hiddenBtns.includes('home') ? 'none' : 'block';
+        navBtns[1].style.display = hiddenBtns.includes('games') ? 'none' : 'block';
+        navBtns[2].style.display = hiddenBtns.includes('recents') ? 'none' : 'block';
+    }
+}
+
+function applyHiddenApps(hiddenApps) {
+    document.querySelectorAll('.app-card[data-id]').forEach(card => {
+        const id = card.getAttribute('data-id');
+        card.style.display = hiddenApps.includes(id) ? 'none' : 'flex';
+    });
+}
+
+function applyImmersive(active) {
+    const sb = document.getElementById('status-bar');
+    const tb = document.getElementById('taskbar');
+    if(sb) sb.style.display = active ? 'none' : 'flex';
+    if(tb) tb.style.display = active ? 'none' : 'flex';
+}
+
+// Listener para postMessage em tempo real do pers.html
+window.addEventListener('message', (event) => {
+    if (event.data.type === 'sys_font_size') {
+        document.body.style.fontSize = event.data.value;
+    }
+    if (event.data.type === 'sys_invert') {
+        let style = document.getElementById('style-invert');
+        if (event.data.value) {
+            if (!style) {
+                style = document.createElement('style');
+                style.id = 'style-invert';
+                style.innerHTML = 'body { filter: invert(1) hue-rotate(180deg); }';
+                document.head.appendChild(style);
+            }
+        } else if (style) {
+            style.remove();
+        }
+    }
+    if (event.data.type === 'sys_hide_text') {
+        let style = document.getElementById('style-hide-text');
+        if (event.data.value) {
+            if (!style) {
+                style = document.createElement('style');
+                style.id = 'style-hide-text';
+                style.innerHTML = '.app-card span { display: none !important; }';
+                document.head.appendChild(style);
+            }
+        } else if (style) {
+            style.remove();
+        }
+    }
+    if (event.data.type === 'sys_hide_statusbar') {
+        const sb = document.getElementById('status-bar');
+        if(sb) sb.style.display = event.data.value ? 'none' : 'flex';
+    }
+    if (event.data.type === 'sys_hidden_taskbar_btns') {
+        applyTaskbarBtns(event.data.value);
+    }
+    if (event.data.type === 'sys_hidden_apps') {
+        applyHiddenApps(event.data.value);
+    }
+    if (event.data.type === 'sys_immersive') {
+        applyImmersive(event.data.value);
+    }
+});
 
 
 </script>
