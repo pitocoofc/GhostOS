@@ -1185,6 +1185,31 @@ function openTutorial() {
 checkUpdateFromGithub();
 
 
+
+
+(function() {
+    // 1. Tamanho da fonte
+    const savedFont = localStorage.getItem('sys_font_size');
+    if (savedFont) {
+        document.body.style.fontSize = savedFont;
+    }
+
+    
+    if (localStorage.getItem('sys_invert') === 'true') {
+        const style = document.createElement('style');
+        style.innerHTML = 'body { filter: invert(1) hue-rotate(180deg); }';
+        document.head.appendChild(style);
+    }
+
+    
+    if (localStorage.getItem('sys_hide_text') === 'true') {
+        const style = document.createElement('style');
+        style.innerHTML = '.app-card span { display: none !important; }';
+        document.head.appendChild(style);
+    }
+})();
+
+
 </script>
 </body>  
 </html>
