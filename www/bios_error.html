@@ -19,7 +19,6 @@
             overflow: hidden; user-select: none;
         }
 
-        /* Efeito de linhas CRT clássico do GhostOS */
         body::before {
             content: " ";
             position: fixed; inset: 0;
@@ -58,40 +57,25 @@
             font-size: 13px;
         }
 
-        .blink {
-            animation: blinker 1s linear infinite;
-        }
+        .blink { animation: blinker 1s linear infinite; }
         @keyframes blinker { 50% { opacity: 0; } }
 
-        p {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #ddd;
-        }
+        p { font-size: 14px; line-height: 1.6; color: #ddd; }
 
-        /* Console Log de Flashing */
         #flash-log {
             font-size: 11px;
             color: #888;
-            max-height: 100px;
-            overflow-y: hidden;
+            max-height: 120px;
+            overflow-y: auto;
             margin-bottom: 20px;
             white-space: pre-wrap;
         }
 
-        .success-text {
-            color: var(--neon-blue) !important;
-            font-weight: bold;
-        }
+        .success-text { color: var(--neon-blue) !important; font-weight: bold; }
 
-        /* Botões Estilizados */
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 25px;
-        }
+        .btn-group { display: flex; gap: 15px; margin-top: 25px; }
 
-        button {
+        button, label.action-btn {
             flex: 1;
             background: none;
             border: 1px solid #555;
@@ -103,27 +87,25 @@
             cursor: pointer;
             transition: all 0.2s;
             text-transform: uppercase;
+            text-align: center;
+            display: inline-block;
         }
 
-        button:hover {
+        button:hover, label.action-btn:hover {
             border-color: #fff;
             color: #fff;
             background: rgba(255, 255, 255, 0.05);
         }
 
-        button.action-btn {
+        button.action-btn, label.action-btn {
             border-color: var(--error-red);
             color: var(--error-red);
         }
 
-        button.action-btn:hover {
+        button.action-btn:hover, label.action-btn:hover {
             background: var(--error-red);
             color: #000;
             box-shadow: 0 0 10px rgba(255, 59, 48, 0.4);
-        }
-
-        button:active {
-            transform: scale(0.98);
         }
     </style>
 </head>
@@ -143,21 +125,17 @@
         <div id="flash-log">Awaiting operator action...</div>
 
         <div class="btn-group">
-            <button class="action-btn" id="btn-generate" onclick="generateNewBios()">Gerar Nova BIOS</button>
+            <!-- Botão para disparar gravação com seletor no Android/Web -->
+            <button class="action-btn" id="btn-generate" onclick="startBiosGeneration()">Gerar Nova BIOS</button>
             <button onclick="tryAgain()">Tentar Novamente</button>
         </div>
+
+        <!-- Input invisível para forçar a abertura do gerenciador de pastas nativo no Android/Browser -->
+        <input type="file" id="folder-picker" webkitdirectory directory hidden onchange="handleFolderSelected(this)">
     </div>
 
     <script>
-    function speakWelcome() {
-        if ('speechSynthesis' in window) {
-            const msg = new SpeechSynthesisUtterance('Verificando compatibilidade do sistema...');
-            msg.lang = 'pt-BR';
-            msg.rate = 1.0; 
-            msg.pitch = 0.9; 
-            window.speechSynthesis.speak(msg);
-        }
-    }
+    let selectedDirectoryName = "";
 
     function tryAgain() {
         window.location.href = "index.html";
@@ -172,29 +150,34 @@
         element.scrollTop = element.scrollHeight;
     }
 
-    async function generateNewBios() {
-        let parentDirHandle = null;
-
-        // 1. SOLICITA PERMISSÃO DE PASTA IMEDIATAMENTE (No topo do evento de clique)
-        if ('showDirectoryPicker' in window && (!window.Capacitor || !window.Capacitor.Plugins.Filesystem)) {
-            try {
-                // Abre a janela para o usuário selecionar onde quer salvar no dispositivo
-                parentDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-            } catch (err) {
-                if (err.name === 'AbortError') {
-                    alert("Ação cancelada pelo usuário.");
-                    return;
-                }
-                console.warn("Seletor de diretório não autorizado:", err);
-            }
-        }
-
-        // 2. Efeitos Sonoros e Interface
-        const bootAudio = new Audio('assets/audios/bios.wav'); 
-        bootAudio.volume = 0.5; 
-        bootAudio.play().catch(err => console.log("Erro de áudio:", err));
-        speakWelcome();
+    async function startBiosGeneration() {
+        const log = document.getElementById('flash-log');
         
+        // 1. TENTA ABRIR O SELETOR DE DIRETORES NATIVO
+        if ('showDirectoryPicker' in window) {
+            try {
+                window.parentDirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                selectedDirectoryName = window.parentDirHandle.name;
+            } catch (err) {
+                console.warn("Seleção de pasta ignorada/cancelada.");
+            }
+            executeFlashingProcess();
+        } else {
+            // No Android WebView onde showDirectoryPicker NÃO existe, dispara o input nativo
+            document.getElementById('folder-picker').click();
+        }
+    }
+
+    function handleFolderSelected(input) {
+        if (input.files && input.files.length > 0) {
+            // Pega o nome da pasta selecionada via input nativo
+            const pathParts = input.files[0].webkitRelativePath.split('/');
+            selectedDirectoryName = pathParts[0] || "CustomFolder";
+        }
+        executeFlashingProcess();
+    }
+
+    async function executeFlashingProcess() {
         const log = document.getElementById('flash-log');
         const btnGen = document.getElementById('btn-generate');
         
@@ -202,92 +185,69 @@
         btnGen.innerText = "Injetando...";
         log.innerText = "Connecting to Motherboard EEPROM...\n";
 
+        // Geração do Payload da ROM
+        let binaryMatrix = "";
+        const totalRows = 30;
+        const targetRow = 12;
+
+        for (let i = 0; i < totalRows; i++) {
+            if (i === targetRow) {
+                binaryMatrix += "01101011 01110011 Err BOS 010101001010001001 01101111 01110011\n";
+            } else {
+                let row = "";
+                for(let b = 0; b < 4; b++) {
+                    let byte = "";
+                    for(let bit = 0; bit < 8; bit++) byte += Math.round(Math.random());
+                    row += byte + " ";
+                }
+                binaryMatrix += row.trim() + "\n";
+            }
+        }
+
+        // 1. GRAVA NO CACHE LOCAL (localStorage)
+        localStorage.setItem('ghost_bios_image', binaryMatrix);
+        appendLog(log, "[ OK ] ROM Cache updated in localStorage.\n");
+
+        // 2. GRAVA VIA CAPACITOR FILESYSTEM (Se estiver rodando como APP Android Nativo)
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) {
+            try {
+                const { Filesystem } = window.Capacitor.Plugins;
+                const { Directory, Encoding } = window.Capacitor;
+                
+                // Criar diretório GhostOS e gravar o arquivo .rom
+                await Filesystem.writeFile({
+                    path: 'GhostOS/ghost_bios.rom',
+                    data: binaryMatrix,
+                    directory: Directory.ExternalStorage || Directory.Documents,
+                    encoding: Encoding.UTF8,
+                    recursive: true
+                });
+                appendLog(log, "[ OK ] Saved to Device Storage: /GhostOS/ghost_bios.rom\n");
+            } catch (capErr) {
+                appendLog(log, "[ WARN ] Capacitor Storage access error. Using local cache.\n");
+            }
+        } 
+        // 3. GRAVA SE USOU A FILE SYSTEM ACCESS API (Desktop/Chromium)
+        else if (window.parentDirHandle) {
+            try {
+                const subDirHandle = await window.parentDirHandle.getDirectoryHandle("GhostOS", { create: true });
+                const fileHandle = await subDirHandle.getFileHandle("ghost_bios.rom", { create: true });
+                const writable = await fileHandle.createWritable();
+                await writable.write(binaryMatrix);
+                await writable.close();
+                appendLog(log, `[ OK ] Directory created: /${selectedDirectoryName}/GhostOS/ghost_bios.rom\n`);
+            } catch (err) {
+                appendLog(log, "[ WARN ] Failed writing folder physically.\n");
+            }
+        } else {
+            appendLog(log, `[ OK ] Target Directory set: /${selectedDirectoryName || 'Default'}/GhostOS/\n`);
+        }
+
         setTimeout(() => {
-            appendLog(log, "Erasing corrupted sectors (0x000000 - 0xFFFFFF)...\n");
-            
-            setTimeout(async () => {
-                appendLog(log, "Generating raw matrix binary from A to Z...\n");
-                
-                // 3. GERAÇÃO DO BINÁRIO DA BIOS
-                let binaryMatrix = "";
-                const totalRows = 30;
-                const targetRow = Math.floor(Math.random() * (25 - 5 + 1)) + 5;
-
-                for (let i = 0; i < totalRows; i++) {
-                    if (i === targetRow) {
-                        binaryMatrix += "01101011 01110011  0110111 Err BOS  010101001010001001 : 01101111 01110011\n";
-                    } else {
-                        let row = "";
-                        for(let b = 0; b < 4; b++) {
-                            let byte = "";
-                            for(let bit = 0; bit < 8; bit++) {
-                                byte += Math.round(Math.random());
-                            }
-                            row += byte + " ";
-                        }
-                        binaryMatrix += row.trim() + "\n";
-                    }
-                }
-
-                // 4. PERSISTÊNCIA DOS DADOS
-
-                // A. Grava no LocalStorage do navegador
-                localStorage.setItem('ghost_bios_image', binaryMatrix);
-
-                // B. Grava via Capacitor Filesystem (Se rodando em app nativo Android/iOS)
-                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) {
-                    try {
-                        const { Filesystem } = window.Capacitor.Plugins;
-                        const { Directory, Encoding } = window.Capacitor;
-                        
-                        await Filesystem.writeFile({
-                            path: 'GhostOS/ghost_bios.rom',
-                            data: binaryMatrix,
-                            directory: Directory.Documents,
-                            encoding: Encoding.UTF8,
-                            recursive: true
-                        });
-                        appendLog(log, "Writing to Capacitor Filesystem (Documents/GhostOS)...\n");
-                    } catch (capErr) {
-                        console.error("Erro no Capacitor Filesystem:", capErr);
-                        appendLog(log, "Filesystem write deferred to Web Storage.\n");
-                    }
-                } 
-                // C. Grava via File System Access API (Navegador/Chromium)
-                else if (parentDirHandle) {
-                    try {
-                        // Cria a subpasta "GhostOS" dentro da pasta que o usuário escolheu
-                        const subDirHandle = await parentDirHandle.getDirectoryHandle("GhostOS", { create: true });
-                        
-                        // Cria/Abre o arquivo ghost_bios.rom dentro da subpasta GhostOS
-                        const fileHandle = await subDirHandle.getFileHandle("ghost_bios.rom", { create: true });
-                        const writable = await fileHandle.createWritable();
-                        
-                        await writable.write(binaryMatrix);
-                        await writable.close();
-                        
-                        appendLog(log, `Writing to: /${parentDirHandle.name}/GhostOS/ghost_bios.rom...\n`);
-                    } catch (dirErr) {
-                        console.error("Erro ao gravar na pasta:", dirErr);
-                        appendLog(log, "<span class='error-code'>[ AVISO ] Erro de gravação na pasta. Armazenado no WebStorage.</span>\n", true);
-                    }
-                } else {
-                    appendLog(log, "Saved to Local Storage (GhostOS Memory).\n");
-                }
-
-                appendLog(log, "Writing signature payload to block offset...\n");
-                
-                setTimeout(() => {
-                    appendLog(log, "<span class='success-text'>[ SUCCESS ] ROM successfully flashed! Re-booting...</span>", true);
-                    
-                    setTimeout(() => {
-                        window.location.href = "index.html";
-                    }, 1500); 
-                }, 800);
-            }, 800);
-        }, 600);
+            appendLog(log, "<span class='success-text'>[ SUCCESS ] ROM successfully flashed! Re-booting...</span>", true);
+            setTimeout(() => { window.location.href = "index.html"; }, 1500);
+        }, 1000);
     }
     </script>
-    
 </body>
 </html>
