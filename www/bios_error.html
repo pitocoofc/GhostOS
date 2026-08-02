@@ -149,84 +149,116 @@
     </div>
 
     <script>
-
-        function speakWelcome() {
-    if ('speechSynthesis' in window) {
-        const msg = new SpeechSynthesisUtterance('Verificando compatibilidade do sistema...');
-        msg.lang = 'pt-BR';
-        msg.rate = 1.0; // Velocidade da fala
-        msg.pitch = 0.9; // Tom (mais grave para soar robótico/futurista)
-        window.speechSynthesis.speak(msg);
+    function speakWelcome() {
+        if ('speechSynthesis' in window) {
+            const msg = new SpeechSynthesisUtterance('Verificando compatibilidade do sistema...');
+            msg.lang = 'pt-BR';
+            msg.rate = 1.0; 
+            msg.pitch = 0.9; 
+            window.speechSynthesis.speak(msg);
+        }
     }
-}
-        // Redireciona de volta para o boot sem fazer nenhuma alteração
-        function tryAgain() {
-            window.location.href = "index.html";
+
+    // Redireciona de volta para o boot sem fazer nenhuma alteração
+    function tryAgain() {
+        window.location.href = "index.html";
+    }
+
+    // Gera a matriz puramente binária e salva no Cache + Pasta do Usuário
+    async function generateNewBios() {
+        // Toca o som de inicialização
+        const bootAudio = new Audio('assets/audios/bios.wav'); 
+        bootAudio.volume = 0.5; 
+        bootAudio.play().catch(err => console.log("Erro ao tocar áudio:", err));
+        speakWelcome();
+        
+        const log = document.getElementById('flash-log');
+        const btnGen = document.getElementById('btn-generate');
+        
+        // Trava o botão para não clicar duas vezes
+        btnGen.disabled = true;
+        btnGen.innerText = "Aguardando Pasta...";
+
+        let dirHandle = null;
+
+        // 1. Pede para o usuário selecionar a pasta onde o GhostOS vai salvar os arquivos
+        try {
+            if ('showDirectoryPicker' in window) {
+                log.innerText = "Requesting access to storage directory...\n";
+                dirHandle = await window.showDirectoryPicker({
+                    mode: 'readwrite'
+                });
+            } else {
+                console.warn("File System Access API não suportada neste ambiente. Salvando apenas no cache.");
+            }
+        } catch (err) {
+            console.log("Usuário cancelou a seleção de pasta:", err);
+            log.innerText = "<span class='error-code'>[ AVISO ] Permissão de pasta negada. Salvando apenas no cache local...</span>\n";
         }
 
-        // Gera a matriz puramente binária com o token escondido
-        function generateNewBios() {
-            // Toca o som de inicialização
-    const bootAudio = new Audio('assets/audios/bios.wav'); // Caminho do seu arquivo de áudio
-    bootAudio.volume = 0.5; // Volume de 0.0 a 1.0
-    bootAudio.play().catch(err => console.log("Erro ao tocar áudio:", err));
-            speakWelcome();
-            const log = document.getElementById('flash-log');
-            const btnGen = document.getElementById('btn-generate');
+        btnGen.innerText = "Injetando...";
+        log.innerText += "Connecting to Motherboard EEPROM...\n";
+        
+        setTimeout(() => {
+            log.innerText += "Erasing corrupted sectors (0x000000 - 0xFFFFFF)...\n";
             
-            // Trava o botão para não clicar duas vezes
-            btnGen.disabled = true;
-            btnGen.innerText = "Injetando...";
+            setTimeout(async () => {
+                log.innerText += "Generating raw matrix binary from A to Z...\n";
+                
+                // --- GERAÇÃO DO BINÁRIO ---
+                let binaryMatrix = "";
+                const totalRows = 30; // Tamanho do "arquivo" firmware
+                
+                // Escolhe uma linha aleatória entre a 5 e a 25 para esconder a assinatura
+                const targetRow = Math.floor(Math.random() * (25 - 5 + 1)) + 5;
 
-            log.innerText = "Connecting to Motherboard EEPROM...\n";
-            
-            setTimeout(() => {
-                log.innerText += "Erasing corrupted sectors (0x000000 - 0xFFFFFF)...\n";
+                for (let i = 0; i < totalRows; i++) {
+                    if (i === targetRow) {
+                        binaryMatrix += "01101011 01110011  0110111 Err BOS  010101001010001001 : 01101111 01110011\n";
+                    } else {
+                        let row = "";
+                        for(let b = 0; b < 4; b++) {
+                            let byte = "";
+                            for(let bit = 0; bit < 8; bit++) {
+                                byte += Math.round(Math.random());
+                            }
+                            row += byte + " ";
+                        }
+                        binaryMatrix += row.trim() + "\n";
+                    }
+                }
+
+                // 2. Salva no Cache Local (localStorage)
+                localStorage.setItem('ghost_bios_image', binaryMatrix);
+
+                // 3. Salva fisicamente na pasta selecionada pelo usuário (se houver permissão)
+                if (dirHandle) {
+                    try {
+                        log.innerText += "Writing to external directory...\n";
+                        // Cria um subdiretório ou usa a raiz para o arquivo de BIOS
+                        const fileHandle = await dirHandle.getFileHandle("ghost_bios.rom", { create: true });
+                        const writable = await fileHandle.createWritable();
+                        await writable.write(binaryMatrix);
+                        await writable.close();
+                    } catch (fileErr) {
+                        console.error("Erro ao escrever arquivo na pasta:", fileErr);
+                    }
+                }
+
+                log.innerText += "Writing signature payload to block offset...\n";
                 
                 setTimeout(() => {
-                    log.innerText += "Generating raw matrix binary from A to Z...\n";
+                    log.innerHTML += "<span class='success-text'>[ SUCCESS ] ROM successfully flashed! Re-booting...</span>";
                     
-                    // --- GERAÇÃO DO BINÁRIO ---
-                    let binaryMatrix = "";
-                    const totalRows = 30; // Tamanho do "arquivo" firmware
-                    
-                    // Escolhe uma linha aleatória entre a 5 e a 25 para esconder a assinatura
-                    const targetRow = Math.floor(Math.random() * (25 - 5 + 1)) + 5;
-
-                    for (let i = 0; i < totalRows; i++) {
-                        if (i === targetRow) {
-                            // Injeta o token cercado por binários para camuflar
-                            binaryMatrix += "01101011 01110011 ���� 0110111� Err� B�OS ������ 010101001010001001 �����:���� 01101111 01110011\n";
-                        } else {
-                            // Gera uma linha normal de bits aleatórios espelhados em bytes
-                            let row = "";
-                            for(let b = 0; b < 4; b++) {
-                                let byte = "";
-                                for(let bit = 0; bit < 8; bit++) {
-                                    byte += Math.round(Math.random());
-                                }
-                                row += byte + " ";
-                            }
-                            binaryMatrix += row.trim() + "\n";
-                        }
-                    }
-
-                    // Salva a estrutura recém-criada no LocalStorage
-                    localStorage.setItem('ghost_bios_image', binaryMatrix);
-
-                    log.innerText += "Writing signature payload to block offset...\n";
-                    
+                    // Espera 1.5 segundos (corrigido o timeout para 1500ms reais em vez de 15000ms)
                     setTimeout(() => {
-                        log.innerHTML += "<span class='success-text'>[ SUCCESS ] ROM successfully flashed! Re-booting...</span>";
-                        
-                        // Espera 1.5 segundos após o sucesso para o usuário ler e retona ao boot
-                        setTimeout(() => {
-                            window.location.href = "index.html";
-                        }, 15000); // 1.5s
-                    }, 800);
+                        window.location.href = "index.html";
+                    }, 1500); 
                 }, 800);
-            }, 600);
-        }
+            }, 800);
+        }, 600);
+    }
     </script>
+    
 </body>
 </html>
