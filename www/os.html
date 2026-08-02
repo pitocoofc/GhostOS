@@ -1187,47 +1187,45 @@ checkUpdateFromGithub();
 
 
 
-// --- SISTEMA DE PERSONALIZAÇÃO AVANÇADA  ---
+// --- CARREGAMENTO INICIAL DAS CONFIGURAÇÕES NO INDEX ---
 (function() {
-    // 1. Tamanho da Fonte Global
-    const savedFont = localStorage.getItem('sys_font_size');
-    if (savedFont) document.body.style.fontSize = savedFont;
-
-    // 2. Inverter Cores
+    if (localStorage.getItem('sys_font_size')) {
+        document.body.style.fontSize = localStorage.getItem('sys_font_size');
+    }
     if (localStorage.getItem('sys_invert') === 'true') {
-        const style = document.createElement('style');
-        style.id = 'style-invert';
-        style.innerHTML = 'body { filter: invert(1) hue-rotate(180deg); }';
-        document.head.appendChild(style);
+        applyStyle('style-invert', 'body { filter: invert(1) hue-rotate(180deg); }');
     }
-
-    // 3. Ocultar Textos dos Apps
     if (localStorage.getItem('sys_hide_text') === 'true') {
-        const style = document.createElement('style');
-        style.id = 'style-hide-text';
-        style.innerHTML = '.app-card span { display: none !important; }';
-        document.head.appendChild(style);
+        applyStyle('style-hide-text', '.app-card span { display: none !important; }');
     }
-
-    // 4. Status Bar
     if (localStorage.getItem('sys_hide_statusbar') === 'true') {
         const sb = document.getElementById('status-bar');
         if(sb) sb.style.display = 'none';
     }
-
-    // 5. Botões da Taskbar
-    const hiddenBtns = JSON.parse(localStorage.getItem('sys_hidden_taskbar_btns')) || [];
-    applyTaskbarBtns(hiddenBtns);
-
-    // 6. Apps Invisíveis
-    const hiddenApps = JSON.parse(localStorage.getItem('sys_hidden_apps')) || [];
-    applyHiddenApps(hiddenApps);
-
-    // 7. Modo Imersivo
+    applyTaskbarBtns(JSON.parse(localStorage.getItem('sys_hidden_taskbar_btns')) || []);
+    applyHiddenApps(JSON.parse(localStorage.getItem('sys_hidden_apps')) || []);
     if (localStorage.getItem('sys_immersive') === 'true') {
         applyImmersive(true);
     }
+    if (localStorage.getItem('sys_disable_animations') === 'true') {
+        applyStyle('style-no-anim', '*, *::before, *::after { transition: none !important; animation: none !important; }');
+    }
 })();
+
+function applyStyle(id, css) {
+    let style = document.getElementById(id);
+    if (!style) {
+        style = document.createElement('style');
+        style.id = id;
+        style.innerHTML = css;
+        document.head.appendChild(style);
+    }
+}
+
+function removeStyle(id) {
+    let style = document.getElementById(id);
+    if (style) style.remove();
+}
 
 function applyTaskbarBtns(hiddenBtns) {
     const navBtns = document.querySelectorAll('#taskbar .nav-btn');
@@ -1252,51 +1250,36 @@ function applyImmersive(active) {
     if(tb) tb.style.display = active ? 'none' : 'flex';
 }
 
-// Listener para postMessage em tempo real do pers.html
+// --- OUVINTE DE MENSAGENS EM TEMPO REAL (POSTMESSAGE) ---
 window.addEventListener('message', (event) => {
-    if (event.data.type === 'sys_font_size') {
-        document.body.style.fontSize = event.data.value;
+    const { type, value } = event.data;
+
+    if (type === 'sys_font_size') document.body.style.fontSize = value;
+    
+    if (type === 'sys_invert') {
+        value ? applyStyle('style-invert', 'body { filter: invert(1) hue-rotate(180deg); }') : removeStyle('style-invert');
     }
-    if (event.data.type === 'sys_invert') {
-        let style = document.getElementById('style-invert');
-        if (event.data.value) {
-            if (!style) {
-                style = document.createElement('style');
-                style.id = 'style-invert';
-                style.innerHTML = 'body { filter: invert(1) hue-rotate(180deg); }';
-                document.head.appendChild(style);
-            }
-        } else if (style) {
-            style.remove();
-        }
+    
+    if (type === 'sys_hide_text') {
+        value ? applyStyle('style-hide-text', '.app-card span { display: none !important; }') : removeStyle('style-hide-text');
     }
-    if (event.data.type === 'sys_hide_text') {
-        let style = document.getElementById('style-hide-text');
-        if (event.data.value) {
-            if (!style) {
-                style = document.createElement('style');
-                style.id = 'style-hide-text';
-                style.innerHTML = '.app-card span { display: none !important; }';
-                document.head.appendChild(style);
-            }
-        } else if (style) {
-            style.remove();
-        }
-    }
-    if (event.data.type === 'sys_hide_statusbar') {
+    
+    if (type === 'sys_hide_statusbar') {
         const sb = document.getElementById('status-bar');
-        if(sb) sb.style.display = event.data.value ? 'none' : 'flex';
+        if(sb) sb.style.display = value ? 'none' : 'flex';
     }
-    if (event.data.type === 'sys_hidden_taskbar_btns') {
-        applyTaskbarBtns(event.data.value);
-    }
-    if (event.data.type === 'sys_hidden_apps') {
-        applyHiddenApps(event.data.value);
-    }
-    if (event.data.type === 'sys_immersive') {
-        applyImmersive(event.data.value);
+    
+    if (type === 'sys_hidden_taskbar_btns') applyTaskbarBtns(value);
+    
+    if (type === 'sys_hidden_apps') applyHiddenApps(value);
+    
+    if (type === 'sys_immersive') applyImmersive(value);
+
+    if (type === 'sys_disable_animations') {
+        value ? applyStyle('style-no-anim', '*, *::before, *::after { transition: none !important; animation: none !important; }') : removeStyle('style-no-anim');
     }
 });
+    
 
 
 </script>
