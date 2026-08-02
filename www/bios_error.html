@@ -159,14 +159,21 @@
         }
     }
 
-    // Redireciona de volta para o boot sem fazer nenhuma alteração
     function tryAgain() {
         window.location.href = "index.html";
     }
 
-    // Gera a matriz puramente binária e salva no Cache + Pasta do Usuário
+    // Helper para adicionar texto ao log sem quebrar a renderização de tags HTML
+    function appendLog(element, text, isHTML = false) {
+        if (isHTML) {
+            element.innerHTML += text;
+        } else {
+            element.innerText += text;
+        }
+        element.scrollTop = element.scrollHeight;
+    }
+
     async function generateNewBios() {
-        // Toca o som de inicialização
         const bootAudio = new Audio('assets/audios/bios.wav'); 
         bootAudio.volume = 0.5; 
         bootAudio.play().catch(err => console.log("Erro ao tocar áudio:", err));
@@ -175,41 +182,20 @@
         const log = document.getElementById('flash-log');
         const btnGen = document.getElementById('btn-generate');
         
-        // Trava o botão para não clicar duas vezes
         btnGen.disabled = true;
-        btnGen.innerText = "Aguardando Pasta...";
-
-        let dirHandle = null;
-
-        // 1. Pede para o usuário selecionar a pasta onde o GhostOS vai salvar os arquivos
-        try {
-            if ('showDirectoryPicker' in window) {
-                log.innerText = "Requesting access to storage directory...\n";
-                dirHandle = await window.showDirectoryPicker({
-                    mode: 'readwrite'
-                });
-            } else {
-                console.warn("File System Access API não suportada neste ambiente. Salvando apenas no cache.");
-            }
-        } catch (err) {
-            console.log("Usuário cancelou a seleção de pasta:", err);
-            log.innerText = "<span class='error-code'>[ AVISO ] Permissão de pasta negada. Salvando apenas no cache local...</span>\n";
-        }
-
         btnGen.innerText = "Injetando...";
-        log.innerText += "Connecting to Motherboard EEPROM...\n";
+
+        log.innerText = "Connecting to Motherboard EEPROM...\n";
         
         setTimeout(() => {
-            log.innerText += "Erasing corrupted sectors (0x000000 - 0xFFFFFF)...\n";
+            appendLog(log, "Erasing corrupted sectors (0x000000 - 0xFFFFFF)...\n");
             
             setTimeout(async () => {
-                log.innerText += "Generating raw matrix binary from A to Z...\n";
+                appendLog(log, "Generating raw matrix binary from A to Z...\n");
                 
                 // --- GERAÇÃO DO BINÁRIO ---
                 let binaryMatrix = "";
-                const totalRows = 30; // Tamanho do "arquivo" firmware
-                
-                // Escolhe uma linha aleatória entre a 5 e a 25 para esconder a assinatura
+                const totalRows = 30;
                 const targetRow = Math.floor(Math.random() * (25 - 5 + 1)) + 5;
 
                 for (let i = 0; i < totalRows; i++) {
@@ -228,29 +214,46 @@
                     }
                 }
 
-                // 2. Salva no Cache Local (localStorage)
+                // 1. Salva no Cache Local / Storage Web
                 localStorage.setItem('ghost_bios_image', binaryMatrix);
 
-                // 3. Salva fisicamente na pasta selecionada pelo usuário (se houver permissão)
-                if (dirHandle) {
+                // 2. Tenta salvar com o Capacitor Filesystem (Android/iOS)
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) {
                     try {
-                        log.innerText += "Writing to external directory...\n";
-                        // Cria um subdiretório ou usa a raiz para o arquivo de BIOS
+                        const { Filesystem } = window.Capacitor.Plugins;
+                        const { Directory, Encoding } = window.Capacitor;
+                        
+                        await Filesystem.writeFile({
+                            path: 'GhostOS/ghost_bios.rom',
+                            data: binaryMatrix,
+                            directory: Directory.Documents,
+                            encoding: Encoding.UTF8,
+                            recursive: true
+                        });
+                        appendLog(log, "Writing to Capacitor Filesystem (Documents/GhostOS)...\n");
+                    } catch (capErr) {
+                        console.error("Erro no Capacitor Filesystem:", capErr);
+                        appendLog(log, "Filesystem write deferred to Web Storage.\n");
+                    }
+                } else if ('showDirectoryPicker' in window) {
+                    // Fallback para navegador Chromium desktop
+                    try {
+                        const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
                         const fileHandle = await dirHandle.getFileHandle("ghost_bios.rom", { create: true });
                         const writable = await fileHandle.createWritable();
                         await writable.write(binaryMatrix);
                         await writable.close();
-                    } catch (fileErr) {
-                        console.error("Erro ao escrever arquivo na pasta:", fileErr);
+                        appendLog(log, "Writing to external directory...\n");
+                    } catch (dirErr) {
+                        appendLog(log, "<span class='error-code'>[ AVISO ] Diretório não selecionado. Armazenado via WebStorage.</span>\n", true);
                     }
                 }
 
-                log.innerText += "Writing signature payload to block offset...\n";
+                appendLog(log, "Writing signature payload to block offset...\n");
                 
                 setTimeout(() => {
-                    log.innerHTML += "<span class='success-text'>[ SUCCESS ] ROM successfully flashed! Re-booting...</span>";
+                    appendLog(log, "<span class='success-text'>[ SUCCESS ] ROM successfully flashed! Re-booting...</span>", true);
                     
-                    // Espera 1.5 segundos (corrigido o timeout para 1500ms reais em vez de 15000ms)
                     setTimeout(() => {
                         window.location.href = "index.html";
                     }, 1500); 
