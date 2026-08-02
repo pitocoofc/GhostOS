@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Personalização</title>
+<title>Personalização Avançada</title>
 
 <style>
     body {
@@ -79,12 +79,38 @@
         display: flex;
         gap: 10px;
     }
+
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #222;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+
+    .checkbox-item label {
+        margin-bottom: 0;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+        width: auto;
+        margin-bottom: 0;
+        cursor: pointer;
+    }
 </style>
 </head>
 
 <body>
 
-<h1>🎨 Personalização</h1>
+<h1>🎨 Personalização Avançada</h1>
 
 <!-- Relógio: Cor -->
 <div class="section">
@@ -122,7 +148,7 @@
     <button onclick="applyWallpaper()">Aplicar Wallpaper</button>
 </div>
 
-<!-- NOVAS OPÇÕES: Font Size Global, Inverter Cores e Ocultar Textos -->
+<!-- Font Size Global, Inverter Cores e Ocultar Textos -->
 <div class="section">
     <label>Tamanho da Fonte Global</label>
     <select id="fontSizeSelect" onchange="applyFontSize(this.value)">
@@ -140,6 +166,57 @@
 <div class="section">
     <label>Textos dos Aplicativos</label>
     <button onclick="toggleAppText()" style="background: #10b981;">Mostrar / Ocultar Textos</button>
+</div>
+
+<!-- BARRA SUPERIOR -->
+<div class="section">
+    <label>Barra Superior (Status Bar)</label>
+    <button onclick="toggleStatusBar()" style="background: #f59e0b;">Mostrar / Ocultar Barra Superior</button>
+</div>
+
+<!-- BOTÕES DA TASKBAR -->
+<div class="section">
+    <label>Botões da Barra Inferior (Taskbar)</label>
+    <div class="checkbox-group">
+        <div class="checkbox-item">
+            <label>Botão Home (⚪)</label>
+            <input type="checkbox" id="btn-home" checked onchange="toggleTaskbarBtn('home', this.checked)">
+        </div>
+        <div class="checkbox-item">
+            <label>Botão Games (🎮)</label>
+            <input type="checkbox" id="btn-games" checked onchange="toggleTaskbarBtn('games', this.checked)">
+        </div>
+        <div class="checkbox-item">
+            <label>Botão Recents (🔳)</label>
+            <input type="checkbox" id="btn-recents" checked onchange="toggleTaskbarBtn('recents', this.checked)">
+        </div>
+    </div>
+</div>
+
+<!-- APPS INVISÍVEIS -->
+<div class="section">
+    <label>Visibilidade dos Aplicativos (Desktop)</label>
+    <select id="appHideSelect">
+        <option value="TRADUTOR">Tradutor</option>
+        <option value="RELOGIO">Relógio</option>
+        <option value="MAPA">Mapa</option>
+        <option value="AJUSTES">Ajustes</option>
+        <option value="RADIO">Rádio</option>
+        <option value="GHOSTNET">GhostNet</option>
+        <option value="CALCULADORA">Calculadora</option>
+        <option value="ANIME">Animes</option>
+        <option value="GALERIA">Galeria</option>
+        <option value="BUSSOLA">Bússola</option>
+        <option value="STOAT">Stoat</option>
+        <option value="ARQUIVOS">Arquivos</option>
+    </select>
+    <button onclick="toggleAppVisibility()" style="background: #ec4899;">Alternar Ocultar / Mostrar App</button>
+</div>
+
+<!-- MODO IMERSIVO -->
+<div class="section">
+    <label>Modo Imersivo (Oculta Status Bar + Taskbar)</label>
+    <button onclick="toggleImmersive()" style="background: #6366f1;">Alternar Modo Imersivo</button>
 </div>
 
 <script>
@@ -189,6 +266,41 @@ function toggleAppText(){
     send({ type: 'sys_hide_text', value: !atual });
 }
 
+function toggleStatusBar(){
+    let atual = localStorage.getItem('sys_hide_statusbar') === 'true';
+    localStorage.setItem('sys_hide_statusbar', !atual);
+    send({ type: 'sys_hide_statusbar', value: !atual });
+}
+
+function toggleTaskbarBtn(btn, visible){
+    let hiddenBtns = JSON.parse(localStorage.getItem('sys_hidden_taskbar_btns')) || [];
+    if(!visible){
+        if(!hiddenBtns.includes(btn)) hiddenBtns.push(btn);
+    } else {
+        hiddenBtns = hiddenBtns.filter(b => b !== btn);
+    }
+    localStorage.setItem('sys_hidden_taskbar_btns', JSON.stringify(hiddenBtns));
+    send({ type: 'sys_hidden_taskbar_btns', value: hiddenBtns });
+}
+
+function toggleAppVisibility(){
+    let appId = document.getElementById('appHideSelect').value;
+    let hiddenApps = JSON.parse(localStorage.getItem('sys_hidden_apps')) || [];
+    if(hiddenApps.includes(appId)){
+        hiddenApps = hiddenApps.filter(id => id !== appId);
+    } else {
+        hiddenApps.push(appId);
+    }
+    localStorage.setItem('sys_hidden_apps', JSON.stringify(hiddenApps));
+    send({ type: 'sys_hidden_apps', value: hiddenApps });
+}
+
+function toggleImmersive(){
+    let atual = localStorage.getItem('sys_immersive') === 'true';
+    localStorage.setItem('sys_immersive', !atual);
+    send({ type: 'sys_immersive', value: !atual });
+}
+
 // Carregar estados salvos ao abrir o app
 window.onload = () => {
     const savedColor = localStorage.getItem('clock_color');
@@ -199,6 +311,11 @@ window.onload = () => {
 
     const savedFontSize = localStorage.getItem('sys_font_size');
     if(savedFontSize) document.getElementById('fontSizeSelect').value = savedFontSize;
+
+    const hiddenBtns = JSON.parse(localStorage.getItem('sys_hidden_taskbar_btns')) || [];
+    document.getElementById('btn-home').checked = !hiddenBtns.includes('home');
+    document.getElementById('btn-games').checked = !hiddenBtns.includes('games');
+    document.getElementById('btn-recents').checked = !hiddenBtns.includes('recents');
 }
 </script>
 
