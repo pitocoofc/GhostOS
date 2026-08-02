@@ -213,6 +213,17 @@
     <button onclick="toggleAppVisibility()" style="background: #ec4899;">Alternar Ocultar / Mostrar App</button>
 </div>
 
+<!-- NOTIFICAÇÕES E ANIMAÇÕES -->
+<div class="section">
+    <label>Notificações do Sistema</label>
+    <button onclick="toggleNotifications()" style="background: #0ea5e9;">Ativar / Desativar Notificações</button>
+</div>
+
+<div class="section">
+    <label>Animações do Sistema</label>
+    <button onclick="toggleAnimations()" style="background: #14b8a6;">Ativar / Desativar Animações</button>
+</div>
+
 <!-- MODO IMERSIVO -->
 <div class="section">
     <label>Modo Imersivo (Oculta Status Bar + Taskbar)</label>
@@ -295,13 +306,24 @@ function toggleAppVisibility(){
     send({ type: 'sys_hidden_apps', value: hiddenApps });
 }
 
+function toggleNotifications(){
+    let atual = localStorage.getItem('sys_disable_notifications') === 'true';
+    localStorage.setItem('sys_disable_notifications', !atual);
+    send({ type: 'sys_disable_notifications', value: !atual });
+}
+
+function toggleAnimations(){
+    let atual = localStorage.getItem('sys_disable_animations') === 'true';
+    localStorage.setItem('sys_disable_animations', !atual);
+    send({ type: 'sys_disable_animations', value: !atual });
+}
+
 function toggleImmersive(){
     let atual = localStorage.getItem('sys_immersive') === 'true';
     localStorage.setItem('sys_immersive', !atual);
     send({ type: 'sys_immersive', value: !atual });
 }
 
-// Carregar estados salvos ao abrir o app
 window.onload = () => {
     const savedColor = localStorage.getItem('clock_color');
     if(savedColor) document.getElementById('colorPicker').value = savedColor;
