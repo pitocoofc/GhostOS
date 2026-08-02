@@ -1,3 +1,9 @@
+# Update 7.0.0 Bolinha de queijo (4)
+"What's New?"
+- new customizations
+- more open system
+
+
 # Update 7.0.0 Bolinha de queijo (3)
 "What's new?"
 - New IA
