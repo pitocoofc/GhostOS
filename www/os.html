@@ -1188,6 +1188,11 @@ checkUpdateFromGithub();
 
 
 (function() {
+    if (localStorage.getItem('sys_hide_statusbar') === 'true') {
+        const sb = document.getElementById('status-bar');
+        if(sb) sb.style.display = 'none';
+    }
+    
     // 1. Tamanho da fonte
     const savedFont = localStorage.getItem('sys_font_size');
     if (savedFont) {
@@ -1199,6 +1204,11 @@ checkUpdateFromGithub();
         const style = document.createElement('style');
         style.innerHTML = 'body { filter: invert(1) hue-rotate(180deg); }';
         document.head.appendChild(style);
+    }
+const hiddenApps = JSON.parse(localStorage.getItem('sys_hidden_apps')) || [];
+    hiddenApps.forEach(id => {
+        const card = document.querySelector(`.app-card[data-id="${id}"]`);
+        if(card) card.style.display = 'none';
     }
 
     
