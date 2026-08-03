@@ -175,7 +175,15 @@
     </div>
 
     <script>
- 
+ // Se não existir ou não for 'true', avisa e para tudo
+if (localStorage.getItem('dev_enable_overclock') !== 'true') {
+    alert("Acesso negado: modo overclock não habilitado.");
+    throw new Error("Execução parada: dev_enable_overclock ausente ou inválido.");
+}
+
+// O restante do seu script continua rodando normalmente aqui abaixo
+console.log("Acesso liberado. Executando o resto do código...");
+        
         let s = (typeof GHOST_SYS !== 'undefined') ? GHOST_SYS : { version: "2.4-PREMIUM", specs: { ram: 8 } };
         document.getElementById('menu-v').innerText = "v" + s.version;
 
