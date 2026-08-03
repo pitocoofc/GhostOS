@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GhostOS - BIOS CRITICAL ERROR</title>
+    <title>GhostOS - LINUX CRITICAL ERROR</title>
     <style>
         :root { 
             --error-red: #ff3b30; 
@@ -19,7 +19,7 @@
             overflow: hidden; user-select: none;
         }
 
-        /* Efeito de linhas CRT clássico do GhostOS */
+
         body::before {
             content: " ";
             position: fixed; inset: 0;
@@ -69,7 +69,6 @@
             color: #ddd;
         }
 
-        /* Console Log de Flashing */
         #flash-log {
             font-size: 11px;
             color: #888;
@@ -84,7 +83,7 @@
             font-weight: bold;
         }
 
-        /* Botões Estilizados */
+
         .btn-group {
             display: flex;
             gap: 15px;
@@ -149,7 +148,7 @@
   const bootAudio = new Audio('assets/audios/erro.wav'); 
   bootAudio.volume = 0.5;
 
-  // Toca o áudio assim que o usuário clicar na tela
+
   document.addEventListener('click', () => {
     bootAudio.play().catch(err => console.log("Erro ao tocar:", err));
   }, { once: true }); // "once: true" garante que o evento só rode no primeiro clique
