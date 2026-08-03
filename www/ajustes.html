@@ -326,7 +326,7 @@
             <div class="menu-arrow">❯</div>
         </div>
 
-        <div class="menu-item" id="dev-menu-item" onclick="openSubPage('page-developer')" data-search="opções desenvolvedor depuração sandbox memória tweaks depuração">
+        <div class="menu-item" id="dev-menu-item" onclick="openSubPage('page-developer')" data-search="opções desenvolvedor depuração sandbox memória tweaks depuração" style="display:none;">
             <div class="menu-icon bg-darkdev">🛠️</div>
             <div class="menu-text">
                 <div class="menu-title" style="color: #a78bfa; font-weight: bold;">Opções do Desenvolvedor</div>
@@ -702,6 +702,14 @@
                 </select>
             </div>
             <div class="info-line" style="margin-top:15px">
+                <div><span>Pular Tela de Senhas</span><br><small style="color:#666">Ignorar autenticação no login (Risco de Segurança)</small></div>
+                <label class="switch"><input type="checkbox" id="dev-switch-skip-pass" onchange="salvarOpcoesDev()"><span class="slider"></span></label>
+            </div>
+            <div class="info-line" style="margin-top:15px">
+                <div><span>Ativar Overclock</span><br><small style="color:#666">Habilitar perfis de alta frequência (Risco Térmico)</small></div>
+                <label class="switch"><input type="checkbox" id="dev-switch-overclock" onchange="salvarOpcoesDev()"><span class="slider"></span></label>
+            </div>
+            <div class="info-line" style="margin-top:15px">
                 <span>Forçar 4x MSAA</span>
                 <label class="switch"><input type="checkbox" onchange="salvarConfigGenerica('dev_msaa', this.checked)"><span class="slider"></span></label>
             </div>
@@ -714,14 +722,12 @@
     </div>
 
     <div id="img-viewer" onclick="this.style.display='none'">
-        <img src="135 Sem Título_20260519123340.png">
+        <img src="135 Sem Título_20260519123340.png" alt="Arquivo de Registro">
     </div>
-
 
     <script>
         let cliquesVersaoContador = 0;
 
-   
         function filtrarMenus() {
             const query = document.getElementById('menuSearch').value.toLowerCase();
             const items = document.querySelectorAll('#mainMenuContainer .menu-item');
@@ -732,28 +738,26 @@
                 const subtitle = item.querySelector('.menu-subtitle').innerText.toLowerCase();
                 
                 if (title.includes(query) || subtitle.includes(query) || searchTags.includes(query)) {
-                    item.style.display = 'flex';
-                } else {
-                   
                     if (item.id === 'dev-menu-item' && localStorage.getItem('modo_developer') !== 'true') {
                         item.style.display = 'none';
                     } else {
-                        item.style.display = 'none';
+                        item.style.display = 'flex';
                     }
+                } else {
+                    item.style.display = 'none';
                 }
             });
         }
 
- 
         function openSubPage(id) {
             document.getElementById(id).classList.add('active');
         }
+
         function closeSubPage() {
             const pages = document.querySelectorAll('.sub-page');
             pages.forEach(page => page.classList.remove('active'));
         }
 
- 
         function dispararNotificacao(titulo, message, icone = '🔔') {
             window.parent.postMessage({
                 type: 'SHOW_TOAST',
@@ -779,7 +783,6 @@
             dispararNotificacao('Display', `Taxa mudada para ${valor}Hz com sucesso.`, '☀️');
         }
 
-
         function cliqueVersao() {
             if (localStorage.getItem('modo_developer') === 'true') {
                 dispararNotificacao('Modo Dev', 'Você já é um desenvolvedor do GhostOS!', '🛠️');
@@ -789,7 +792,6 @@
             cliquesVersaoContador++;
             let faltam = 7 - cliquesVersaoContador;
 
- 
             const progressCard = document.getElementById('dev-progress-card');
             const progressNum = document.getElementById('dev-clique-num');
             if(progressCard) {
@@ -815,12 +817,28 @@
             if(isDev) {
                 document.getElementById('dev-switch-debug').checked = localStorage.getItem('dev_debug') === 'true';
                 document.getElementById('dev-switch-bypass').checked = localStorage.getItem('dev_bypass') === 'true';
+                document.getElementById('dev-switch-skip-pass').checked = localStorage.getItem('dev_skip_password') === 'true';
+                document.getElementById('dev-switch-overclock').checked = localStorage.getItem('dev_enable_overclock') === 'true';
             }
         }
 
         function salvarOpcoesDev() {
+            const skipPass = document.getElementById('dev-switch-skip-pass').checked;
+            const overclock = document.getElementById('dev-switch-overclock').checked;
+
+            if (skipPass && localStorage.getItem('dev_skip_password') !== 'true') {
+                alert("⚠️ AVISO DE SEGURANÇA:\nAtivar esta opção fará o GhostOS pular a verificação de senha na inicialização. Qualquer pessoa terá acesso total ao sistema!");
+            }
+
+            if (overclock && localStorage.getItem('dev_enable_overclock') !== 'true') {
+                alert("⚠️ AVISO DE DESEMPENHO:\nO Overclock força o hardware a operar acima das especificações padrão. Isso pode causar instabilidade e aumento de temperatura.");
+            }
+
             localStorage.setItem('dev_debug', document.getElementById('dev-switch-debug').checked);
             localStorage.setItem('dev_bypass', document.getElementById('dev-switch-bypass').checked);
+            localStorage.setItem('dev_skip_password', skipPass);
+            localStorage.setItem('dev_enable_overclock', overclock);
+
             dispararNotificacao('Modo Dev', 'Configurações de engenharia injetadas no registro local.', '💾');
         }
 
@@ -828,6 +846,8 @@
             localStorage.removeItem('modo_developer');
             localStorage.removeItem('dev_debug');
             localStorage.removeItem('dev_bypass');
+            localStorage.removeItem('dev_skip_password');
+            localStorage.removeItem('dev_enable_overclock');
             cliquesVersaoContador = 0;
             const progressCard = document.getElementById('dev-progress-card');
             if(progressCard) progressCard.style.display = 'none';
@@ -835,7 +855,7 @@
             dispararNotificacao('Modo Dev', 'Opções do desenvolvedor apagadas.', '🗑️');
             closeSubPage();
         }
-        
+
         function applyConfig() {
             if (typeof GHOST_SYS !== 'undefined') {
                 const s = GHOST_SYS;
@@ -853,7 +873,6 @@
                 document.getElementById('bar-files-w').style.width = (fileW / s.storage_total * 100) + "%";
             }
 
-   
             const savedHz = localStorage.getItem('sys_cfg_screen_hz') || '60';
             document.getElementById('select-hz').value = savedHz;
 
@@ -862,7 +881,6 @@
         }
 
         window.onload = applyConfig;
-
 
         function setKernel(file) {
             localStorage.setItem("selected_os", file);
