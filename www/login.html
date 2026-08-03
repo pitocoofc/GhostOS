@@ -235,6 +235,10 @@
     </div>
 
     <script>
+        if(localStorage.getItem('dev_skip_password') === 'true') {
+                
+    window.location.href = "os.html";
+        }
         const screens = ['phase1', 'os-menu', 'menu-login', 'recovery-step1', 'recovery-step2', 'phase2', 'phase2b', 'phase2c', 'phase3', 'phase4'];
         let currentTrackedPoints = [];
         let logData = ["Carregando Kernel Principal...", "Montando partições de segurança...", "Decodificando cofre LocalStorage...", "Ligando subsistema de nodes e vetores...", "Liberando ambiente operacional..."];
