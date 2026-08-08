@@ -1,8 +1,8 @@
 const GHOST_SYS = {
-    cpu: "SnapCobra 690",
+    cpu: "SnapCobra 695",
     ram: 8,
-    ram_virtual: 5,
+    ram_virtual: 4,
     storage_total: 128,
-    os_weight: 25,
-    apps_weight: 5.75 // Seus 750MB padrão
+    os_weight: 35,
+    apps_weight: 7.50
 };
