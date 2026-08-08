@@ -1,3 +1,9 @@
+# Update 7.0.0 Bolinha de queijo (6)
+"What's New?"
+- Emulator
+- NexosOS
+- optimizations
+
 # Update 7.0.0 Bolinha de queijo (5)
 "What's New?"
 - Emulator
