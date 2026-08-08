@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Emulador CHIP-8 Mobile & Desktop</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --accent: #00ff66;
+      --text: #ffffff;
+      --btn-bg: #2d2d2d;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 10px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .screen-container {
+      width: 100%;
+      aspect-ratio: 2 / 1;
+      background: #000;
+      border: 3px solid #333;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated; 
+      image-rendering: crisp-edges;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+    }
+
+    input[type="file"] { display: none; }
+
+    .btn-action {
+      background: var(--accent);
+      color: #000;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.85rem;
+      text-align: center;
+      flex: 1;
+    }
+
+    .btn-toggle {
+      background: var(--btn-bg);
+      color: #aaa;
+      border: 1px solid #444;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    #status {
+      font-size: 0.8rem;
+      color: #888;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 35%;
+    }
+
+    /* Controls Simplificados (Pong / Jogos Direcionais) */
+    .simple-controls {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      gap: 10px;
+    }
+
+    .player-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .player-label {
+      font-size: 0.75rem;
+      color: #aaa;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .pad-btn {
+      background: var(--btn-bg);
+      color: var(--text);
+      border: 1px solid #444;
+      border-radius: 8px;
+      height: 50px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .pad-btn:active, .pad-btn.active {
+      background: var(--accent);
+      color: #000;
+      transform: scale(0.96);
+    }
+
+    /* Grade 4x4 Ocultável */
+    .keypad-full {
+      display: none;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      width: 100%;
+      touch-action: manipulation;
+    }
+
+    .keypad-full.visible {
+      display: grid;
+    }
+
+    .key {
+      background: var(--btn-bg);
+      color: var(--text);
+      border: 1px solid #444;
+      border-radius: 6px;
+      aspect-ratio: 1.2 / 1;
+      font-size: 1rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .key:active, .key.active {
+      background: var(--accent);
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>CHIP-8 Emulator</h1>
+    
+    <div class="screen-container">
+      <canvas id="display" width="64" height="32"></canvas>
+    </div>
+
+    <div class="controls">
+      <label class="btn-action" for="romFile">Carregar ROM</label>
+      <input type="file" id="romFile" accept=".ch8">
+      <button class="btn-toggle" id="toggleKeypad">Layout: Direcional</button>
+      <span id="status">Sem ROM</span>
+    </div>
+
+    <!-- Controles Simplificados (Padrão para Celular) -->
+    <div class="simple-controls" id="simplePad">
+      <div class="player-group">
+        <span class="player-label">P1 (Esquerda)</span>
+        <button class="pad-btn" data-key="0x1">▲ SUBIR</button>
+        <button class="pad-btn" data-key="0x4">▼ DESCER</button>
+      </div>
+
+      <div class="player-group">
+        <span class="player-label">AÇÃO</span>
+        <button class="pad-btn" data-key="0x5" style="height: 108px;">TIRO / AÇÃO</button>
+      </div>
+
+      <div class="player-group">
+        <span class="player-label">P2 (Direita)</span>
+        <button class="pad-btn" data-key="0xC">▲ SUBIR</button>
+        <button class="pad-btn" data-key="0xD">▼ DESCER</button>
+      </div>
+    </div>
+
+    <!-- Layout Hexadecimal Completo (4x4) -->
+    <div class="keypad-full" id="fullPad">
+      <div class="key" data-key="0x1">1</div>
+      <div class="key" data-key="0x2">2</div>
+      <div class="key" data-key="0x3">3</div>
+      <div class="key" data-key="0xC">C</div>
+      <div class="key" data-key="0x4">4</div>
+      <div class="key" data-key="0x5">5</div>
+      <div class="key" data-key="0x6">6</div>
+      <div class="key" data-key="0xD">D</div>
+      <div class="key" data-key="0x7">7</div>
+      <div class="key" data-key="0x8">8</div>
+      <div class="key" data-key="0x9">9</div>
+      <div class="key" data-key="0xE">E</div>
+      <div class="key" data-key="0xA">A</div>
+      <div class="key" data-key="0x0">0</div>
+      <div class="key" data-key="0xB">B</div>
+      <div class="key" data-key="0xF">F</div>
+    </div>
+  </div>
+
+  <script>
+    const FONTSET = new Uint8Array([
+      0xF0, 0x90, 0x90, 0x90, 0xF0, 0x20, 0x60, 0x20, 0x20, 0x70,
+      0xF0, 0x10, 0xF0, 0x80, 0xF0, 0xF0, 0x10, 0xF0, 0x10, 0xF0,
+      0x90, 0x90, 0xF0, 0x10, 0x10, 0xF0, 0x80, 0xF0, 0x10, 0xF0,
+      0xF0, 0x80, 0xF0, 0x90, 0xF0, 0xF0, 0x10, 0x20, 0x40, 0x40,
+      0xF0, 0x90, 0xF0, 0x90, 0xF0, 0xF0, 0x90, 0xF0, 0x10, 0xF0,
+      0xF0, 0x90, 0xF0, 0x90, 0x90, 0xE0, 0x90, 0xE0, 0x90, 0xE0,
+      0xF0, 0x80, 0x80, 0x80, 0xF0, 0xE0, 0x90, 0x90, 0x90, 0xE0,
+      0xF0, 0x80, 0xF0, 0x80, 0xF0, 0xF0, 0x80, 0xF0, 0x80, 0x80
+    ]);
+
+    class Display {
+      constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.width = 64;
+        this.height = 32;
+        this.grid = new Uint8Array(this.width * this.height);
+      }
+
+      clear() {
+        this.grid.fill(0);
+        this.render();
+      }
+
+      drawSprite(x, y, spriteBytes) {
+        let collision = false;
+        for (let row = 0; row < spriteBytes.length; row++) {
+          const byte = spriteBytes[row];
+          for (let col = 0; col < 8; col++) {
+            if ((byte & (0x80 >> col)) !== 0) {
+              const targetX = (x + col) % this.width;
+              const targetY = (y + row) % this.height;
+              const index = targetX + (targetY * this.width);
+
+              if (this.grid[index] === 1) collision = true;
+              this.grid[index] ^= 1;
+            }
+          }
+        }
+        this.render();
+        return collision;
+      }
+
+      render() {
+        const imgData = this.ctx.createImageData(this.width, this.height);
+        for (let i = 0; i < this.grid.length; i++) {
+          const pixelIndex = i * 4;
+          const color = this.grid[i] ? 255 : 0;
+          imgData.data[pixelIndex]     = color;
+          imgData.data[pixelIndex + 1] = color;
+          imgData.data[pixelIndex + 2] = color;
+          imgData.data[pixelIndex + 3] = 255;
+        }
+        this.ctx.putImageData(imgData, 0, 0);
+      }
+    }
+
+    class Keyboard {
+      constructor() {
+        this.keys = new Array(16).fill(false);
+        this.keymap = {
+          '1': 0x1, '2': 0x2, '3': 0x3, '4': 0xC,
+          'q': 0x4, 'w': 0x5, 'e': 0x6, 'r': 0xD,
+          'a': 0x7, 's': 0x8, 'd': 0x9, 'f': 0xE,
+          'z': 0xA, 'x': 0x0, 'c': 0xB, 'v': 0xF
+        };
+
+        window.addEventListener('keydown', (e) => this.onKey(e.key.toLowerCase(), true));
+        window.addEventListener('keyup', (e) => this.onKey(e.key.toLowerCase(), false));
+
+        this.bindEvents();
+      }
+
+      onKey(key, isPressed) {
+        if (this.keymap[key] !== undefined) {
+          const hexKey = this.keymap[key];
+          this.keys[hexKey] = isPressed;
+          this.highlightKey(hexKey, isPressed);
+        }
+      }
+
+      setKey(hexKey, isPressed) {
+        this.keys[hexKey] = isPressed;
+      }
+
+      bindEvents() {
+        const allButtons = document.querySelectorAll('[data-key]');
+        allButtons.forEach(btn => {
+          const keyVal = parseInt(btn.dataset.key, 16);
+          const press = (e) => { e.preventDefault(); this.setKey(keyVal, true); this.highlightKey(keyVal, true); };
+          const release = (e) => { e.preventDefault(); this.setKey(keyVal, false); this.highlightKey(keyVal, false); };
+
+          btn.addEventListener('touchstart', press);
+          btn.addEventListener('touchend', release);
+          btn.addEventListener('mousedown', press);
+          btn.addEventListener('mouseup', release);
+          btn.addEventListener('mouseleave', release);
+        });
+      }
+
+      highlightKey(hexKey, isPressed) {
+        const hexStr = `0x${hexKey.toString(16).toUpperCase()}`;
+        const elements = document.querySelectorAll(`[data-key="${hexStr}"]`);
+        elements.forEach(el => el.classList.toggle('active', isPressed));
+      }
+    }
+
+    class CPU {
+      constructor(display, keyboard) {
+        this.display = display;
+        this.keyboard = keyboard;
+        this.memory = new Uint8Array(4096);
+        this.v = new Uint8Array(16);
+        this.i = 0;
+        this.pc = 0x200;
+        this.stack = new Uint16Array(16);
+        this.sp = 0;
+        this.delayTimer = 0;
+        this.soundTimer = 0;
+        this.loadFontset();
+      }
+
+      loadFontset() {
+        for (let i = 0; i < FONTSET.length; i++) this.memory[i] = FONTSET[i];
+      }
+
+      reset() {
+        this.memory.fill(0);
+        this.v.fill(0);
+        this.i = 0;
+        this.pc = 0x200;
+        this.stack.fill(0);
+        this.sp = 0;
+        this.delayTimer = 0;
+        this.soundTimer = 0;
+        this.loadFontset();
+        this.display.clear();
+      }
+
+      loadRom(romData) {
+        this.reset();
+        for (let i = 0; i < romData.length; i++) this.memory[0x200 + i] = romData[i];
+      }
+
+      cycle() {
+        const opcode = (this.memory[this.pc] << 8) | this.memory[this.pc + 1];
+        this.pc += 2;
+        this.executeOpcode(opcode);
+      }
+
+      updateTimers() {
+        if (this.delayTimer > 0) this.delayTimer--;
+        if (this.soundTimer > 0) this.soundTimer--;
+      }
+
+      executeOpcode(opcode) {
+        const x = (opcode & 0x0F00) >> 8;
+        const y = (opcode & 0x00F0) >> 4;
+        const nnn = opcode & 0x0FFF;
+        const kk = opcode & 0x00FF;
+        const n = opcode & 0x000F;
+
+        switch (opcode & 0xF000) {
+          case 0x0000:
+            if (opcode === 0x00E0) this.display.clear();
+            else if (opcode === 0x00EE) { this.sp--; this.pc = this.stack[this.sp]; }
+            break;
+          case 0x1000: this.pc = nnn; break;
+          case 0x2000: this.stack[this.sp] = this.pc; this.sp++; this.pc = nnn; break;
+          case 0x3000: if (this.v[x] === kk) this.pc += 2; break;
+          case 0x4000: if (this.v[x] !== kk) this.pc += 2; break;
+          case 0x5000: if (this.v[x] === this.v[y]) this.pc += 2; break;
+          case 0x6000: this.v[x] = kk; break;
+          case 0x7000: this.v[x] = (this.v[x] + kk) & 0xFF; break;
+          case 0x8000:
+            switch (n) {
+              case 0x0: this.v[x] = this.v[y]; break;
+              case 0x1: this.v[x] |= this.v[y]; break;
+              case 0x2: this.v[x] &= this.v[y]; break;
+              case 0x3: this.v[x] ^= this.v[y]; break;
+              case 0x4:
+                const sum = this.v[x] + this.v[y];
+                this.v[0xF] = sum > 255 ? 1 : 0;
+                this.v[x] = sum & 0xFF;
+                break;
+              case 0x5:
+                this.v[0xF] = this.v[x] > this.v[y] ? 1 : 0;
+                this.v[x] = (this.v[x] - this.v[y]) & 0xFF;
+                break;
+            }
+            break;
+          case 0x9000: if (this.v[x] !== this.v[y]) this.pc += 2; break;
+          case 0xA000: this.i = nnn; break;
+          case 0xB000: this.pc = nnn + this.v[0]; break;
+          case 0xC000: this.v[x] = Math.floor(Math.random() * 256) & kk; break;
+          case 0xD000:
+            const sprite = this.memory.slice(this.i, this.i + n);
+            const collision = this.display.drawSprite(this.v[x], this.v[y], sprite);
+            this.v[0xF] = collision ? 1 : 0;
+            break;
+          case 0xE000:
+            if (kk === 0x9E) { if (this.keyboard.keys[this.v[x]]) this.pc += 2; }
+            else if (kk === 0xA1) { if (!this.keyboard.keys[this.v[x]]) this.pc += 2; }
+            break;
+          case 0xF000:
+            switch (kk) {
+              case 0x07: this.v[x] = this.delayTimer; break;
+              case 0x15: this.delayTimer = this.v[x]; break;
+              case 0x18: this.soundTimer = this.v[x]; break;
+              case 0x1E: this.i += this.v[x]; break;
+              case 0x29: this.i = this.v[x] * 5; break;
+              case 0x33:
+                this.memory[this.i]     = Math.floor(this.v[x] / 100);
+                this.memory[this.i + 1] = Math.floor((this.v[x] % 100) / 10);
+                this.memory[this.i + 2] = this.v[x] % 10;
+                break;
+              case 0x55:
+                for (let k = 0; k <= x; k++) this.memory[this.i + k] = this.v[k];
+                break;
+              case 0x65:
+                for (let k = 0; k <= x; k++) this.v[k] = this.memory[this.i + k];
+                break;
+            }
+            break;
+        }
+      }
+    }
+
+    const display = new Display('display');
+    const keyboard = new Keyboard();
+    const cpu = new CPU(display, keyboard);
+    let isRunning = false;
+    let lastTimerUpdate = Date.now();
+
+    function emulatorLoop() {
+      if (isRunning) {
+        for (let i = 0; i < 9; i++) cpu.cycle();
+        const now = Date.now();
+        if (now - lastTimerUpdate >= 16.6) {
+          cpu.updateTimers();
+          lastTimerUpdate = now;
+        }
+      }
+      requestAnimationFrame(emulatorLoop);
+    }
+
+    requestAnimationFrame(emulatorLoop);
+
+    document.getElementById('romFile').addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const buffer = new Uint8Array(e.target.result);
+        cpu.loadRom(buffer);
+        isRunning = true;
+        document.getElementById('status').textContent = file.name;
+      };
+
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Alternar Layout dos Controles
+    const toggleBtn = document.getElementById('toggleKeypad');
+    const simplePad = document.getElementById('simplePad');
+    const fullPad = document.getElementById('fullPad');
+
+    toggleBtn.addEventListener('click', () => {
+      const isFull = fullPad.classList.toggle('visible');
+      simplePad.style.display = isFull ? 'none' : 'flex';
+      toggleBtn.textContent = isFull ? 'Layout: Full (4x4)' : 'Layout: Direcional';
+    });
+  </script>
+</body>
+</html>
