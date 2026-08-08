@@ -1,3 +1,10 @@
+# Update 7.0.0 Bolinha de queijo (5)
+"What's New?"
+- Emulator
+- CHIP-8
+- optimizations
+
+
 # Update 7.0.0 Bolinha de queijo (4)
 "What's New?"
 - new customizations
