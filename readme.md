@@ -1,3 +1,9 @@
+# Update 7.5.0 
+- Nichts
+  
+Deutsch? Ja.
+
+
 # Update 7.0.0 Bolinha de queijo (6)
 "What's New?"
 - Emulator
