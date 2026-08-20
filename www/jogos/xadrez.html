@@ -32,7 +32,7 @@
             height: 18px;
         }
 
-        /* Seletor de Oponentes Estilo Terminal */
+        
         .selector-container {
             width: 90vw;
             max-width: 360px;
@@ -54,7 +54,7 @@
             border-color: #3b82f6;
         }
 
-        /* Grid do Tabuleiro de Xadrez Responsivo */
+        
         #board {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
@@ -92,7 +92,7 @@
         .square.selected { background-color: #1d4ed8 !important; }
         .square.last-move { background-color: #0d301c !important; }
 
-        /* Marcadores de Movimentos Possíveis */
+        
         .possible-move::after {
             content: '';
             position: absolute;
@@ -107,7 +107,7 @@
             box-shadow: inset 0 0 0 4px rgba(239, 68, 68, 0.6) !important; 
         }
 
-        /* Console de Logs Psicológicos */
+        
         #console {
             width: 90vw;
             max-width: 360px;
@@ -182,7 +182,7 @@
         let stockfish = null;
         let enginePronta = false;
 
-        // Banco de dados corrigido e unificado com todas as lendas
+        
         const OPONENTES = {
             'bot100':   { skill: 0,  depth: 1, contempt: 0,   nome: "Aparício", frases: ["Opa, joguei sem querer.", "Isso é uma dama ou um cavalo?", "Xadrez é legal."] },
             'bot500':   { skill: 3,  depth: 2, contempt: 10,  nome: "Iniciante", frases: ["Estou tentando não pendurar minha rainha.", "Acho que esse lance foi bom.", "Sua vez."] },
@@ -259,7 +259,7 @@
             }
         }
 
-        /* --- RENDERIZADOR --- */
+        
         function drawBoard() {
             boardEl.innerHTML = '';
             const boardState = game.board();
