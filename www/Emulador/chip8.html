@@ -110,7 +110,7 @@
       max-width: 35%;
     }
 
-    /* Controls Simplificados (Pong / Jogos Direcionais) */
+    
     .simple-controls {
       display: flex;
       justify-content: space-between;
@@ -153,7 +153,7 @@
       transform: scale(0.96);
     }
 
-    /* Grade 4x4 Ocultável */
+    
     .keypad-full {
       display: none;
       grid-template-columns: repeat(4, 1fr);
@@ -202,7 +202,7 @@
       <span id="status">Sem ROM</span>
     </div>
 
-    <!-- Controles Simplificados (Padrão para Celular) -->
+    
     <div class="simple-controls" id="simplePad">
       <div class="player-group">
         <span class="player-label">P1 (Esquerda)</span>
@@ -222,7 +222,7 @@
       </div>
     </div>
 
-    <!-- Layout Hexadecimal Completo (4x4) -->
+    
     <div class="keypad-full" id="fullPad">
       <div class="key" data-key="0x1">1</div>
       <div class="key" data-key="0x2">2</div>
@@ -508,7 +508,7 @@
       reader.readAsArrayBuffer(file);
     });
 
-    // Alternar Layout dos Controles
+    
     const toggleBtn = document.getElementById('toggleKeypad');
     const simplePad = document.getElementById('simplePad');
     const fullPad = document.getElementById('fullPad');
