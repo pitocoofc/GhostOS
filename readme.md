@@ -1,3 +1,8 @@
+# Update 7.5.0 (2)
+"What's New?"
+- optimization
+- critical version bug fixes 
+
 # Update 7.5.0 
 - Nichts
   
