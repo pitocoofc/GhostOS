@@ -1,3 +1,7 @@
+# Update 7.5.0 (3)
+"What's New?"
+- APK error correction
+
 # Update 7.5.0 (2)
 "What's New?"
 - optimization
