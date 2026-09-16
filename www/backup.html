@@ -428,6 +428,15 @@
             status.className = isPulse ? 'pulse' : '';
         }
 
+        function uint8ToBase64(bytes) {
+            let binary = '';
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+
         document.getElementById('exportBtn').addEventListener('click', async () => {
             const pass = document.getElementById('passExport').value;
             if (!pass) {
@@ -446,15 +455,43 @@
                 updateStatus('Criptografando em AES-256...', '#38bdf8', true);
                 const encrypted = await encryptAES(compressed, pass);
 
-                const blob = new Blob([encrypted], { type: 'application/octet-stream' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `ghostos_backup_${Date.now()}.ghostbak`;
-                a.click();
-                URL.revokeObjectURL(url);
+                const fileName = `ghostos_backup_${Date.now()}.ghostbak`;
 
-                updateStatus('Backup gerado e protegido!', '#10b981');
+                // 1. Caso esteja executando via Capacitor Native (Plugins Disponíveis)
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) {
+                    const base64Data = uint8ToBase64(encrypted);
+                    
+                    await window.Capacitor.Plugins.Filesystem.writeFile({
+                        path: fileName,
+                        data: base64Data,
+                        directory: 'DOCUMENTS'
+                    });
+
+                    if (window.Capacitor.Plugins.Share) {
+                        const fileUri = await window.Capacitor.Plugins.Filesystem.getUri({
+                            path: fileName,
+                            directory: 'DOCUMENTS'
+                        });
+                        await window.Capacitor.Plugins.Share.share({
+                            title: 'GhostOS Backup',
+                            url: fileUri.uri
+                        });
+                    }
+                    updateStatus('Backup salvo/compartilhado!', '#10b981');
+                } else {
+                    // 2. Fallback via Data URI (Compatível com WebView Android/iOS sem Blob Download)
+                    const base64Data = uint8ToBase64(encrypted);
+                    const dataUrl = `data:application/octet-stream;base64,${base64Data}`;
+                    
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+
+                    updateStatus('Backup gerado com sucesso!', '#10b981');
+                }
             } catch (err) {
                 console.error(err);
                 updateStatus('Erro na geração do backup.', '#ef4444');
