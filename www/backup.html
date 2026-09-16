@@ -147,16 +147,16 @@
 
     <div class="card">
         <h2>GhostOS Vault</h2>
-        <p class="subtitle">Compressão Alta Performance (Sem Criptografia)</p>
+        <p class="subtitle">Backup 1.0</p>
         
-        <!-- Gerar Backup em Texto -->
+        
         <div class="section">
             <button id="exportBtn">Gerar Código de Backup</button>
             <textarea id="outputArea" readonly placeholder="Clique no botão acima para gerar o código..."></textarea>
             <button id="copyBtn" style="display:none; background: #334155;">Copiar Código</button>
         </div>
 
-        <!-- Restaurar Backup via Texto -->
+        
         <div class="section">
             <textarea id="inputArea" placeholder="Cole o código de backup aqui..."></textarea>
             <button class="decompress" id="importBtn">Restaurar LocalStorage</button>
@@ -166,7 +166,7 @@
     </div>
 
     <script>
-        // --- 1. AUXILIARES PARA BIT WRITER / READER ---
+         
         class BitWriter {
             constructor() {
                 this.bytes = [];
@@ -209,7 +209,7 @@
             }
         }
 
-        // --- 2. HUFFMAN ---
+        
         function buildHuffmanTree(frequencies) {
             const pq = [];
             for (let symbol in frequencies) {
@@ -238,12 +238,12 @@
             return codes;
         }
 
-        // --- 3. LZ77 EXPANDIDO (JANELA 8KB PARA MAIOR COMPRESSÃO) ---
+        
         function compressLZ77(uint8Array) {
             const out = [];
             let i = 0;
             const len = uint8Array.length;
-            const windowSize = 8192; // Janela expandida para 8KB
+            const windowSize = 8192; 
             const maxMatchLength = 255;
 
             while (i < len) {
@@ -317,7 +317,7 @@
             return new Uint8Array(out);
         }
 
-        // --- 4. ENGINE DE COMPRESSÃO FULL (LZ77 + HUFFMAN) ---
+        
         function compressFull(uint8Array) {
             const lz77Data = compressLZ77(uint8Array);
             const freq = {};
@@ -374,7 +374,7 @@
             return decompressLZ77(new Uint8Array(lz77Data));
         }
 
-        // --- 5. COMPRESSÃO NATIVA (FALLBACK DE ALTA PERFORMANCE) ---
+        
         async function tryNativeCompress(uint8) {
             if ('CompressionStream' in window) {
                 try {
@@ -401,7 +401,7 @@
             return decompressFull(uint8);
         }
 
-        // --- 6. UTILS & INTERFACE ---
+        
         function updateStatus(text, color = '#f8fafc', isPulse = false) {
             const status = document.getElementById('status');
             status.textContent = text;
@@ -437,7 +437,7 @@
                 
                 const { data: compressed, isNative } = await tryNativeCompress(rawBytes);
 
-                // Adiciona flag de prefixo: 'N:' para nativo, 'H:' para huffman/lz77
+                
                 const base64 = (isNative ? 'N:' : 'H:') + uint8ToBase64(compressed);
 
                 const outputArea = document.getElementById('outputArea');
