@@ -26,7 +26,8 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            overflow: hidden;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .card {
@@ -34,10 +35,11 @@
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 32px;
+            padding: 28px;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-            width: 420px;
+            width: 100%;
+            max-width: 460px;
             text-align: center;
             animation: fadeIn 0.8s ease-out;
         }
@@ -57,12 +59,12 @@
         p.subtitle {
             color: #94a3b8;
             font-size: 13px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .section {
             margin: 16px 0;
-            padding: 18px;
+            padding: 16px;
             background: rgba(15, 23, 42, 0.6);
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -73,28 +75,25 @@
             border-color: rgba(56, 189, 248, 0.3);
         }
 
-        input[type="password"] {
+        textarea {
             width: 100%;
-            padding: 10px 14px;
-            margin: 8px 0 14px 0;
+            height: 90px;
+            padding: 10px;
+            margin: 8px 0 12px 0;
             border-radius: 8px;
             border: 1px solid #334155;
             background: #0f172a;
-            color: #fff;
+            color: #38bdf8;
             box-sizing: border-box;
             outline: none;
-            transition: border-color 0.2s;
+            font-family: monospace;
+            font-size: 11px;
+            resize: none;
+            word-break: break-all;
         }
 
-        input[type="password"]:focus {
+        textarea:focus {
             border-color: var(--accent-cyan);
-        }
-
-        input[type="file"] {
-            margin: 8px 0 14px 0;
-            width: 100%;
-            color: #94a3b8;
-            font-size: 13px;
         }
 
         button {
@@ -126,7 +125,7 @@
         }
 
         #status {
-            margin-top: 20px;
+            margin-top: 16px;
             font-size: 13px;
             font-weight: 500;
             min-height: 20px;
@@ -148,18 +147,18 @@
 
     <div class="card">
         <h2>GhostOS Vault</h2>
-        <p class="subtitle">Compressão NDJ + Criptografia AES-256</p>
+        <p class="subtitle">Compressão Alta Performance (Sem Criptografia)</p>
         
-        <!-- Criar Backup -->
+        <!-- Gerar Backup em Texto -->
         <div class="section">
-            <input type="password" id="passExport" placeholder="Chave de Criptografia">
-            <button id="exportBtn">Exportar LocalStorage (.ghostbak)</button>
+            <button id="exportBtn">Gerar Código de Backup</button>
+            <textarea id="outputArea" readonly placeholder="Clique no botão acima para gerar o código..."></textarea>
+            <button id="copyBtn" style="display:none; background: #334155;">Copiar Código</button>
         </div>
 
-        <!-- Restaurar Backup -->
+        <!-- Restaurar Backup via Texto -->
         <div class="section">
-            <input type="file" id="fileImport" accept=".ghostbak">
-            <input type="password" id="passImport" placeholder="Chave de Decodificação">
+            <textarea id="inputArea" placeholder="Cole o código de backup aqui..."></textarea>
             <button class="decompress" id="importBtn">Restaurar LocalStorage</button>
         </div>
 
@@ -167,7 +166,7 @@
     </div>
 
     <script>
-        // --- 1. CLASSES AUXILIARES BIT WRITER / READER (HUFFMAN) ---
+        // --- 1. AUXILIARES PARA BIT WRITER / READER ---
         class BitWriter {
             constructor() {
                 this.bytes = [];
@@ -210,7 +209,7 @@
             }
         }
 
-        // --- 2. ALGORITMO HUFFMAN ---
+        // --- 2. HUFFMAN ---
         function buildHuffmanTree(frequencies) {
             const pq = [];
             for (let symbol in frequencies) {
@@ -239,12 +238,12 @@
             return codes;
         }
 
-        // --- 3. ALGORITMO LZ77 ---
+        // --- 3. LZ77 EXPANDIDO (JANELA 8KB PARA MAIOR COMPRESSÃO) ---
         function compressLZ77(uint8Array) {
             const out = [];
             let i = 0;
             const len = uint8Array.length;
-            const windowSize = 4096;
+            const windowSize = 8192; // Janela expandida para 8KB
             const maxMatchLength = 255;
 
             while (i < len) {
@@ -263,7 +262,7 @@
                     }
                 }
 
-                if (bestMatchLength >= 4) {
+                if (bestMatchLength >= 3) { // Reduzido threshold para 3 bytes
                     out.push(0xAF, (bestMatchDistance >> 8) & 0xFF, bestMatchDistance & 0xFF, bestMatchLength);
                     i += bestMatchLength;
                 } else {
@@ -275,7 +274,7 @@
                             const subStart = Math.max(0, j - windowSize);
                             for (let sj = subStart; sj < j; sj++) {
                                 if (uint8Array[sj] === uint8Array[j] && uint8Array[sj+1] === uint8Array[j+1] && 
-                                    uint8Array[sj+2] === uint8Array[j+2] && uint8Array[sj+3] === uint8Array[j+3]) {
+                                    uint8Array[sj+2] === uint8Array[j+2]) {
                                     lookAheadMatch = true;
                                     break;
                                 }
@@ -375,52 +374,34 @@
             return decompressLZ77(new Uint8Array(lz77Data));
         }
 
-        // --- 5. CRIPTOGRAFIA AES-256-GCM (WEB CRYPTO API) ---
-        async function deriveKey(password, salt) {
-            const enc = new TextEncoder();
-            const keyMaterial = await window.crypto.subtle.importKey(
-                "raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveKey"]
-            );
-            return window.crypto.subtle.deriveKey(
-                { name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" },
-                keyMaterial,
-                { name: "AES-GCM", length: 256 },
-                false,
-                ["encrypt", "decrypt"]
-            );
+        // --- 5. COMPRESSÃO NATIVA (FALLBACK DE ALTA PERFORMANCE) ---
+        async function tryNativeCompress(uint8) {
+            if ('CompressionStream' in window) {
+                try {
+                    const cs = new CompressionStream('deflate-raw');
+                    const writer = cs.writable.getWriter();
+                    writer.write(uint8);
+                    writer.close();
+                    const buf = await new Response(cs.readable).arrayBuffer();
+                    return { data: new Uint8Array(buf), isNative: true };
+                } catch (e) {}
+            }
+            return { data: compressFull(uint8), isNative: false };
         }
 
-        async function encryptAES(uint8Data, password) {
-            const salt = window.crypto.getRandomValues(new Uint8Array(16));
-            const iv = window.crypto.getRandomValues(new Uint8Array(12));
-            const key = await deriveKey(password, salt);
-
-            const encryptedContent = await window.crypto.subtle.encrypt(
-                { name: "AES-GCM", iv: iv }, key, uint8Data
-            );
-
-            const encryptedArray = new Uint8Array(encryptedContent);
-            const resultBuffer = new Uint8Array(salt.length + iv.length + encryptedArray.length);
-            resultBuffer.set(salt, 0);
-            resultBuffer.set(iv, 16);
-            resultBuffer.set(encryptedArray, 28);
-            return resultBuffer;
+        async function tryNativeDecompress(uint8, isNative) {
+            if (isNative && 'DecompressionStream' in window) {
+                const ds = new DecompressionStream('deflate-raw');
+                const writer = ds.writable.getWriter();
+                writer.write(uint8);
+                writer.close();
+                const buf = await new Response(ds.readable).arrayBuffer();
+                return new Uint8Array(buf);
+            }
+            return decompressFull(uint8);
         }
 
-        async function decryptAES(encryptedBuffer, password) {
-            const salt = encryptedBuffer.slice(0, 16);
-            const iv = encryptedBuffer.slice(16, 28);
-            const data = encryptedBuffer.slice(28);
-
-            const key = await deriveKey(password, salt);
-            const decryptedContent = await window.crypto.subtle.decrypt(
-                { name: "AES-GCM", iv: iv }, key, data
-            );
-
-            return new Uint8Array(decryptedContent);
-        }
-
-        // --- 6. INTEGRAÇÃO COM GHOSTOS & UI ---
+        // --- 6. UTILS & INTERFACE ---
         function updateStatus(text, color = '#f8fafc', isPulse = false) {
             const status = document.getElementById('status');
             status.textContent = text;
@@ -437,86 +418,80 @@
             return window.btoa(binary);
         }
 
-        document.getElementById('exportBtn').addEventListener('click', async () => {
-            const pass = document.getElementById('passExport').value;
-            if (!pass) {
-                updateStatus('Insira uma senha de criptografia!', '#ef4444');
-                return;
+        function base64ToUint8(base64) {
+            const binary = window.atob(base64.trim());
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
             }
+            return bytes;
+        }
 
+        document.getElementById('exportBtn').addEventListener('click', async () => {
             try {
                 updateStatus('Lendo LocalStorage...', '#38bdf8', true);
                 const rawJSON = JSON.stringify(localStorage);
                 const rawBytes = new TextEncoder().encode(rawJSON);
 
-                updateStatus('Compactando (LZ77 + Huffman)...', '#38bdf8', true);
-                const compressed = compressFull(rawBytes);
+                updateStatus('Aplicando taxa máxima de compressão...', '#38bdf8', true);
+                
+                const { data: compressed, isNative } = await tryNativeCompress(rawBytes);
 
-                updateStatus('Criptografando em AES-256...', '#38bdf8', true);
-                const encrypted = await encryptAES(compressed, pass);
+                // Adiciona flag de prefixo: 'N:' para nativo, 'H:' para huffman/lz77
+                const base64 = (isNative ? 'N:' : 'H:') + uint8ToBase64(compressed);
 
-                const fileName = `ghostos_backup_${Date.now()}.ghostbak`;
+                const outputArea = document.getElementById('outputArea');
+                const copyBtn = document.getElementById('copyBtn');
+                outputArea.value = base64;
+                copyBtn.style.display = 'block';
 
-                // 1. Caso esteja executando via Capacitor Native (Plugins Disponíveis)
-                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) {
-                    const base64Data = uint8ToBase64(encrypted);
-                    
-                    await window.Capacitor.Plugins.Filesystem.writeFile({
-                        path: fileName,
-                        data: base64Data,
-                        directory: 'DOCUMENTS'
-                    });
-
-                    if (window.Capacitor.Plugins.Share) {
-                        const fileUri = await window.Capacitor.Plugins.Filesystem.getUri({
-                            path: fileName,
-                            directory: 'DOCUMENTS'
-                        });
-                        await window.Capacitor.Plugins.Share.share({
-                            title: 'GhostOS Backup',
-                            url: fileUri.uri
-                        });
-                    }
-                    updateStatus('Backup salvo/compartilhado!', '#10b981');
-                } else {
-                    // 2. Fallback via Data URI (Compatível com WebView Android/iOS sem Blob Download)
-                    const base64Data = uint8ToBase64(encrypted);
-                    const dataUrl = `data:application/octet-stream;base64,${base64Data}`;
-                    
-                    const a = document.createElement('a');
-                    a.href = dataUrl;
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-
-                    updateStatus('Backup gerado com sucesso!', '#10b981');
-                }
+                const taxa = ((1 - (base64.length / rawJSON.length)) * 100).toFixed(1);
+                updateStatus(`Backup gerado! Reduzido em ${taxa}%. Copie o código abaixo.`, '#10b981');
             } catch (err) {
                 console.error(err);
-                updateStatus('Erro na geração do backup.', '#ef4444');
+                updateStatus('Erro ao compactar dados.', '#ef4444');
+            }
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', async () => {
+            const outputArea = document.getElementById('outputArea');
+            if (!outputArea.value) return;
+
+            try {
+                await navigator.clipboard.writeText(outputArea.value);
+                updateStatus('Código copiado para a área de transferência!', '#10b981');
+            } catch (err) {
+                outputArea.select();
+                document.execCommand('copy');
+                updateStatus('Código selecionado/copiado!', '#10b981');
             }
         });
 
         document.getElementById('importBtn').addEventListener('click', async () => {
-            const fileInput = document.getElementById('fileImport');
-            const pass = document.getElementById('passImport').value;
+            const inputArea = document.getElementById('inputArea');
+            const code = inputArea.value.trim();
 
-            if (fileInput.files.length === 0 || !pass) {
-                updateStatus('Selecione o arquivo e digite a senha!', '#ef4444');
+            if (!code) {
+                updateStatus('Cole o código de backup antes de restaurar!', '#ef4444');
                 return;
             }
 
             try {
-                updateStatus('Descriptografando AES-256...', '#38bdf8', true);
-                const file = fileInput.files[0];
-                const arrayBuffer = await file.arrayBuffer();
-                const encryptedBytes = new Uint8Array(arrayBuffer);
-
-                const compressedBytes = await decryptAES(encryptedBytes, pass);
-
                 updateStatus('Descompactando dados...', '#38bdf8', true);
-                const decompressedBytes = decompressFull(compressedBytes);
+                
+                let isNative = false;
+                let cleanCode = code;
+
+                if (code.startsWith('N:')) {
+                    isNative = true;
+                    cleanCode = code.substring(2);
+                } else if (code.startsWith('H:')) {
+                    isNative = false;
+                    cleanCode = code.substring(2);
+                }
+
+                const compressedBytes = base64ToUint8(cleanCode);
+                const decompressedBytes = await tryNativeDecompress(compressedBytes, isNative);
 
                 const jsonString = new TextDecoder().decode(decompressedBytes);
                 const data = JSON.parse(jsonString);
@@ -527,7 +502,7 @@
                 updateStatus('GhostOS restaurado com sucesso!', '#10b981');
             } catch (err) {
                 console.error(err);
-                updateStatus('Senha incorreta ou arquivo corrompido.', '#ef4444');
+                updateStatus('Código inválido ou corrompido.', '#ef4444');
             }
         });
     </script>
