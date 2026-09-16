@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GhostOS - Backup System</title>
+    <style>
+        :root {
+            --bg-color: #090d16;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --accent-cyan: #38bdf8;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 20% 20%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
+                radial-gradient(at 80% 80%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 32px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            width: 420px;
+            text-align: center;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        h2 { 
+            margin: 0 0 8px 0; 
+            color: var(--accent-cyan);
+            font-size: 24px;
+            letter-spacing: 0.5px;
+        }
+
+        p.subtitle {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        .section {
+            margin: 16px 0;
+            padding: 18px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: border-color 0.3s;
+        }
+
+        .section:hover {
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 10px 14px;
+            margin: 8px 0 14px 0;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #fff;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="password"]:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        input[type="file"] {
+            margin: 8px 0 14px 0;
+            width: 100%;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        button:hover { 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.4);
+        }
+
+        button.decompress { 
+            background: linear-gradient(135deg, #059669, #047857);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+
+        button.decompress:hover { 
+            box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            min-height: 20px;
+            transition: color 0.3s ease;
+        }
+
+        .pulse {
+            animation: pulseAnim 1.5s infinite;
+        }
+
+        @keyframes pulseAnim {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>GhostOS Vault</h2>
+        <p class="subtitle">Compressão NDJ + Criptografia AES-256</p>
+        
+        <!-- Criar Backup -->
+        <div class="section">
+            <input type="password" id="passExport" placeholder="Chave de Criptografia">
+            <button id="exportBtn">Exportar LocalStorage (.ghostbak)</button>
+        </div>
+
+        <!-- Restaurar Backup -->
+        <div class="section">
+            <input type="file" id="fileImport" accept=".ghostbak">
+            <input type="password" id="passImport" placeholder="Chave de Decodificação">
+            <button class="decompress" id="importBtn">Restaurar LocalStorage</button>
+        </div>
+
+        <div id="status">Aguardando ação...</div>
+    </div>
+
+    <script>
+        // --- 1. CLASSES AUXILIARES BIT WRITER / READER (HUFFMAN) ---
+        class BitWriter {
+            constructor() {
+                this.bytes = [];
+                this.currentByte = 0;
+                this.bitCount = 0;
+            }
+            writeBit(bit) {
+                if (bit) this.currentByte |= (1 << (7 - this.bitCount));
+                this.bitCount++;
+                if (this.bitCount === 8) {
+                    this.bytes.push(this.currentByte);
+                    this.currentByte = 0;
+                    this.bitCount = 0;
+                }
+            }
+            writeBits(strBits) {
+                for (let i = 0; i < strBits.length; i++) this.writeBit(strBits[i] === '1');
+            }
+            flush() {
+                if (this.bitCount > 0) this.bytes.push(this.currentByte);
+                return new Uint8Array(this.bytes);
+            }
+        }
+
+        class BitReader {
+            constructor(uint8Array) {
+                this.data = uint8Array;
+                this.byteIndex = 0;
+                this.bitCount = 0;
+            }
+            readBit() {
+                if (this.byteIndex >= this.data.length) return 0;
+                const bit = (this.data[this.byteIndex] >> (7 - this.bitCount)) & 1;
+                this.bitCount++;
+                if (this.bitCount === 8) {
+                    this.bitCount = 0;
+                    this.byteIndex++;
+                }
+                return bit;
+            }
+        }
+
+        // --- 2. ALGORITMO HUFFMAN ---
+        function buildHuffmanTree(frequencies) {
+            const pq = [];
+            for (let symbol in frequencies) {
+                pq.push({ symbol: parseInt(symbol), freq: frequencies[symbol], left: null, right: null });
+            }
+            if (pq.length === 0) return null;
+            if (pq.length === 1) return { symbol: null, freq: pq[0].freq, left: pq[0], right: null };
+
+            while (pq.length > 1) {
+                pq.sort((a, b) => a.freq - b.freq);
+                const left = pq.shift();
+                const right = pq.shift();
+                pq.push({ symbol: null, freq: left.freq + right.freq, left, right });
+            }
+            return pq[0];
+        }
+
+        function generateCodes(node, currentCode = '', codes = {}) {
+            if (!node) return;
+            if (node.symbol !== null) {
+                codes[node.symbol] = currentCode || '0';
+                return;
+            }
+            generateCodes(node.left, currentCode + '0', codes);
+            generateCodes(node.right, currentCode + '1', codes);
+            return codes;
+        }
+
+        // --- 3. ALGORITMO LZ77 ---
+        function compressLZ77(uint8Array) {
+            const out = [];
+            let i = 0;
+            const len = uint8Array.length;
+            const windowSize = 4096;
+            const maxMatchLength = 255;
+
+            while (i < len) {
+                let bestMatchDistance = 0;
+                let bestMatchLength = 0;
+                const searchStart = Math.max(0, i - windowSize);
+                
+                for (let j = searchStart; j < i; j++) {
+                    let matchLen = 0;
+                    while (i + matchLen < len && matchLen < maxMatchLength && uint8Array[j + matchLen] === uint8Array[i + matchLen]) {
+                        matchLen++;
+                    }
+                    if (matchLen > bestMatchLength) {
+                        bestMatchLength = matchLen;
+                        bestMatchDistance = i - j;
+                    }
+                }
+
+                if (bestMatchLength >= 4) {
+                    out.push(0xAF, (bestMatchDistance >> 8) & 0xFF, bestMatchDistance & 0xFF, bestMatchLength);
+                    i += bestMatchLength;
+                } else {
+                    let literalBytes = [];
+                    let j = i;
+                    while (j < len && literalBytes.length < 255) {
+                        let lookAheadMatch = false;
+                        if (j + 3 < len) {
+                            const subStart = Math.max(0, j - windowSize);
+                            for (let sj = subStart; sj < j; sj++) {
+                                if (uint8Array[sj] === uint8Array[j] && uint8Array[sj+1] === uint8Array[j+1] && 
+                                    uint8Array[sj+2] === uint8Array[j+2] && uint8Array[sj+3] === uint8Array[j+3]) {
+                                    lookAheadMatch = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (lookAheadMatch) break;
+                        literalBytes.push(uint8Array[j]);
+                        j++;
+                    }
+                    if (literalBytes.length === 0) {
+                        literalBytes.push(uint8Array[i]);
+                        j = i + 1;
+                    }
+                    out.push(0xAE, literalBytes.length, ...literalBytes);
+                    i = j;
+                }
+            }
+            return new Uint8Array(out);
+        }
+
+        function decompressLZ77(uint8Array) {
+            const out = [];
+            let i = 0;
+            const len = uint8Array.length;
+
+            while (i < len) {
+                const marker = uint8Array[i++];
+                if (i >= len) break;
+
+                if (marker === 0xAE) {
+                    const literalLen = uint8Array[i++];
+                    for (let c = 0; c < literalLen; c++) out.push(uint8Array[i++]);
+                } else if (marker === 0xAF) {
+                    const distance = (uint8Array[i++] << 8) | uint8Array[i++];
+                    const matchLength = uint8Array[i++];
+                    const startPos = out.length - distance;
+                    for (let c = 0; c < matchLength; c++) out.push(out[startPos + c]);
+                }
+            }
+            return new Uint8Array(out);
+        }
+
+        // --- 4. ENGINE DE COMPRESSÃO FULL (LZ77 + HUFFMAN) ---
+        function compressFull(uint8Array) {
+            const lz77Data = compressLZ77(uint8Array);
+            const freq = {};
+            for (let i = 0; i < lz77Data.length; i++) freq[lz77Data[i]] = (freq[lz77Data[i]] || 0) + 1;
+
+            const tree = buildHuffmanTree(freq);
+            const codes = generateCodes(tree);
+            const keys = Object.keys(freq);
+            const writer = new BitWriter();
+
+            const headerBytes = [(keys.length >> 8) & 0xFF, keys.length & 0xFF];
+            for (let sym of keys) {
+                const f = freq[sym];
+                headerBytes.push(parseInt(sym), (f >> 24) & 0xFF, (f >> 16) & 0xFF, (f >> 8) & 0xFF, f & 0xFF);
+            }
+
+            for (let i = 0; i < lz77Data.length; i++) writer.writeBits(codes[lz77Data[i]]);
+            const huffmanBytes = writer.flush();
+
+            const finalBuffer = new Uint8Array(headerBytes.length + huffmanBytes.length);
+            finalBuffer.set(headerBytes, 0);
+            finalBuffer.set(huffmanBytes, headerBytes.length);
+            return finalBuffer;
+        }
+
+        function decompressFull(uint8Array) {
+            let offset = 0;
+            const numSymbols = (uint8Array[offset] << 8) | uint8Array[offset+1];
+            offset += 2;
+
+            const freq = {};
+            for (let i = 0; i < numSymbols; i++) {
+                const sym = uint8Array[offset++];
+                const f = (uint8Array[offset] << 24) | (uint8Array[offset+1] << 16) | (uint8Array[offset+2] << 8) | uint8Array[offset+3];
+                offset += 4;
+                freq[sym] = f;
+            }
+
+            const tree = buildHuffmanTree(freq);
+            const reader = new BitReader(uint8Array.slice(offset));
+            const lz77Data = [];
+            let totalSymbols = 0;
+            for (let sym in freq) totalSymbols += freq[sym];
+
+            let currentNode = tree;
+            while (lz77Data.length < totalSymbols) {
+                const bit = reader.readBit();
+                currentNode = (bit === 0) ? currentNode.left : currentNode.right;
+                if (currentNode && currentNode.symbol !== null) {
+                    lz77Data.push(currentNode.symbol);
+                    currentNode = tree;
+                }
+            }
+            return decompressLZ77(new Uint8Array(lz77Data));
+        }
+
+        // --- 5. CRIPTOGRAFIA AES-256-GCM (WEB CRYPTO API) ---
+        async function deriveKey(password, salt) {
+            const enc = new TextEncoder();
+            const keyMaterial = await window.crypto.subtle.importKey(
+                "raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveKey"]
+            );
+            return window.crypto.subtle.deriveKey(
+                { name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" },
+                keyMaterial,
+                { name: "AES-GCM", length: 256 },
+                false,
+                ["encrypt", "decrypt"]
+            );
+        }
+
+        async function encryptAES(uint8Data, password) {
+            const salt = window.crypto.getRandomValues(new Uint8Array(16));
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const key = await deriveKey(password, salt);
+
+            const encryptedContent = await window.crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv }, key, uint8Data
+            );
+
+            const encryptedArray = new Uint8Array(encryptedContent);
+            const resultBuffer = new Uint8Array(salt.length + iv.length + encryptedArray.length);
+            resultBuffer.set(salt, 0);
+            resultBuffer.set(iv, 16);
+            resultBuffer.set(encryptedArray, 28);
+            return resultBuffer;
+        }
+
+        async function decryptAES(encryptedBuffer, password) {
+            const salt = encryptedBuffer.slice(0, 16);
+            const iv = encryptedBuffer.slice(16, 28);
+            const data = encryptedBuffer.slice(28);
+
+            const key = await deriveKey(password, salt);
+            const decryptedContent = await window.crypto.subtle.decrypt(
+                { name: "AES-GCM", iv: iv }, key, data
+            );
+
+            return new Uint8Array(decryptedContent);
+        }
+
+        // --- 6. INTEGRAÇÃO COM GHOSTOS & UI ---
+        function updateStatus(text, color = '#f8fafc', isPulse = false) {
+            const status = document.getElementById('status');
+            status.textContent = text;
+            status.style.color = color;
+            status.className = isPulse ? 'pulse' : '';
+        }
+
+        document.getElementById('exportBtn').addEventListener('click', async () => {
+            const pass = document.getElementById('passExport').value;
+            if (!pass) {
+                updateStatus('Insira uma senha de criptografia!', '#ef4444');
+                return;
+            }
+
+            try {
+                updateStatus('Lendo LocalStorage...', '#38bdf8', true);
+                const rawJSON = JSON.stringify(localStorage);
+                const rawBytes = new TextEncoder().encode(rawJSON);
+
+                updateStatus('Compactando (LZ77 + Huffman)...', '#38bdf8', true);
+                const compressed = compressFull(rawBytes);
+
+                updateStatus('Criptografando em AES-256...', '#38bdf8', true);
+                const encrypted = await encryptAES(compressed, pass);
+
+                const blob = new Blob([encrypted], { type: 'application/octet-stream' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ghostos_backup_${Date.now()}.ghostbak`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                updateStatus('Backup gerado e protegido!', '#10b981');
+            } catch (err) {
+                console.error(err);
+                updateStatus('Erro na geração do backup.', '#ef4444');
+            }
+        });
+
+        document.getElementById('importBtn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('fileImport');
+            const pass = document.getElementById('passImport').value;
+
+            if (fileInput.files.length === 0 || !pass) {
+                updateStatus('Selecione o arquivo e digite a senha!', '#ef4444');
+                return;
+            }
+
+            try {
+                updateStatus('Descriptografando AES-256...', '#38bdf8', true);
+                const file = fileInput.files[0];
+                const arrayBuffer = await file.arrayBuffer();
+                const encryptedBytes = new Uint8Array(arrayBuffer);
+
+                const compressedBytes = await decryptAES(encryptedBytes, pass);
+
+                updateStatus('Descompactando dados...', '#38bdf8', true);
+                const decompressedBytes = decompressFull(compressedBytes);
+
+                const jsonString = new TextDecoder().decode(decompressedBytes);
+                const data = JSON.parse(jsonString);
+
+                localStorage.clear();
+                Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
+
+                updateStatus('GhostOS restaurado com sucesso!', '#10b981');
+            } catch (err) {
+                console.error(err);
+                updateStatus('Senha incorreta ou arquivo corrompido.', '#ef4444');
+            }
+        });
+    </script>
+</body>
+</html>
