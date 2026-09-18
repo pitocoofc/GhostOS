@@ -1,6 +1,6 @@
 {
-  "appId": "web.os.on",
-  "appName": "WebOS",
+  "appId": "gho.st.os",
+  "appName": "GhostOS",
   "webDir": "www",
   "bundledWebRuntime": false
 }
