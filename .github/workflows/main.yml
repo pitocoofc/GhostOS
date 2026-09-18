@@ -1,5 +1,5 @@
 
-name: Gerar APK Ndj-lib Reborn
+name: Gerar GhostOS APK
 on: [push]
 jobs:
   build:
@@ -54,5 +54,5 @@ jobs:
       - name: Subir APK
         uses: actions/upload-artifact@v4
         with:
-          name: ndj-reborn-apk
+          name: ghost-os-apk
           path: android/app/build/outputs/apk/debug/*.apk
