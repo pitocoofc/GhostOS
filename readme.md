@@ -1,4 +1,4 @@
-# Update 7.5.0 (5)
+# Update 7.5.0 (6)
 "What's New?"
 - Fix in the APK build
 
