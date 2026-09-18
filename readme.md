@@ -1,3 +1,7 @@
+# Update 7.5.0 (7)
+"What's New?"
+- Correction to the APK name.
+
 # Update 7.5.0 (6)
 "What's New?"
 - Fix in the APK build
