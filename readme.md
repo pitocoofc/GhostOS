@@ -1,3 +1,7 @@
+# Update 7.5.0 (5)
+"What's New?"
+- APK version fix
+
 # Update 7.5.0 (4)
 "What's New?"
 - New snake game
