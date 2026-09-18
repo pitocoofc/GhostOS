@@ -1,6 +1,6 @@
 {
   "name": "ghost-os",
-  "version": "1.0.0",
+  "version": "7.5.0",
   "dependencies": {
     "discord.js": "^14.11.0",
     "@capacitor/camera": "^5.0.0",
