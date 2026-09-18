@@ -1,5 +1,9 @@
 # Update 7.5.0 (5)
 "What's New?"
+- Fix in the APK build
+
+# Update 7.5.0 (5)
+"What's New?"
 - APK version fix
 
 # Update 7.5.0 (4)
