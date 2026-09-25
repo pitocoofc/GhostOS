@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Atelier Paint</title>
+<style>
+  :root {
+    --bg: #0b0b14;
+    --panel: #15151f;
+    --panel2: #1d1d2b;
+    --line: rgba(255,255,255,.08);
+    --txt: #e8e8f2;
+    --txt2: #8b8ba3;
+    --acc1: #22d3ee;
+    --acc2: #a855f7;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+  html, body { height: 100%; overflow: hidden; background: var(--bg); font-family: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: var(--txt); }
+  body { display: flex; flex-direction: column; }
+
+  /* ===== Cabeçalho ===== */
+  header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; flex-shrink: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 8px; margin-right: 2px; flex-shrink: 0; }
+  .brand svg { width: 28px; height: 28px; }
+  .brand span {
+    font-weight: 800; font-size: 17px; letter-spacing: .4px; white-space: nowrap;
+    background: linear-gradient(90deg, var(--acc1), var(--acc2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  #tools, #acts { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; align-items: center; }
+  #tools::-webkit-scrollbar, #acts::-webkit-scrollbar { display: none; }
+  #tools { flex: 1; }
+
+  .tbtn {
+    width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center;
+    background: var(--panel2); color: var(--txt);
+    border: 1px solid var(--line); border-radius: 12px; cursor: pointer;
+    transition: transform .12s, box-shadow .12s, background .12s;
+    touch-action: manipulation;
+  }
+  .tbtn svg { width: 22px; height: 22px; }
+  .tbtn:hover { transform: translateY(-1px); }
+  .tbtn:active { transform: scale(.93); }
+  .tbtn.active {
+    background: linear-gradient(135deg, var(--acc1), var(--acc2));
+    color: #0b0b14; border-color: transparent;
+    box-shadow: 0 2px 14px rgba(34,211,238,.45);
+  }
+  .sep { width: 1px; height: 26px; background: var(--line); flex-shrink: 0; }
+
+  /* ===== Canvas ===== */
+  #canvasWrap { position: relative; flex: 1; overflow: hidden; background: #0e0e16; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+  #preview { pointer-events: none; }
+  #grid {
+    position: absolute; inset: 0; pointer-events: none; display: none;
+    background-image:
+      linear-gradient(rgba(10,10,25,.10) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(10,10,25,.10) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  #grid.on { display: block; }
+
+  /* ===== Painel inferior ===== */
+  .panel {
+    flex-shrink: 0; background: rgba(15,15,24,.92);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line);
+  }
+  .prow {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 12px; overflow-x: auto; scrollbar-width: none;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+  }
+  .prow::-webkit-scrollbar { display: none; }
+  .prow:last-child { border-bottom: none; }
+  .lbl {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px;
+    color: var(--txt2); min-width: 54px; flex-shrink: 0;
+  }
+  .ctl { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+  .mini { font-size: 12px; color: var(--txt2); white-space: nowrap; }
+  .ctl b { font-size: 12px; min-width: 30px; color: var(--txt); font-variant-numeric: tabular-nums; }
+
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 110px; height: 4px; border-radius: 4px; outline: none;
+    background: linear-gradient(90deg, var(--acc1), var(--acc2));
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 17px; height: 17px; border-radius: 50%;
+    background: #fff; border: 3px solid var(--acc2);
+    box-shadow: 0 1px 6px rgba(0,0,0,.5); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 13px; height: 13px; border-radius: 50%;
+    background: #fff; border: 3px solid var(--acc2); cursor: pointer;
+  }
+
+  select {
+    background: var(--panel2); color: var(--txt); border: 1px solid var(--line);
+    border-radius: 8px; padding: 5px 8px; font-size: 12px; outline: none;
+  }
+  .chk { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--txt2); white-space: nowrap; flex-shrink: 0; }
+  .chk input { accent-color: var(--acc2); width: 16px; height: 16px; }
+
+  .chip {
+    flex-shrink: 0; padding: 6px 14px; font-size: 12px; font-weight: 600;
+    border-radius: 999px; cursor: pointer; color: #bdbdd0;
+    background: var(--panel2); border: 1px solid var(--line);
+    transition: all .15s; touch-action: manipulation; font-family: inherit;
+  }
+  .chip.on {
+    background: linear-gradient(135deg, var(--acc1), var(--acc2));
+    color: #0b0b14; border-color: transparent;
+    box-shadow: 0 2px 12px rgba(168,85,247,.4);
+  }
+
+  .pill {
+    flex-shrink: 0; padding: 5px 11px; font-size: 12px; font-weight: 600;
+    border-radius: 9px; cursor: pointer; color: var(--txt);
+    background: var(--panel2); border: 1px solid var(--line);
+    transition: all .12s; touch-action: manipulation; font-family: inherit; white-space: nowrap;
+  }
+  .pill:hover { border-color: var(--acc1); color: var(--acc1); }
+  .pill:active { transform: scale(.94); }
+
+  input[type=color] {
+    width: 40px; height: 34px; padding: 0; border: 2px solid #ffffff33;
+    border-radius: 10px; background: none; cursor: pointer; flex-shrink: 0;
+  }
+  input[type=color]::-webkit-color-swatch-wrapper { padding: 2px; }
+  input[type=color]::-webkit-color-swatch { border: none; border-radius: 7px; }
+
+  #palette { display: flex; gap: 7px; align-items: center; }
+  .swatch {
+    width: 26px; height: 26px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,.18); transition: transform .12s;
+  }
+  .swatch:hover { transform: scale(1.15); }
+  .swatch.sel { border-color: #fff; box-shadow: 0 0 0 2px var(--acc1); }
+
+  #stampSel { display: flex; gap: 6px; }
+  .sbtn {
+    width: 34px; height: 34px; display: grid; place-items: center; flex-shrink: 0;
+    background: var(--panel2); color: #bdbdd0; border: 1px solid var(--line);
+    border-radius: 9px; cursor: pointer;
+  }
+  .sbtn svg { width: 18px; height: 18px; }
+  .sbtn.on { color: var(--acc1); border-color: var(--acc1); }
+
+  #brushPrevWrap {
+    width: 44px; height: 44px; display: grid; place-items: center; flex-shrink: 0;
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 12px;
+  }
+  #brushPrev { border-radius: 50%; background: var(--acc1); transition: width .1s, height .1s, background .2s; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="url(#lg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs>
+      <path d="M12 2.6a9.4 9.4 0 1 0 .3 18.8c1.4 0 1.9-1 1.3-2.1-.6-1.2.1-2.6 1.5-2.6h.4a4.7 4.7 0 0 0 4.5-4.9c0-5.1-3.9-9.2-8-9.2z"/>
+      <circle cx="8" cy="8" r="1.2" fill="#22d3ee" stroke="none"/>
+      <circle cx="12" cy="6.6" r="1.2" fill="#a855f7" stroke="none"/>
+      <circle cx="16" cy="8.6" r="1.2" fill="#f472b6" stroke="none"/>
+      <circle cx="9.8" cy="11.4" r="1.2" fill="#facc15" stroke="none"/>
+    </svg>
+    <span>Atelier Paint</span>
+  </div>
+  <div id="tools"></div>
+  <div class="sep"></div>
+  <div id="acts"></div>
+</header>
+
+<div id="canvasWrap">
+  <canvas id="canvas"></canvas>
+  <canvas id="preview"></canvas>
+  <div id="grid"></div>
+</div>
+
+<div class="panel">
+  <div class="prow">
+    <span class="lbl">Traço</span>
+    <div class="ctl"><span class="mini">Tamanho</span><input type="range" id="size" min="1" max="100" value="10"><b id="sizeVal">10</b></div>
+    <div class="ctl"><span class="mini">Opacidade</span><input type="range" id="opacity" min="5" max="100" value="100"><b id="opVal">100%</b></div>
+    <div class="ctl"><span class="mini">Estilo</span>
+      <select id="dashStyle">
+        <option value="solid">Sólido</option>
+        <option value="dash">Tracejado</option>
+        <option value="dot">Pontilhado</option>
+      </select>
+    </div>
+    <label class="chk"><input type="checkbox" id="fillShapes"><span>Preencher formas</span></label>
+    <div id="brushPrevWrap" title="Prévia do traço"><div id="brushPrev"></div></div>
+  </div>
+
+  <div class="prow">
+    <span class="lbl">Modos</span>
+    <button class="chip" id="chipSym">Espelho</button>
+    <button class="chip" id="chipRain">Arco-íris</button>
+    <button class="chip" id="chipChaos">Caos</button>
+    <button class="chip" id="chipSquare">Ponta quadrada</button>
+    <button class="chip" id="chipGrid">Grade</button>
+  </div>
+
+  <div class="prow">
+    <span class="lbl">Cor</span>
+    <input type="color" id="color" value="#22d3ee">
+    <div id="palette"></div>
+    <button class="pill" id="bgBtn" title="Pinta o fundo inteiro com a cor atual">Pintar fundo</button>
+  </div>
+
+  <div class="prow">
+    <span class="lbl">Carimbo</span>
+    <div id="stampSel"></div>
+  </div>
+
+  <div class="prow">
+    <span class="lbl">Filtros</span>
+    <button class="pill" data-filter="grayscale">Preto &amp; branco</button>
+    <button class="pill" data-filter="negative">Negativo</button>
+    <button class="pill" data-filter="sepia">Sépia</button>
+    <button class="pill" data-filter="posterize">Posterizar</button>
+    <button class="pill" data-filter="solarize">Solarizar</button>
+    <button class="pill" data-filter="noise">Ruído</button>
+    <button class="pill" data-filter="blur">Desfoque</button>
+    <button class="pill" data-filter="sharpen">Nitidez</button>
+    <button class="pill" data-filter="pixelate">Pixelizar</button>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept="image/*" hidden>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================================================================
+     ÍCONES SVG desenhados à mão (sem emojis, sem dependências)
+  ================================================================ */
+  const S = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+  const ICONS = {
+    brush:  '<path d="M9.06 11.91 19.07 3.3a2.83 2.83 0 1 1 4 4l-8.61 10.01"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.02 3.02 0 0 0-3-3.02z"/>',
+    pencil: '<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',
+    marker: '<path d="M9 11l4 4-6.6 6.6a2.12 2.12 0 0 1-3-3L9 11z"/><path d="M12.8 3.8l7.4 7.4-3.5 3.5-7.4-7.4z"/><path d="M5 21h6"/>',
+    neon:   '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5 5l1.8 1.8M17.2 17.2 19 19M19 5l-1.8 1.8M6.8 17.2 5 19"/>',
+    line:   '<path d="M6 18 18 6"/><circle cx="6" cy="18" r="1.6" fill="currentColor" stroke="none"/><circle cx="18" cy="6" r="1.6" fill="currentColor" stroke="none"/>',
+    rect:   '<path d="M6.5 6.5h11v11h-11z"/>',
+    ellipse:'<circle cx="12" cy="12" r="8"/><path d="M4 12h.01M20 12h.01"/>',
+    text:   '<path d="M5 7h14M12 7v13M8.5 20h7"/>',
+    stamp:  '<path d="M12 2.5l2.95 6 6.55 1-4.75 4.62 1.12 6.53L12 17.6l-5.87 3.05L7.25 14.1 2.5 9.5l6.55-1z"/>',
+    eraser: '<path d="M7 21 3.3 17.3a2.4 2.4 0 0 1 0-3.4l9.6-9.6a2.4 2.4 0 0 1 3.4 0l5.6 5.6a2.4 2.4 0 0 1 0 3.4L13 21M5 11l9 9"/>',
+    fill:   '<path d="M12 2.7S5.5 9.9 5.5 14.7a6.5 6.5 0 0 0 13 0C18.5 9.9 12 2.7 12 2.7z"/><path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5"/>',
+    spray:  '<rect x="8" y="9" width="7" height="11" rx="1.5"/><path d="M10 9V6h3v3M16 7h2"/><circle cx="20.4" cy="7" r=".9" fill="currentColor" stroke="none"/><circle cx="20.4" cy="10.5" r=".9" fill="currentColor" stroke="none"/><circle cx="20.4" cy="14" r=".9" fill="currentColor" stroke="none"/><circle cx="18.6" cy="17.2" r=".9" fill="currentColor" stroke="none"/>',
+    smudge:'<path d="M21 12a9 9 0 1 1-9-9c3.9 0 7 3.1 7 7 0 2.8-2.2 5-5 5a3.4 3.4 0 0 1-3.4-3.4c0-1.4 1.2-2.6 2.6-2.6a1.3 1.3 0 0 1 0 2.6"/>',
+    picker: '<path d="m2 22 1-4 9.5-9.5 3 3L6 21l-4 1z"/><path d="M14.5 5.5l2-2a2.12 2.12 0 0 1 3 3l-2 2M13 7l4 4"/>',
+    heart:  '<path d="M12 20.5S3.5 15 3.5 8.9C3.5 6.2 5.6 4 8.2 4c1.6 0 3 .8 3.8 2 .8-1.2 2.2-2 3.8-2 2.6 0 4.7 2.2 4.7 4.9 0 6.1-8.5 11.6-8.5 11.6z"/>',
+    smiley: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.2 2 3.5 2 3.5-2 3.5-2M9 9.5h.01M15 9.5h.01"/>',
+    bolt:   '<path d="M13 2 3 14h7l-1 8 11-12h-7l1-8z"/>',
+    undo:   '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a6 6 0 0 1 0 12H9"/>',
+    redo:   '<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a6 6 0 0 0 0 12H15"/>',
+    flipH:  '<path d="M12 3v18"/><path d="M8.5 7 4.5 12l4 5V7z"/><path d="M15.5 7l4 5-4 5V7z"/>',
+    flipV:  '<path d="M3 12h18"/><path d="M7 8.5 12 4.5l5 4H7z"/><path d="M7 15.5 12 19.5l5-4H7z"/>',
+    rotate: '<path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/>',
+    trash:  '<path d="M3.5 6h17M9 6V4h6v2M5.5 6l1 14a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2l1-14"/><path d="M10 11v6M14 11v6"/>',
+    image:  '<path d="M4 5h16v14H4z"/><circle cx="8.5" cy="10" r="1.5"/><path d="m5.5 18.5 5-5.5 4 4.5 3-3 3.5 3.5"/>',
+    save:   '<path d="M12 3.5V15M7 10.5l5 5 5-5"/><path d="M4.5 19.5h15"/>',
+    savejpg:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9.5 13.5v3M14.5 13.5v3M9.5 15h5"/>',
+    paintbg:'<path d="M3 8h13v4H8v3a2 2 0 0 1-4 0v-3H3z"/><path d="M16 6V5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4"/>'
+  };
+  function icon(name) {
+    return '<svg viewBox="0 0 24 24" ' + S + '>' + ICONS[name] + '</svg>';
+  }
+
+  /* ================================================================
+     Construção da interface (ferramentas e ações)
+  ================================================================ */
+  const TOOL_DEFS = [
+    { id: 'brush',   ic: 'brush',   t: 'Pincel' },
+    { id: 'pencil',  ic: 'pencil',  t: 'Lápis fino' },
+    { id: 'marker',  ic: 'marker',  t: 'Marcador' },
+    { id: 'neon',    ic: 'neon',    t: 'Pincel neon' },
+    { id: 'line',    ic: 'line',    t: 'Linha' },
+    { id: 'rect',    ic: 'rect',    t: 'Retângulo' },
+    { id: 'ellipse', ic: 'ellipse', t: 'Elipse' },
+    { id: 'text',    ic: 'text',    t: 'Texto' },
+    { id: 'stamp',   ic: 'stamp',   t: 'Carimbo' },
+    { id: 'eraser',  ic: 'eraser',  t: 'Apagar' },
+    { id: 'fill',    ic: 'fill',    t: 'Preencher (balde)' },
+    { id: 'spray',   ic: 'spray',   t: 'Espalhar (spray)' },
+    { id: 'smudge',  ic: 'smudge',  t: 'Borrar (desfoque)' },
+    { id: 'picker',  ic: 'picker',  t: 'Conta-gotas' }
+  ];
+  const ACT_DEFS = [
+    { id: 'undoBtn',   ic: 'undo',   t: 'Desfazer (Ctrl+Z)' },
+    { id: 'redoBtn',   ic: 'redo',   t: 'Refazer (Ctrl+Y)' },
+    { sep: true },
+    { id: 'flipHBtn',  ic: 'flipH',  t: 'Espelhar horizontal' },
+    { id: 'flipVBtn',  ic: 'flipV',  t: 'Espelhar vertical' },
+    { id: 'rotateBtn', ic: 'rotate', t: 'Girar 90°' },
+    { sep: true },
+    { id: 'clearBtn',  ic: 'trash',  t: 'Limpar tudo' },
+    { id: 'loadBtn',   ic: 'image',  t: 'Carregar imagem' },
+    { id: 'saveBtn',   ic: 'save',   t: 'Salvar PNG' },
+    { id: 'saveJpgBtn',ic: 'savejpg',t: 'Salvar JPG' }
+  ];
+  const toolsBox = document.getElementById('tools');
+  TOOL_DEFS.forEach(d => {
+    const b = document.createElement('button');
+    b.className = 'tbtn' + (d.id === 'brush' ? ' active' : '');
+    b.dataset.tool = d.id; b.title = d.t; b.innerHTML = icon(d.ic);
+    toolsBox.appendChild(b);
+  });
+  const actsBox = document.getElementById('acts');
+  ACT_DEFS.forEach(d => {
+    if (d.sep) { const s = document.createElement('span'); s.className = 'sep'; actsBox.appendChild(s); return; }
+    const b = document.createElement('button');
+    b.className = 'tbtn'; b.id = d.id; b.title = d.t; b.innerHTML = icon(d.ic);
+    actsBox.appendChild(b);
+  });
+
+  /* ================================================================
+     Canvas e estado
+  ================================================================ */
+  const canvas = document.getElementById('canvas');
+  const preview = document.getElementById('preview');
+  const ctx = canvas.getContext('2d');
+  const pctx = preview.getContext('2d');
+  const wrap = document.getElementById('canvasWrap');
+  const dpr = window.devicePixelRatio || 1;
+
+  let tool = 'brush';
+  let color = '#22d3ee';
+  let size = 10, opacity = 1;
+  let fillShapes = false;
+  let rainbow = false, chaos = false, symmetry = false, squareTip = false;
+  let stampShape = 'star';
+  let hue = 0;
+  let drawing = false, start = null, last = null, activePointer = null;
+
+  // Configuração de cada ferramenta de traço
+  const STROKES = {
+    brush:  { w: 1,    glow: 0 },
+    pencil: { w: 0.35, glow: 0 },
+    marker: { w: 2.4,  glow: 0, alpha: 0.45 },
+    neon:   { w: 1,    glow: 3 },
+    eraser: { w: 1.3,  glow: 0 },
+    spray:  { w: 1,    glow: 0 }
+  };
+
+  function resizeCanvas() {
+    const w = Math.max(1, Math.round(wrap.clientWidth * dpr));
+    const h = Math.max(1, Math.round(wrap.clientHeight * dpr));
+    if (canvas.width === w && canvas.height === h) return;
+    const tmp = document.createElement('canvas');
+    tmp.width = canvas.width || w; tmp.height = canvas.height || h;
+    if (canvas.width) tmp.getContext('2d').drawImage(canvas, 0, 0);
+    canvas.width = preview.width = w;
+    canvas.height = preview.height = h;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.drawImage(tmp, 0, 0, tmp.width, tmp.height, 0, 0, w, h);
+  }
+  window.addEventListener('resize', resizeCanvas);
+  window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
+  resizeCanvas();
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  /* ===== Undo / Redo ===== */
+  let undoStack = [], redoStack = [];
+  function pushUndo() {
+    undoStack.push(canvas.toDataURL('image/png'));
+    if (undoStack.length > 30) undoStack.shift();
+    redoStack = [];
+  }
+  function loadDataURL(d) {
+    const img = new Image();
+    img.onload = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
+    img.src = d;
+  }
+  function undo() { if (!undoStack.length) return; redoStack.push(canvas.toDataURL('image/png')); loadDataURL(undoStack.pop()); }
+  function redo() { if (!redoStack.length) return; undoStack.push(canvas.toDataURL('image/png')); loadDataURL(redoStack.pop()); }
+  pushUndo();
+
+  /* ===== Utilidades ===== */
+  function hexToRgb(hex) { const n = parseInt(hex.slice(1), 16); return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }; }
+  function effColor() {
+    if (chaos) return 'hsl(' + Math.floor(Math.random() * 360) + ',100%,50%)';
+    if (rainbow) { hue = (hue + 9) % 360; return 'hsl(' + hue + ',100%,50%)'; }
+    return color;
+  }
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * canvas.width / r.width, y: (e.clientY - r.top) * canvas.height / r.height };
+  }
+  function applyDash(c) {
+    const v = document.getElementById('dashStyle').value;
+    if (v === 'dash') c.setLineDash([10 * dpr, 7 * dpr]);
+    else if (v === 'dot') c.setLineDash([1.5 * dpr, 5.5 * dpr]);
+    else c.setLineDash([]);
+  }
+
+  /* ================================================================
+     Ferramentas de traço
+  ================================================================ */
+  function strokeStyle(c, erase) {
+    const s = STROKES[tool] || STROKES.brush;
+    const col = erase ? '#000' : effColor();
+    if (erase) c.globalCompositeOperation = 'destination-out';
+    c.globalAlpha = erase ? 1 : opacity * (s.alpha || 1);
+    c.strokeStyle = col; c.fillStyle = col;
+    c.lineWidth = Math.max(1, size * dpr * s.w);
+    c.lineCap = squareTip && !erase ? 'butt' : 'round';
+    c.lineJoin = 'round';
+    applyDash(c);
+    if (s.glow && !erase) { c.shadowColor = col; c.shadowBlur = size * dpr * s.glow; }
+    return s;
+  }
+  function drawSegment(c, p1, p2, erase) {
+    const s = strokeStyle(c, erase);
+    const segs = symmetry && !erase
+      ? [[p1, p2], [{ x: canvas.width - p1.x, y: p1.y }, { x: canvas.width - p2.x, y: p2.y }]]
+      : [[p1, p2]];
+    c.save();
+    segs.forEach(([a, b]) => {
+      if (squareTip && !erase) {
+        const r = Math.max(1, size * dpr * s.w / 2);
+        const steps = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / (r * 1.2)));
+        for (let i = 0; i <= steps; i++) c.fillRect(a.x + (b.x - a.x) * i / steps - r, a.y + (b.y - a.y) * i / steps - r, r * 2, r * 2);
+      } else {
+        c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke();
+      }
+    });
+    c.restore();
+  }
+  function dot(c, p, erase) {
+    const s = strokeStyle(c, erase);
+    const r = Math.max(0.5, size * dpr * s.w / 2);
+    const pts = symmetry && !erase ? [p, { x: canvas.width - p.x, y: p.y }] : [p];
+    c.save();
+    pts.forEach(q => {
+      if (squareTip && !erase) c.fillRect(q.x - r, q.y - r, r * 2, r * 2);
+      else { c.beginPath(); c.arc(q.x, q.y, r, 0, 7); c.fill(); }
+    });
+    c.restore();
+  }
+
+  /* ===== Spray ===== */
+  function spray(p) {
+    const r = size * dpr * 2, n = Math.max(6, size * 2);
+    const col = effColor();
+    const pts = symmetry ? [p, { x: canvas.width - p.x, y: p.y }] : [p];
+    ctx.save();
+    ctx.globalAlpha = opacity; ctx.fillStyle = col;
+    pts.forEach(q => {
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2, rr = Math.sqrt(Math.random()) * r;
+        ctx.beginPath();
+        ctx.arc(q.x + Math.cos(a) * rr, q.y + Math.sin(a) * rr, Math.max(0.5, size * dpr / 5), 0, 7);
+        ctx.fill();
+      }
+    });
+    ctx.restore();
+  }
+
+  /* ===== Borrar (smudge) ===== */
+  const smudgeTmp = document.createElement('canvas');
+  let smudgeSnapshot = null;
+  function smudgeStart() { smudgeSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height); }
+  function smudge(p) {
+    if (!smudgeSnapshot || !last) return;
+    smudgeTmp.width = canvas.width; smudgeTmp.height = canvas.height;
+    smudgeTmp.getContext('2d').putImageData(smudgeSnapshot, 0, 0);
+    const dx = (p.x - last.x) * 0.6, dy = (p.y - last.y) * 0.6;
+    const r = size * dpr * 2;
+    ctx.save();
+    ctx.globalAlpha = 0.5 * opacity;
+    ctx.drawImage(smudgeTmp, p.x - r, p.y - r, r * 2, r * 2, p.x - r + dx, p.y - r + dy, r * 2, r * 2);
+    if (symmetry) ctx.drawImage(smudgeTmp, canvas.width - p.x - r, p.y - r, r * 2, r * 2, canvas.width - p.x - r - dx, p.y - r + dy, r * 2, r * 2);
+    ctx.restore();
+  }
+
+  /* ===== Balde (flood fill) ===== */
+  function floodFill(p) {
+    const W = canvas.width, H = canvas.height;
+    const x0 = Math.floor(p.x), y0 = Math.floor(p.y);
+    if (x0 < 0 || y0 < 0 || x0 >= W || y0 >= H) return;
+    const img = ctx.getImageData(0, 0, W, H), d = img.data;
+    const s = (y0 * W + x0) * 4;
+    const sr = d[s], sg = d[s + 1], sb = d[s + 2], sa = d[s + 3];
+    const c = hexToRgb(color), fa = Math.round(opacity * 255), tol = 40;
+    if (Math.abs(sr - c.r) <= tol && Math.abs(sg - c.g) <= tol && Math.abs(sb - c.b) <= tol && Math.abs(sa - fa) <= tol) return;
+    const visited = new Uint8Array(W * H), stack = new Int32Array(W * H);
+    let sp = 0;
+    stack[sp++] = y0 * W + x0; visited[y0 * W + x0] = 1;
+    const match = i => Math.abs(d[i] - sr) <= tol && Math.abs(d[i + 1] - sg) <= tol && Math.abs(d[i + 2] - sb) <= tol && Math.abs(d[i + 3] - sa) <= tol;
+    while (sp > 0) {
+      const pi = stack[--sp], i = pi * 4;
+      d[i] = c.r; d[i + 1] = c.g; d[i + 2] = c.b; d[i + 3] = fa;
+      const x = pi % W, y = (pi / W) | 0;
+      if (x > 0)     { const q = pi - 1; if (!visited[q] && match(q * 4)) { visited[q] = 1; stack[sp++] = q; } }
+      if (x < W - 1) { const q = pi + 1; if (!visited[q] && match(q * 4)) { visited[q] = 1; stack[sp++] = q; } }
+      if (y > 0)     { const q = pi - W; if (!visited[q] && match(q * 4)) { visited[q] = 1; stack[sp++] = q; } }
+      if (y < H - 1) { const q = pi + W; if (!visited[q] && match(q * 4)) { visited[q] = 1; stack[sp++] = q; } }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  /* ===== Conta-gotas ===== */
+  function pickColor(p) {
+    const x = Math.floor(p.x), y = Math.floor(p.y);
+    if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
+    const d = ctx.getImageData(x, y, 1, 1).data;
+    setColor('#' + [d[0], d[1], d[2]].map(v => v.toString(16).padStart(2, '0')).join(''));
+  }
+
+  /* ===== Carimbos ===== */
+  const STAMPS = {
+    star: (c, x, y, r) => {
+      c.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r;
+        const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr;
+        i ? c.lineTo(px, py) : c.moveTo(px, py);
+      }
+      c.closePath(); c.fill(); c.stroke();
+    },
+    heart: (c, x, y, r) => {
+      c.beginPath();
+      c.moveTo(x, y + r * 0.85);
+      c.bezierCurveTo(x - r * 1.15, y, x - r * 0.65, y - r * 1.05, x, y - r * 0.3);
+      c.bezierCurveTo(x + r * 0.65, y - r * 1.05, x + r * 1.15, y, x, y + r * 0.85);
+      c.closePath(); c.fill(); c.stroke();
+    },
+    smiley: (c, x, y, r) => {
+      c.beginPath(); c.arc(x, y, r, 0, 7); c.stroke();
+      c.beginPath(); c.arc(x - r * 0.35, y - r * 0.25, r * 0.1, 0, 7); c.fill();
+      c.beginPath(); c.arc(x + r * 0.35, y - r * 0.25, r * 0.1, 0, 7); c.fill();
+      c.beginPath(); c.arc(x, y + r * 0.12, r * 0.52, 0.18 * Math.PI, 0.82 * Math.PI); c.stroke();
+    },
+    bolt: (c, x, y, r) => {
+      c.beginPath();
+      c.moveTo(x + r * 0.25, y - r);
+      c.lineTo(x - r * 0.55, y + r * 0.15);
+      c.lineTo(x - r * 0.05, y + r * 0.15);
+      c.lineTo(x - r * 0.25, y + r);
+      c.lineTo(x + r * 0.55, y - r * 0.15);
+      c.lineTo(x + r * 0.05, y - r * 0.15);
+      c.closePath(); c.fill(); c.stroke();
+    }
+  };
+  function drawStamp(p) {
+    const r = size * dpr * 2;
+    const col = effColor();
+    const pts = symmetry ? [p, { x: canvas.width - p.x, y: p.y }] : [p];
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.fillStyle = col; ctx.strokeStyle = col;
+    ctx.lineWidth = Math.max(1, size * dpr * 0.18);
+    ctx.lineJoin = 'round';
+    if (STROKES[tool] && STROKES[tool].glow) { ctx.shadowColor = col; ctx.shadowBlur = size * dpr * 2; }
+    pts.forEach(q => STAMPS[stampShape](ctx, q.x, q.y, r));
+    ctx.restore();
+  }
+
+  /* ===== Formas ===== */
+  function traceShape(c, p1, p2) {
+    if (tool === 'line') { c.beginPath(); c.moveTo(p1.x, p1.y); c.lineTo(p2.x, p2.y); }
+    else if (tool === 'rect') { c.beginPath(); c.rect(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y), Math.abs(p2.x - p1.x), Math.abs(p2.y - p1.y)); }
+    else if (tool === 'ellipse') { c.beginPath(); c.ellipse((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, Math.abs(p2.x - p1.x) / 2, Math.abs(p2.y - p1.y) / 2, 0, 0, 7); }
+  }
+  function drawShape(c, p1, p2) {
+    c.save();
+    c.globalAlpha = opacity; c.strokeStyle = color; c.fillStyle = color;
+    c.lineWidth = Math.max(1, size * dpr);
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    applyDash(c);
+    const pairs = symmetry
+      ? [[p1, p2], [{ x: canvas.width - p1.x, y: p1.y }, { x: canvas.width - p2.x, y: p2.y }]]
+      : [[p1, p2]];
+    pairs.forEach(([a, b]) => {
+      traceShape(c, a, b);
+      if (fillShapes && tool !== 'line') c.fill();
+      c.stroke();
+    });
+    c.restore();
+  }
+
+  /* ================================================================
+     Eventos de desenho
+  ================================================================ */
+  canvas.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    if (activePointer !== null) return;
+    activePointer = e.pointerId;
+    canvas.setPointerCapture(e.pointerId);
+    const p = getPos(e);
+    drawing = true; start = p; last = p;
+
+    if (tool === 'fill')   { floodFill(p); drawing = false; activePointer = null; pushUndo(); return; }
+    if (tool === 'picker') { pickColor(p); drawing = false; activePointer = null; return; }
+    if (tool === 'stamp')  { drawStamp(p); drawing = false; activePointer = null; pushUndo(); return; }
+    if (tool === 'text') {
+      const t = prompt('Texto:');
+      if (t) {
+        ctx.save();
+        ctx.globalAlpha = opacity; ctx.fillStyle = color;
+        ctx.font = 'bold ' + (size * 3 * dpr) + 'px system-ui, sans-serif';
+        const pts = symmetry ? [p, { x: canvas.width - p.x, y: p.y }] : [p];
+        pts.forEach(q => ctx.fillText(t, q.x, q.y));
+        ctx.restore();
+        pushUndo();
+      }
+      drawing = false; activePointer = null; return;
+    }
+    if (STROKES[tool]) dot(ctx, p, tool === 'eraser');
+    if (tool === 'spray') spray(p);
+    if (tool === 'smudge') smudgeStart();
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    if (!drawing || e.pointerId !== activePointer) return;
+    e.preventDefault();
+    const p = getPos(e);
+    if (STROKES[tool] && tool !== 'spray') drawSegment(ctx, last, p, tool === 'eraser');
+    else if (tool === 'spray') spray(p);
+    else if (tool === 'smudge') smudge(p);
+    else {
+      pctx.clearRect(0, 0, preview.width, preview.height);
+      drawShape(pctx, start, p);
+    }
+    last = p;
+  });
+
+  function endStroke(e) {
+    if (!drawing || (e && e.pointerId !== activePointer)) return;
+    drawing = false; activePointer = null;
+    if (tool === 'line' || tool === 'rect' || tool === 'ellipse') {
+      pctx.clearRect(0, 0, preview.width, preview.height);
+      drawShape(ctx, start, last);
+    }
+    pushUndo();
+  }
+  canvas.addEventListener('pointerup', endStroke);
+  canvas.addEventListener('pointercancel', endStroke);
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+  /* ===== Seleção de ferramenta ===== */
+  const toolButtons = document.querySelectorAll('#tools button[data-tool]');
+  toolButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tool = btn.dataset.tool;
+      toolButtons.forEach(b => b.classList.toggle('active', b === btn));
+    });
+  });
+
+  /* ===== Controles de cor / traço ===== */
+  const colorInput = document.getElementById('color');
+  const palette = document.getElementById('palette');
+  const brushPrev = document.getElementById('brushPrev');
+  function updateBrushPrev() {
+    const d = Math.max(3, Math.min(36, size * 0.38));
+    brushPrev.style.width = d + 'px';
+    brushPrev.style.height = d + 'px';
+    brushPrev.style.background = (rainbow || chaos)
+      ? 'conic-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)'
+      : color;
+  }
+  function setColor(hex) {
+    color = hex; colorInput.value = hex;
+    palette.querySelectorAll('.swatch').forEach(s => s.classList.toggle('sel', s.dataset.c === hex));
+    updateBrushPrev();
+  }
+  colorInput.addEventListener('input', () => setColor(colorInput.value));
+  ['#0b0b14', '#ffffff', '#ef4444', '#f97316', '#facc15', '#22c55e', '#22d3ee', '#3b82f6', '#a855f7', '#ec4899', '#a16207', '#64748b'].forEach(c => {
+    const s = document.createElement('div');
+    s.className = 'swatch'; s.dataset.c = c; s.style.background = c; s.title = c;
+    s.addEventListener('click', () => setColor(c));
+    palette.appendChild(s);
+  });
+
+  const sizeInput = document.getElementById('size'), sizeVal = document.getElementById('sizeVal');
+  sizeInput.addEventListener('input', () => { size = +sizeInput.value; sizeVal.textContent = size; updateBrushPrev(); });
+  const opInput = document.getElementById('opacity'), opVal = document.getElementById('opVal');
+  opInput.addEventListener('input', () => { opacity = +opInput.value / 100; opVal.textContent = opInput.value + '%'; });
+  document.getElementById('fillShapes').addEventListener('change', e => { fillShapes = e.target.checked; });
+
+  /* ===== Chips de modo ===== */
+  function wireChip(id, varName, after) {
+    const el = document.getElementById(id);
+    el.addEventListener('click', () => {
+      const on = el.classList.toggle('on');
+      if (varName) window['__' + varName] = on;
+      if (after) after(on);
+    });
+  }
+  wireChip('chipSym', null, on => { symmetry = on; });
+  wireChip('chipRain', null, on => { rainbow = on; if (on) { chaos = false; document.getElementById('chipChaos').classList.remove('on'); } updateBrushPrev(); });
+  wireChip('chipChaos', null, on => { chaos = on; if (on) { rainbow = false; document.getElementById('chipRain').classList.remove('on'); } updateBrushPrev(); });
+  wireChip('chipSquare', null, on => { squareTip = on; });
+  wireChip('chipGrid', null, on => { document.getElementById('grid').classList.toggle('on', on); });
+
+  /* ===== Seletor de carimbo ===== */
+  const stampSel = document.getElementById('stampSel');
+  [['star', 'stamp'], ['heart', 'heart'], ['smiley', 'smiley'], ['bolt', 'bolt']].forEach(([id, ic], i) => {
+    const b = document.createElement('button');
+    b.className = 'sbtn' + (i === 0 ? ' on' : '');
+    b.title = id; b.innerHTML = icon(ic);
+    b.addEventListener('click', () => {
+      stampShape = id;
+      stampSel.querySelectorAll('.sbtn').forEach(x => x.classList.toggle('on', x === b));
+    });
+    stampSel.appendChild(b);
+  });
+
+  /* ================================================================
+     Filtros (todos manuais, pixel a pixel)
+  ================================================================ */
+  function eachPixel(fn) {
+    pushUndo();
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    fn(img.data, canvas.width, canvas.height);
+    ctx.putImageData(img, 0, 0);
+  }
+  const clamp = v => v < 0 ? 0 : v > 255 ? 255 : v;
+  const FILTERS = {
+    grayscale() { eachPixel(d => { for (let i = 0; i < d.length; i += 4) { const l = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; d[i] = d[i + 1] = d[i + 2] = l; } }); },
+    negative()  { eachPixel(d => { for (let i = 0; i < d.length; i += 4) { d[i] = 255 - d[i]; d[i + 1] = 255 - d[i + 1]; d[i + 2] = 255 - d[i + 2]; } }); },
+    sepia()     { eachPixel(d => { for (let i = 0; i < d.length; i += 4) { const r = d[i], g = d[i + 1], b = d[i + 2]; d[i] = clamp(0.393 * r + 0.769 * g + 0.189 * b); d[i + 1] = clamp(0.349 * r + 0.686 * g + 0.168 * b); d[i + 2] = clamp(0.272 * r + 0.534 * g + 0.131 * b); } }); },
+    posterize() { const L = 4; eachPixel(d => { for (let i = 0; i < d.length; i += 4) { d[i] = Math.round(d[i] / 255 * (L - 1)) / (L - 1) * 255; d[i + 1] = Math.round(d[i + 1] / 255 * (L - 1)) / (L - 1) * 255; d[i + 2] = Math.round(d[i + 2] / 255 * (L - 1)) / (L - 1) * 255; } }); },
+    solarize()  { eachPixel(d => { for (let i = 0; i < d.length; i += 4) { d[i] = d[i] > 127 ? 255 - d[i] : d[i]; d[i + 1] = d[i + 1] > 127 ? 255 - d[i + 1] : d[i + 1]; d[i + 2] = d[i + 2] > 127 ? 255 - d[i + 2] : d[i + 2]; } }); },
+    noise()     { eachPixel(d => { for (let i = 0; i < d.length; i += 4) { const n = (Math.random() - 0.5) * 70; d[i] = clamp(d[i] + n); d[i + 1] = clamp(d[i + 1] + n); d[i + 2] = clamp(d[i + 2] + n); } }); },
+    blur() {
+      eachPixel((d, W, H) => {
+        for (let pass = 0; pass < 2; pass++) {
+          const src = new Uint8ClampedArray(d);
+          for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+            const i = (y * W + x) * 4;
+            for (let ch = 0; ch < 3; ch++) {
+              d[i + ch] = (src[i + ch] + src[i - 4 + ch] + src[i + 4 + ch] + src[i - W * 4 + ch] + src[i + W * 4 + ch] +
+                src[i - W * 4 - 4 + ch] + src[i - W * 4 + 4 + ch] + src[i + W * 4 - 4 + ch] + src[i + W * 4 + 4 + ch]) / 9;
+            }
+          }
+        }
+      });
+    },
+    sharpen() {
+      eachPixel((d, W, H) => {
+        const src = new Uint8ClampedArray(d);
+        for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+          const i = (y * W + x) * 4;
+          for (let ch = 0; ch < 3; ch++) {
+            d[i + ch] = clamp(5 * src[i + ch] - src[i - 4 + ch] - src[i + 4 + ch] - src[i - W * 4 + ch] - src[i + W * 4 + ch]);
+          }
+        }
+      });
+    },
+    pixelate() {
+      pushUndo();
+      const px = 14 * dpr;
+      const w = Math.max(1, Math.round(canvas.width / px)), h = Math.max(1, Math.round(canvas.height / px));
+      const t = document.createElement('canvas');
+      t.width = w; t.height = h;
+      t.getContext('2d').drawImage(canvas, 0, 0, w, h);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(t, 0, 0, w, h, 0, 0, canvas.width, canvas.height);
+      ctx.imageSmoothingEnabled = true;
+    }
+  };
+  document.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => FILTERS[b.dataset.filter]()));
+
+  /* ================================================================
+     Ações
+  ================================================================ */
+  document.getElementById('undoBtn').addEventListener('click', undo);
+  document.getElementById('redoBtn').addEventListener('click', redo);
+
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    pushUndo();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  });
+
+  document.getElementById('bgBtn').addEventListener('click', () => {
+    pushUndo();
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+  });
+
+  function transform(fn) {
+    pushUndo();
+    const t = document.createElement('canvas');
+    t.width = canvas.width; t.height = canvas.height;
+    const tc = t.getContext('2d');
+    fn(tc);
+    tc.drawImage(canvas, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(t, 0, 0);
+  }
+  document.getElementById('flipHBtn').addEventListener('click', () => transform(tc => { tc.translate(canvas.width, 0); tc.scale(-1, 1); }));
+  document.getElementById('flipVBtn').addEventListener('click', () => transform(tc => { tc.translate(0, canvas.height); tc.scale(1, -1); }));
+  document.getElementById('rotateBtn').addEventListener('click', () => transform(tc => { tc.translate(canvas.width / 2, canvas.height / 2); tc.rotate(Math.PI / 2); tc.translate(-canvas.width / 2, -canvas.height / 2); }));
+
+  function saveAs(mime, ext) {
+    const a = document.createElement('a');
+    a.download = 'desenho.' + ext;
+    a.href = canvas.toDataURL(mime, 0.92);
+    a.click();
+  }
+  document.getElementById('saveBtn').addEventListener('click', () => saveAs('image/png', 'png'));
+  document.getElementById('saveJpgBtn').addEventListener('click', () => saveAs('image/jpeg', 'jpg'));
+
+  const fileInput = document.getElementById('fileInput');
+  document.getElementById('loadBtn').addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const f = fileInput.files[0];
+    if (!f) return;
+    const img = new Image();
+    img.onload = () => {
+      pushUndo();
+      const s = Math.max(canvas.width / img.width, canvas.height / img.height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, (canvas.width - img.width * s) / 2, (canvas.height - img.height * s) / 2, img.width * s, img.height * s);
+      URL.revokeObjectURL(img.src);
+      fileInput.value = '';
+    };
+    img.src = URL.createObjectURL(f);
+  });
+
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveAs('image/png', 'png'); }
+  });
+
+  setColor('#22d3ee');
+})();
+</script>
+</body>
+</html>
