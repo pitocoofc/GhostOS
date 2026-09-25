@@ -82,6 +82,9 @@
         background-size: cover;  
     }  
 
+
+
+
     #app-grid {  
         display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;  
         padding: 80px 20px 40px; width: 100%; max-width: 450px; margin: 0 auto;  
@@ -348,12 +351,104 @@
     background: rgba(255, 255, 255, 0.9);
 }
 
+
+/* --- MODO DE REPOUSO / SCREENSAVER CINEMATOGRÁFICO --- */
+#sleep-warning {
+    position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-100px);
+    background: rgba(15, 15, 20, 0.85); border: 1px solid rgba(59, 130, 246, 0.4);
+    backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+    color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 13px; font-weight: 600;
+    letter-spacing: 0.5px; box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(59, 130, 246, 0.3);
+    z-index: 999999; opacity: 0; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none; display: flex; align-items: center; gap: 10px;
+}
+#sleep-warning.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+#screensaver-overlay {
+    position: fixed; inset: 0; background: #000; z-index: 999990;
+    display: none; opacity: 0; transition: opacity 0.8s ease; overflow: hidden;
+    cursor: pointer; user-select: none;
+}
+#screensaver-overlay.active { display: block; opacity: 1; }
+
+#ss-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+#ss-logo-container {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    pointer-events: none; z-index: 10;
+}
+
+.ss-main-title {
+    display: flex; align-items: center; font-family: 'Segoe UI', sans-serif;
+    font-weight: 900; font-size: 80px; letter-spacing: 8px; color: #fff;
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.2);
+}
+
+.ss-ghost-text {
+    display: inline-block; opacity: 0; transform: translateX(30px);
+    transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ss-ghost-text.show { opacity: 1; transform: translateX(0); }
+
+.ss-sub-text {
+    font-size: 22px; font-weight: 300; letter-spacing: 12px; color: #3b82f6;
+    margin-top: -10px; opacity: 0; transform: translateY(15px);
+    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+}
+.ss-sub-text.show { opacity: 1; transform: translateY(0); }
+#ss-logo-container {
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%);
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    pointer-events: none; 
+    z-index: 10;
+    will-change: transform;
+    transition: transform 0.1s ease-out;
+}
+
+.ss-main-title {
+    display: flex; 
+    align-items: center; 
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 900; 
+    font-size: 84px; 
+    letter-spacing: 6px; 
+    color: #ffffff;
+    filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.7));
+}
+
 </style>
 
 </head>  
 
 
 <body>  
+<!-- BANNER AVISO DE REPOUSO -->
+<div id="sleep-warning">
+    <span style="font-size: 16px;">🌙</span>
+    <span>O Dispositivo vai entrar em modo de repouso...</span>
+</div>
+
+<!-- CONTAINER DO SCREENSAVER -->
+<div id="screensaver-overlay" onclick="wakeUpSystem()">
+    <canvas id="ss-canvas"></canvas>
+    <div id="ss-logo-container">
+        <div class="ss-main-title">
+            <span id="ss-g-char" style="display:inline-block; opacity: 0;">G</span>
+            <span id="ss-host-text" class="ss-ghost-text">HOST</span>
+        </div>
+        <div id="ss-os-text" class="ss-sub-text">OS</div>
+    </div>
+</div>
+
+
 <div id="recents-screen">
     <div class="recents-header">
         <h2 style="margin:0; font-weight: 400; letter-spacing: 1px;">Mais Aplicativos</h2>
@@ -407,6 +502,18 @@
         <h2 style="margin:0">Painel de Controle</h2>  
         <button onclick="toggleQuickPanel(false)" style="border:none; background:none; font-size:20px;">✕</button>  
     </div>  
+<!-- BANNER AD / NOTÍCIA - QUICK PANEL -->
+<div id="panel-ad-banner" onclick="openAdLink()" style="
+    width: 100%; margin-bottom: 20px; padding: 14px;
+    background: #e5e7eb; border-radius: 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;
+">
+    <span style="font-size: 24px;">📰</span>
+    <div style="flex: 1; overflow: hidden;">
+        <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #2563eb; font-weight: bold; display: block;">Destaque Tech</span>
+        <p id="ad-text-panel" style="margin: 2px 0 0; font-size: 13px; color: #1f2937; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">A carregar anúncio...</p>
+    </div>
+</div>
+
     <div class="panel-grid">  
         <div class="panel-item" onclick="openApp('Wi-Fi', 'wifi.html')"><span>📡</span><p>Wi-Fi</p></div>  
         <div class="panel-item" onclick="openApp('Personalização', 'pers.html')"><span>💠</span><p>Personalizar</p></div>    
@@ -497,6 +604,9 @@
         <div class="app-card" data-id="ARQUIVOS" onclick="openApp('Arquivos', 'files.html')">
             <div class="app-icon-box">📂</div><span>Arquivos</span>
         </div> 
+
+ 
+
     </div>
     
     <div id="app-window" class="window">  
@@ -1532,7 +1642,582 @@ function searchApp(val) {
     });  
 }
 
+// --- SISTEMA DE ANÚNCIOS / NOTÍCIAS (HACKER NEWS API) ---
+const HN_API_TOP = 'https://hacker-news.firebaseio.com/v0/topstories.json';
+const HN_ITEM_BASE = 'https://hacker-news.firebaseio.com/v0/item/';
+const FOUR_HOURS_MS = 4 * 60 * 60 * 1000;
+let currentAdUrl = 'https://news.ycombinator.com';
 
+async function fetchHNAds() {
+    try {
+        console.log("AdSystem: A procurar novidades na API do Hacker News...");
+        const res = await fetch(HN_API_TOP);
+        const ids = await res.json();
+
+        // Guarda até 300 IDs no localStorage
+        const top300 = ids.slice(0, 300);
+        localStorage.setItem('hn_ads_cache', JSON.stringify(top300));
+        localStorage.setItem('hn_ads_last_fetch', Date.now().toString());
+
+        // Carrega um anúncio imediatamente
+        displayRandomAd();
+    } catch (err) {
+        console.error("AdSystem: Erro ao procurar anúncios:", err);
+    }
+}
+
+async function displayRandomAd() {
+    const cache = JSON.parse(localStorage.getItem('hn_ads_cache') || '[]');
+    if (cache.length === 0) return;
+
+    // Seleciona 1 id aleatório dos 300 guardados
+    const randomId = cache[Math.floor(Math.random() * cache.length)];
+
+    try {
+        const res = await fetch(`${HN_ITEM_BASE}${randomId}.json`);
+        const item = await res.json();
+
+        if (item && item.title) {
+            const title = item.title;
+            currentAdUrl = item.url || `https://news.ycombinator.com/item?id=${item.id}`;
+
+            // Atualiza os textos nos banners
+            const desktopText = document.getElementById('ad-text-desktop');
+            const panelText = document.getElementById('ad-text-panel');
+
+            if (desktopText) desktopText.innerText = title;
+            if (panelText) panelText.innerText = title;
+        }
+    } catch (err) {
+        console.error("AdSystem: Erro ao carregar detalhe do anúncio:", err);
+    }
+}
+
+function openAdLink() {
+    if (currentAdUrl) {
+        // Se preferir abrir numa janela do WebOS:
+        openApp('Notícia', currentAdUrl);
+        // Ou se preferir abrir numa nova aba do navegador real:
+        // window.open(currentAdUrl, '_blank');
+    }
+}
+
+function initAdSystem() {
+    const lastFetch = parseInt(localStorage.getItem('hn_ads_last_fetch') || '0', 10);
+    const now = Date.now();
+
+    // Primeira vez a ligar o sistema OU passaram 4 horas desde a última requisição
+    if (!lastFetch || (now - lastFetch) > FOUR_HOURS_MS) {
+        fetchHNAds();
+    } else {
+        // Usa a lista de 300 itens já guardada no localStorage
+        displayRandomAd();
+    }
+
+    // Configura a verificação automática a cada 4 horas
+    setInterval(() => {
+        fetchHNAds();
+    }, FOUR_HOURS_MS);
+}
+
+// Inicializa o sistema de anúncios
+initAdSystem();
+
+// ==========================================
+// MODO DE REPOUSO CINEMATOGRÁFICO (CAPACITOR HYPER-DRIVE)
+// ==========================================
+(function initScreensaverSystem() {
+    const IDLE_TIME_MS = 10000;
+    let idleTimer = null;
+    let warningTimer = null;
+    let isSleeping = false;
+    let animId = null;
+    let gyroBound = false;
+
+    const warningEl = document.getElementById('sleep-warning');
+    const overlayEl = document.getElementById('screensaver-overlay');
+    const logoContainer = document.getElementById('ss-logo-container');
+    const canvas = document.getElementById('ss-canvas');
+    const ctx = canvas.getContext('2d');
+    const gChar = document.getElementById('ss-g-char');
+    const hostText = document.getElementById('ss-host-text');
+    const osText = document.getElementById('ss-os-text');
+
+    let width, height, dpr;
+    function resize() {
+        dpr = window.devicePixelRatio || 1;
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener('resize', () => {
+        resize();
+        if (isSleeping) {
+            ctx.clearRect(0, 0, width, height);
+            runCinematicSequence();
+        }
+    });
+    resize();
+
+    // ------------------------------------------
+    // GIROSCÓPIO — SUAVIZADO E PERMISSÃO PERSISTENTE
+    // ------------------------------------------
+    let gyroTarget = { x: 0, y: 0 };   // alvo calculado pela inclinação
+    let gyroSmooth = { x: 0, y: 0 };   // valor suavizado que a UI usa
+    let lastGyro = { gamma: 0, beta: 0 };
+    let shakeIntensity = 0;
+    let isCollapsing = false;
+
+    async function requestGyroPermission() {
+        // Se já está ligado, não tenta de novo
+        if (gyroBound) return;
+
+        // Já foi concedido antes?
+        const alreadyGranted = localStorage.getItem('gyro_granted') === 'true';
+
+        if (typeof DeviceOrientationEvent !== 'undefined'
+            && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            // iOS: só funciona dentro de gesto de usuário
+            if (!alreadyGranted) return; // silenciosamente desiste; pede no boot
+            window.addEventListener('deviceorientation', handleOrientation);
+            gyroBound = true;
+        } else {
+            // Android / desktop: adiciona direto
+            window.addEventListener('deviceorientation', handleOrientation);
+            gyroBound = true;
+        }
+    }
+
+    // Chama isso no unlockSystem() ou em qualquer clique
+    window.requestGyroPermissionOnUserGesture = async function () {
+        if (gyroBound) return;
+        if (typeof DeviceOrientationEvent === 'undefined') return;
+        if (typeof DeviceOrientationEvent.requestPermission !== 'function') {
+            // Android: sem prompt, adiciona direto
+            window.addEventListener('deviceorientation', handleOrientation);
+            gyroBound = true;
+            return;
+        }
+        try {
+            const r = await DeviceOrientationEvent.requestPermission();
+            if (r === 'granted') {
+                localStorage.setItem('gyro_granted', 'true');
+                window.addEventListener('deviceorientation', handleOrientation);
+                gyroBound = true;
+            }
+        } catch (e) { console.log('Gyro permission error:', e); }
+    };
+
+    function handleOrientation(e) {
+        const gamma = e.gamma || 0; // esquerda/direita [-90, 90]
+        const beta  = e.beta  || 0; // frente/trás [-180, 180]
+
+        // Paralaxe invertido — mexer o celular pra um lado, o logo vai pro outro
+        gyroTarget.x = -gamma * 1.4;
+        gyroTarget.y = -beta  * 1.4;
+
+        // Detecção de shake
+        const dG = Math.abs(gamma - lastGyro.gamma);
+        const dB = Math.abs(beta  - lastGyro.beta);
+        const speed = dG + dB;
+
+        if (speed > 20) {
+            shakeIntensity = Math.min(shakeIntensity + 0.18, 1);
+        } else {
+            shakeIntensity = Math.max(shakeIntensity - 0.025, 0);
+        }
+
+        lastGyro.gamma = gamma;
+        lastGyro.beta  = beta;
+    }
+
+    // ------------------------------------------
+    // TIMER DE INATIVIDADE
+    // ------------------------------------------
+    function resetIdleTimer() {
+        if (isSleeping) return;
+        clearTimeout(idleTimer);
+        clearTimeout(warningTimer);
+        warningEl.classList.remove('show');
+
+        warningTimer = setTimeout(() => {
+            if (!isSleeping) warningEl.classList.add('show');
+        }, IDLE_TIME_MS - 3000);
+
+        idleTimer = setTimeout(startSleepMode, IDLE_TIME_MS);
+    }
+
+    ['mousemove', 'mousedown', 'touchstart', 'keydown', 'scroll'].forEach(evt => {
+        window.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
+
+    function startSleepMode() {
+        isSleeping = true;
+        warningEl.classList.remove('show');
+        overlayEl.classList.add('active');
+        requestGyroPermission();
+        runCinematicSequence();
+    }
+
+    window.wakeUpSystem = function () {
+        if (!isSleeping) return;
+        isSleeping = false;
+        overlayEl.classList.remove('active');
+        if (animId) cancelAnimationFrame(animId);
+        ctx.clearRect(0, 0, width, height);
+        gChar.style.opacity = '0';
+        hostText.classList.remove('show');
+        osText.classList.remove('show');
+        resetIdleTimer();
+    };
+
+    // ------------------------------------------
+    // GERADOR DO "G" — PONTOS DO CONTORNO
+    // ------------------------------------------
+    function buildGPath(cx, cy, size) {
+        const pts = [];
+        const R = size * 0.5;
+        const thickness = size * 0.16;
+        const innerR = R - thickness;
+        const toRad = (d) => (d * Math.PI) / 180;
+
+        const GAP = 30;
+        const aStart = GAP;
+        const aEnd = 360 - GAP;
+        const sweep = aEnd - aStart;
+
+        // arco externo
+        for (let i = 0; i <= 130; i++) {
+            const deg = aStart + (sweep * i) / 130;
+            pts.push({ x: cx + Math.cos(toRad(deg)) * R,
+                       y: cy + Math.sin(toRad(deg)) * R });
+        }
+        // arco interno
+        for (let i = 0; i <= 130; i++) {
+            const deg = aEnd - (sweep * i) / 130;
+            pts.push({ x: cx + Math.cos(toRad(deg)) * innerR,
+                       y: cy + Math.sin(toRad(deg)) * innerR });
+        }
+        // barra horizontal
+        const barY = cy;
+        const bx1 = cx + innerR * 0.15;
+        const bx2 = cx + R;
+        for (let i = 0; i <= 40; i++) {
+            pts.push({ x: bx1 + ((bx2 - bx1) * i) / 40, y: barY });
+        }
+        // perna direita
+        const legEnd = { x: cx + Math.cos(toRad(aStart)) * R,
+                         y: cy + Math.sin(toRad(aStart)) * R };
+        for (let i = 0; i <= 40; i++) {
+            pts.push({
+                x: bx2 + ((legEnd.x - bx2) * i) / 40,
+                y: barY + ((legEnd.y - barY) * i) / 40
+            });
+        }
+        return pts;
+    }
+
+    // ------------------------------------------
+    // SEQUÊNCIA
+    // ------------------------------------------
+    function runCinematicSequence() {
+        ctx.clearRect(0, 0, width, height);
+
+        // reset dos elementos de UI
+        gChar.style.transition = 'none';
+        gChar.style.transform = 'scale(0.5)';
+        gChar.style.opacity = '0';
+        gChar.style.textShadow = 'none';
+        hostText.classList.remove('show');
+        osText.classList.remove('show');
+        // garantir estado inicial do texto
+        hostText.style.opacity = '';
+        osText.style.opacity = '';
+
+        const cx = width / 2;
+        const cy = height / 2;
+        const gSize = Math.min(width, height) * 0.30;
+        const gPath = buildGPath(cx, cy, gSize);
+
+        // ----- PARTÍCULAS: cada uma sai de fora e vai pro seu ponto do G -----
+        const particles = gPath.map((p, i) => {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.max(width, height) * (0.8 + Math.random() * 0.4);
+            const sx = cx + Math.cos(angle) * distance;
+            const sy = cy + Math.sin(angle) * distance;
+            return {
+                startX: sx, startY: sy,
+                cpX: cx + Math.cos(angle + 0.9) * (distance * 0.5),
+                cpY: cy + Math.sin(angle + 0.9) * (distance * 0.5),
+                targetX: p.x, targetY: p.y,
+                delay: (i / gPath.length) * 700, // escalonado pelo traçado
+                progress: 0,
+                speed: 0.020 + Math.random() * 0.014,
+                width: Math.random() * 1.4 + 0.8,
+                color: Math.random() > 0.35 ? '#3b82f6' : '#93c5fd'
+            };
+        });
+
+        // ----- POEIRA AMBIENTE -----
+        const ambientDust = [];
+        for (let i = 0; i < 140; i++) {
+            ambientDust.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+                baseVx: (Math.random() - 0.5) * 0.5,
+                baseVy: (Math.random() - 0.5) * 0.5,
+                size: Math.random() * 2 + 0.5,
+                alpha: Math.random() * 0.6 + 0.2,
+                hue: Math.random() > 0.5 ? 217 : 200
+            });
+        }
+
+        // ----- ONDAS DE CHOQUE -----
+        const shockwaves = [];
+
+        // ----- TIMELINE (em ms) -----
+        const t0 = performance.now();
+        const PULL_DURATION_MS = 3200;
+        const IMPACT_MS = 600;
+        const TEXT_MS = 2200;
+        let state = 'PULL';
+        let stateStart = t0;
+
+        // ------------------------------------------
+        // LOOP
+        // ------------------------------------------
+        function loop() {
+            if (!isSleeping) return;
+
+            const now = performance.now();
+            const stateElapsed = now - stateStart;
+            const totalElapsed = now - t0;
+
+            // ---- SUAVIZA O GIROSCÓPIO ----
+            gyroSmooth.x += (gyroTarget.x - gyroSmooth.x) * 0.08;
+            gyroSmooth.y += (gyroTarget.y - gyroSmooth.y) * 0.08;
+
+            // aplica paralaxe no logo HTML
+            logoContainer.style.transform =
+                `translate(calc(-50% + ${gyroSmooth.x}px), calc(-50% + ${gyroSmooth.y}px))`;
+
+            // ---- FUNDO ----
+            ctx.fillStyle = 'rgba(3, 7, 18, 0.30)';
+            ctx.fillRect(0, 0, width, height);
+
+            // ---- DETECÇÃO DE COLAPSO (só depois que o G já se formou) ----
+            if (state === 'IDLE' && shakeIntensity > 0.7 && !isCollapsing) {
+                isCollapsing = true;
+                ambientDust.forEach(p => {
+                    p.vx = (cx - p.x) * 0.18;
+                    p.vy = (cy - p.y) * 0.18;
+                });
+                setTimeout(() => {
+                    shockwaves.push({ r: 5, maxR: width * 0.7, alpha: 1, width: 8 });
+                    shockwaves.push({ r: 5, maxR: width * 0.5, alpha: 0.7, width: 4 });
+                    ambientDust.forEach(p => {
+                        const a = Math.random() * Math.PI * 2;
+                        const f = 8 + Math.random() * 20;
+                        p.vx = Math.cos(a) * f;
+                        p.vy = Math.sin(a) * f;
+                    });
+                    isCollapsing = false;
+                }, 320);
+            }
+
+            // ==========================================
+            // FASE 1: PULL — partículas formam o G
+            // ==========================================
+            if (state === 'PULL') {
+                let allArrived = true;
+
+                particles.forEach(p => {
+                    const localT = stateElapsed - p.delay;
+                    if (localT < 0) { allArrived = false; return; }
+                    if (p.progress >= 1) return;
+
+                    p.progress = Math.min(1, p.progress + p.speed);
+                    if (p.progress < 1) allArrived = false;
+
+                    const t = p.progress;
+                    // Bézier quadrática
+                    const ix = (1 - t) * (1 - t) * p.startX + 2 * (1 - t) * t * p.cpX + t * t * p.targetX;
+                    const iy = (1 - t) * (1 - t) * p.startY + 2 * (1 - t) * t * p.cpY + t * t * p.targetY;
+
+                    // ponto anterior pra desenhar rastro
+                    const pt = Math.max(0, t - 0.12);
+                    const px = (1 - pt) * (1 - pt) * p.startX + 2 * (1 - pt) * pt * p.cpX + pt * pt * p.targetX;
+                    const py = (1 - pt) * (1 - pt) * p.startY + 2 * (1 - pt) * pt * p.cpY + pt * pt * p.targetY;
+
+                    // gradiente cabeça → cauda
+                    const grad = ctx.createLinearGradient(px, py, ix, iy);
+                    grad.addColorStop(0, 'rgba(59, 130, 246, 0)');
+                    grad.addColorStop(1, p.color);
+
+                    ctx.beginPath();
+                    ctx.moveTo(px, py);
+                    ctx.lineTo(ix, iy);
+                    ctx.strokeStyle = grad;
+                    ctx.lineWidth = p.width;
+                    ctx.lineCap = 'round';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#3b82f6';
+                    ctx.stroke();
+
+                    // cabecinha branca
+                    if (p.progress < 1) {
+                        ctx.beginPath();
+                        ctx.arc(ix, iy, 1.6, 0, Math.PI * 2);
+                        ctx.fillStyle = '#fff';
+                        ctx.fill();
+                    }
+                });
+
+                if (allArrived || stateElapsed > PULL_DURATION_MS + 800) {
+                    state = 'IMPACT';
+                    stateStart = now;
+                    shockwaves.push({ r: 8, maxR: Math.min(width, height) * 0.55, alpha: 1, width: 7 });
+                    shockwaves.push({ r: 4, maxR: Math.min(width, height) * 0.35, alpha: 0.8, width: 3 });
+                }
+            }
+
+            // ==========================================
+            // FASE 2: IMPACT — flash + G aparece
+            // ==========================================
+            else if (state === 'IMPACT') {
+                // desenha as partículas paradas já no formato do G
+                gPath.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 1.4, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = '#3b82f6';
+                    ctx.fill();
+                });
+
+                // flash radial
+                const t = Math.min(1, stateElapsed / IMPACT_MS);
+                if (t < 0.5) {
+                    const intensity = 1 - t / 0.5;
+                    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, gSize * 1.8);
+                    g.addColorStop(0, `rgba(255,255,255,${intensity * 0.7})`);
+                    g.addColorStop(0.4, `rgba(59,130,246,${intensity * 0.4})`);
+                    g.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = g;
+                    ctx.fillRect(0, 0, width, height);
+                }
+
+                // ondas
+                shockwaves.forEach(sw => {
+                    sw.r += 14;
+                    sw.alpha -= 0.03;
+                    if (sw.alpha > 0) {
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, sw.r, 0, Math.PI * 2);
+                        ctx.strokeStyle = `rgba(59,130,246,${sw.alpha})`;
+                        ctx.lineWidth = sw.width;
+                        ctx.shadowBlur = 25;
+                        ctx.shadowColor = '#3b82f6';
+                        ctx.stroke();
+                    }
+                });
+
+                // 1ª vez: dispara a animação do G HTML
+                if (gChar.style.opacity === '0') {
+                    gChar.style.transition = 'all 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    gChar.style.opacity = '1';
+                    gChar.style.transform = 'scale(1)';
+                    gChar.style.textShadow =
+                        '0 0 35px #3b82f6, 0 0 70px #3b82f6, 0 0 110px rgba(59,130,246,0.9)';
+                }
+
+                // texto entra aqui
+                if (stateElapsed > 250 && !hostText.classList.contains('show')) {
+                    hostText.classList.add('show');
+                }
+                if (stateElapsed > 700 && !osText.classList.contains('show')) {
+                    osText.classList.add('show');
+                }
+
+                if (stateElapsed > IMPACT_MS) {
+                    state = 'IDLE';
+                    stateStart = now;
+                }
+            }
+
+            // ==========================================
+            // FASE 3: IDLE — G fica pulsando + poeira interativa
+            // ==========================================
+            else if (state === 'IDLE') {
+                // G pulsando levemente
+                const pulse = 0.9 + Math.sin(now / 700) * 0.1;
+                gChar.style.transform = `scale(${pulse})`;
+
+                // desenha o G em pontos
+                gPath.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 1.4, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255,255,255,${0.5 + Math.sin(now / 500 + p.x * 0.1) * 0.3})`;
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = '#3b82f6';
+                    ctx.fill();
+                });
+
+                // ondas
+                shockwaves.forEach(sw => {
+                    sw.r += 16;
+                    sw.alpha -= 0.035;
+                    if (sw.alpha > 0) {
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, sw.r, 0, Math.PI * 2);
+                        ctx.strokeStyle = `rgba(96,165,250,${sw.alpha})`;
+                        ctx.lineWidth = sw.width;
+                        ctx.shadowBlur = 20;
+                        ctx.shadowColor = '#3b82f6';
+                        ctx.stroke();
+                    }
+                });
+            }
+
+            // ==========================================
+            // POEIRA AMBIENTE — sempre ativa
+            // ==========================================
+            ambientDust.forEach(p => {
+                p.x += p.vx + gyroSmooth.x * 0.04;
+                p.y += p.vy + gyroSmooth.y * 0.04;
+
+                if (!isCollapsing) {
+                    p.vx += (p.baseVx - p.vx) * 0.03;
+                    p.vy += (p.baseVy - p.vy) * 0.03;
+                }
+
+                if (p.x < -10) p.x = width + 10;
+                if (p.x > width + 10) p.x = -10;
+                if (p.y < -10) p.y = height + 10;
+                if (p.y > height + 10) p.y = -10;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${p.hue}, 90%, 70%, ${p.alpha})`;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#3b82f6';
+                ctx.fill();
+            });
+
+            animId = requestAnimationFrame(loop);
+        }
+
+        loop();
+    }
+
+    resetIdleTimer();
+})();
 
 </script>
 </body>  
