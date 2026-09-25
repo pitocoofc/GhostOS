@@ -1,3 +1,12 @@
+# Update 7.5.0 (9)
+"What's New?"
+- Improvements to the system interface
+- New features 
+
+# Update 7.5.0 (8)
+"What's New?"
+- Paint app
+
 # Update 7.5.0 (7)
 "What's New?"
 - Correction to the APK name.
