@@ -165,6 +165,12 @@
         box-shadow: 0 4px 10px rgba(0,0,0,0.3);  
     }  
 
+<!-- Barra visual do gesto no rodapé -->
+<div id="gesture-bar">
+    <div id="gesture-indicator"></div>
+</div>
+
+
     #icon-day-name { font-size: 10px; font-weight: 800; color: #ff3b30; text-transform: uppercase; margin-top: -5px; }  
     #icon-day-num { font-size: 32px; font-weight: 700; line-height: 1; margin-top: 2px; }  
     /* --- INTERFACE DE MULTITAREFA (SOBE DE BAIXO) --- */
@@ -312,6 +318,36 @@
 #update-btn.show {
     display: flex;
 }
+
+/* --- BARRA / ÁREA DE GESTOS NO RODA PÉ --- */
+#gesture-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    height: 15px;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+#gesture-indicator {
+    width: 120px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+    transition: transform 0.2s, background 0.2s;
+}
+
+#gesture-bar:active #gesture-indicator {
+    transform: scaleX(1.2);
+    background: rgba(255, 255, 255, 0.9);
+}
+
 </style>
 
 </head>  
@@ -527,6 +563,49 @@ color:#fff;
         Fechar
     </button>
 </div>
+
+<!-- MODAL ESTILO ANDROID: INFORMAÇÃO DA APLICAÇÃO -->
+<div id="app-info-modal" style="
+    position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
+    z-index: 99999; display: none; align-items: center; justify-content: center;
+">
+    <div style="
+        background: #1c1c1e; width: 88%; max-width: 360px; border-radius: 24px;
+        padding: 24px; color: #fff; box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+        border: 1px solid rgba(255,255,255,0.1); font-family: sans-serif;
+    ">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+            <div id="info-icon" style="
+                width: 65px; height: 65px; background: rgba(255,255,255,0.1);
+                border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 30px;
+            ">📱</div>
+            <div>
+                <h3 id="info-name" style="margin: 0; font-size: 20px; font-weight: 600;">Nome do App</h3>
+                <span id="info-version" style="font-size: 13px; color: #a1a1aa;">Versão 1.0.0</span>
+            </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.05); padding: 14px; border-radius: 14px; font-size: 13px; margin-bottom: 15px;">
+            <p style="margin: 0 0 8px 0; color: #a1a1aa;">Pacote: <strong id="info-package" style="color: #fff;">com.app.id</strong></p>
+            <p style="margin: 0; color: #a1a1aa;">Tipo: <strong id="info-system" style="color: #3b82f6;">Aplicação do Sistema</strong></p>
+        </div>
+
+        <!-- Falsa Verificação -->
+        <div id="test-status" style="display: none; padding: 12px; border-radius: 12px; font-size: 13px; margin-bottom: 15px; text-align: center;"></div>
+
+        <button id="btn-test-security" onclick="runFakeSecurityTest()" style="
+            width: 100%; padding: 14px; border: none; border-radius: 14px;
+            background: #3b82f6; color: #fff; font-weight: bold; cursor: pointer; font-size: 14px;
+        ">🔍 Verificar Autenticidade e Segurança</button>
+
+        <button onclick="closeAppInfo()" style="
+            width: 100%; padding: 12px; border: none; border-radius: 14px;
+            background: transparent; color: #a1a1aa; font-weight: 500; margin-top: 8px; cursor: pointer;
+        ">Fechar</button>
+    </div>
+</div>
+
 <script>  
     // Drivers
     var driver_video = "off";  
@@ -585,17 +664,17 @@ color:#fff;
     function checkDriver(name) { return window[name]; }  
 
     const ALL_APPS = [  
-        { name: 'Ajustes', icon: '⚙️', url: 'ajustes.html' },
-        { name: 'Notas', icon: '📝', url: 'notas/index.html' },  
-        { name: 'Jogos', icon: '📱', url: 'jogos.html' },   
-        { name: 'Bússola', icon: '🧭', url: 'bussola.html' },  
-        { name: 'Arquivos', icon: '📂', url: 'files.html' },  
-        { name: 'Galeria', icon: '📸', url: 'galeria.html' },    
-        { name: 'Backup', icon: '✍️', url: 'backup.html' },    
-        { name: 'Paint', icon: '✏️', url: 'paint.html' },
-        
-        { name: 'Programação', icon: '🖥️', url: 'programacao.html'}  
-    ];  
+    { name: 'Ajustes', icon: '⚙️', url: 'ajustes.html', version: '1.0.0', package: 'com.ghost.settings', isSystem: true },
+    { name: 'Notas', icon: '📝', url: 'notas/index.html', version: '1.2.0', package: 'com.ghost.notes', isSystem: false },  
+    { name: 'Jogos', icon: '📱', url: 'jogos.html', version: '2.0.1', package: 'com.ghost.games', isSystem: false },   
+    { name: 'Bússola', icon: '🧭', url: 'bussola.html', version: '1.0.0', package: 'com.ghost.compass', isSystem: true },  
+    { name: 'Arquivos', icon: '📂', url: 'files.html', version: '3.1.0', package: 'com.ghost.files', isSystem: true },  
+    { name: 'Galeria', icon: '📸', url: 'galeria.html', version: '1.5.0', package: 'com.ghost.gallery', isSystem: true },    
+    { name: 'Backup', icon: '✍️', url: 'backup.html', version: '1.0.1', package: 'com.ghost.backup', isSystem: true },    
+    { name: 'Paint', icon: '✏️', url: 'paint.html', version: '1.1.0', package: 'com.ghost.paint', isSystem: false },
+    { name: 'Programação', icon: '🖥️', url: 'programacao.html', version: '1.0.0', package: 'com.ghost.dev', isSystem: false }  
+];
+
 
     // Intro  
     const intro = document.getElementById('intro-screen');  
@@ -1283,7 +1362,176 @@ window.addEventListener('message', (event) => {
         value ? applyStyle('style-no-anim', '*, *::before, *::after { transition: none !important; animation: none !important; }') : removeStyle('style-no-anim');
     }
 });
+    // --- SISTEMA DE GESTOS COM SUPORTE A ATIVAR/DESATIVAR ---
+(function initGestures() {
+    let startY = 0;
+    let startX = 0;
+    let startTime = 0;
+
+    // Função para verificar se o gesto está ativado (Padrão: ativado "true")
+    function isGesturesEnabled() {
+        return localStorage.getItem('sys_gestures_enabled') !== 'false';
+    }
+
+    // Atualiza a visibilidade da barra de indicação
+    function updateGestureBarVisibility() {
+        const bar = document.getElementById('gesture-bar');
+        if (bar) {
+            bar.style.display = isGesturesEnabled() ? 'flex' : 'none';
+        }
+    }
+
+    // Aplica visibilidade inicial ao carregar a página
+    updateGestureBarVisibility();
+
+    // Detecta o início do toque na tela
+    document.addEventListener('touchstart', (e) => {
+        if (!isGesturesEnabled()) return; // Ignora se estiver desativado
+
+        startY = e.touches[0].clientY;
+        startX = e.touches[0].clientX;
+        startTime = new Date().getTime();
+    }, { passive: true });
+
+    // Detecta quando o usuário tira o dedo
+    document.addEventListener('touchend', (e) => {
+        if (!isGesturesEnabled()) return; // Ignora se estiver desativado
+
+        let endY = e.changedTouches[0].clientY;
+        let endX = e.changedTouches[0].clientX;
+        let diffY = startY - endY;
+        let diffX = startX - endX;
+        let duration = new Date().getTime() - startTime;
+
+        const screenHeight = window.innerHeight;
+
+        // 1. GESTO: Deslizar de baixo para cima
+        if (startY > screenHeight - 60 && diffY > 80 && Math.abs(diffX) < 100) {
+            if (duration < 300) {
+                goHome();
+                showNotification('Gesto', 'Início', '🏠');
+            } else {
+                toggleRecents(true);
+                showNotification('Gesto', 'Aplicativos Recentes', '🔳');
+            }
+        }
+
+        // 2. GESTO: Deslizar do topo para baixo
+        if (startY < 50 && diffY < -80 && Math.abs(diffX) < 100) {
+            toggleQuickPanel(true);
+            showNotification('Gesto', 'Painel de Controle', '⚙️');
+        }
+    }, { passive: true });
+
+    // Escuta comandos via postMessage (vindo do app de Ajustes/Configurações)
+    window.addEventListener('message', (event) => {
+        if (event.data.type === 'sys_gestures_enabled') {
+            const enabled = event.data.value;
+            localStorage.setItem('sys_gestures_enabled', enabled ? 'true' : 'false');
+            updateGestureBarVisibility();
+        }
+    });
+})();
+// --- SISTEMA DE LONG PRESS & INFORMAÇÕES DA APLICAÇÃO ---
+let longPressTimer;
+let currentSelectedApp = null;
+
+function setupLongPress(element, appData) {
+    const start = (e) => {
+        longPressTimer = setTimeout(() => {
+            if (e.cancelable) e.preventDefault();
+            openAppInfo(appData);
+        }, 600); // Segurar por 600ms
+    };
+
+    const cancel = () => clearTimeout(longPressTimer);
+
+    element.addEventListener('touchstart', start, { passive: false });
+    element.addEventListener('touchend', cancel);
+    element.addEventListener('touchmove', cancel);
+    element.addEventListener('mousedown', start);
+    element.addEventListener('mouseup', cancel);
+    element.addEventListener('mouseleave', cancel);
+}
+
+function openAppInfo(app) {
+    currentSelectedApp = app;
+    document.getElementById('info-name').innerText = app.name;
+    document.getElementById('info-version').innerText = 'Versão: ' + (app.version || '1.0.0');
+    document.getElementById('info-package').innerText = app.package || `com.ghost.${app.name.toLowerCase()}`;
+    document.getElementById('info-system').innerText = app.isSystem ? 'Sistema (Nativo)' : 'Aplicação de Utilizador';
+    document.getElementById('info-system').style.color = app.isSystem ? '#3b82f6' : '#10b981';
+
+    // Trata ícone (se for HTML de imagem ou emoji)
+    const iconContainer = document.getElementById('info-icon');
+    if (app.icon.includes('<img')) {
+        iconContainer.innerHTML = app.icon;
+    } else {
+        iconContainer.innerText = app.icon;
+    }
+
+    // Reset ao estado do teste de segurança
+    const testStatus = document.getElementById('test-status');
+    testStatus.style.display = 'none';
+    const btnTest = document.getElementById('btn-test-security');
+    btnTest.style.display = 'block';
+    btnTest.innerText = '🔍 Verificar Autenticidade e Segurança';
+    btnTest.disabled = false;
+
+    document.getElementById('app-info-modal').style.display = 'flex';
+}
+
+function closeAppInfo() {
+    document.getElementById('app-info-modal').style.display = 'none';
+}
+
+// Falsa verificação de segurança estilo Android/Google Play Protect
+function runFakeSecurityTest() {
+    const btn = document.getElementById('btn-test-security');
+    const status = document.getElementById('test-status');
+
+    btn.disabled = true;
+    btn.innerText = '⏳ A verificar assinatura e integridade...';
     
+    status.style.display = 'block';
+    status.style.background = 'rgba(234, 179, 8, 0.15)';
+    status.style.color = '#eab308';
+    status.innerText = '🔎 A analisar código do pacote...';
+
+    setTimeout(() => {
+        status.innerText = '🛡️ A verificar assinatura digital GhostOS...';
+    }, 1500);
+
+    setTimeout(() => {
+        status.style.background = 'rgba(34, 197, 94, 0.15)';
+        status.style.color = '#22c55e';
+        status.innerHTML = '✅ <strong>Aplicação Verificada!</strong><br>Assinatura válida e sem ameaças detetadas.';
+        btn.style.display = 'none';
+        
+        showNotification('Ghost Security', `${currentSelectedApp.name} verificado com sucesso.`, '🛡️');
+    }, 3200);
+}
+
+// Atualizar o searchApp() para associar o evento de pressionar e segurar
+function searchApp(val) {  
+    const list = document.getElementById('drawer-list');  
+    list.innerHTML = '';  
+    const filtered = ALL_APPS.filter(app => app.name.toLowerCase().includes(val.toLowerCase()));  
+    filtered.forEach(app => {  
+        const card = document.createElement('div');  
+        card.className = 'app-card';  
+        
+        // Clique simples abre o app
+        card.onclick = () => openApp(app.name, app.url);  
+        card.innerHTML = `<div class="app-icon-box">${app.icon}</div><span>${app.name}</span>`;  
+        
+        // Adiciona o detector de pressionar e segurar
+        setupLongPress(card, app);
+
+        list.appendChild(card);  
+    });  
+}
+
 
 
 </script>
