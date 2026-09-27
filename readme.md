@@ -1,3 +1,22 @@
+# Update 7.5.0 (13)
+"What's New?"
+- Correction in the sleep mode 
+
+# Update 7.5.0 (12)
+"What's New?"
+- Preparation for the 8.0.0
+- Bug fixes
+
+# Update 7.5.0 (11)
+"What's New?"
+- Removing unnecessary functions
+- Code cleanup 
+
+# Update 7.5.0 (10)
+"What's New?"
+- Sleep mode
+- Optimizations 
+
 # Update 7.5.0 (9)
 "What's New?"
 - Improvements to the system interface
