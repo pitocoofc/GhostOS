@@ -1,3 +1,15 @@
+# Update 7.5.0 (16)
+"What's New?"
+- Closing security gaps 
+
+# Update 7.5.0 (15)
+"What's New?"
+- Visual improvements
+
+# Update 7.5.0 (14)
+"What's New?"
+- Advance of version 8.0.0
+
 # Update 7.5.0 (13)
 "What's New?"
 - Correction in the sleep mode 
