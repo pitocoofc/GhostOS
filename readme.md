@@ -1,3 +1,7 @@
+# Update 7.5.0 (17)
+"What's New?"
+- New Game
+
 # Update 7.5.0 (16)
 "What's New?"
 - Closing security gaps 
