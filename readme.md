@@ -1,3 +1,19 @@
+# Update 7.5.0 (23)
+"What's New?"
+- improvements
+
+# Update 7.5.0 (22)
+"What's New?"
+- Advance of version 8.0.0
+
+# Update 7.5.0 (21)
+"What's New?"
+- Optimizations
+
+# Update 7.5.0 (20)
+"What's New?"
+- Complete reconstruction of the Quick Panel
+
 # Update 7.5.0 (19)
 "What's New?"
 - More Security
