@@ -50,18 +50,85 @@
 }
 #notif-dot.show { display: block; }
 
-    /* --- NOVO: QUICK PANEL --- */  
-    #quick-panel {  
-        position: fixed; top: -110%; left: 0; width: 100%; height: 100vh;  
-        background: rgba(255,255,255,0.95); color: #000; z-index: 700;  
-        transition: top 0.5s cubic-bezier(0.16, 1, 0.3, 1);  
-        display: flex; flex-direction: column; padding: 60px 20px;  
-    }  
-    #quick-panel.active { top: 0; }  
-    .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }  
-    .panel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }  
-    .panel-item { background: #eee; padding: 25px; border-radius: 20px; text-align: center; cursor: pointer; }  
-    .panel-item span { font-size: 30px; display: block; }  
+/* --- QUICK PANEL --- */
+#quick-panel {
+    position: fixed; top: -110%; left: 0; width: 100%; height: 100vh;
+    background: rgba(10,10,14,0.88);
+    backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+    color: #fff; z-index: 700;
+    transition: top 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex; flex-direction: column; gap: 18px;
+    padding: 40px 20px 16px; overflow-y: auto;
+}
+#quick-panel.active { top: 0; }
+
+.qs-head { display: flex; align-items: flex-start; justify-content: space-between; }
+#qp-time { font-size: 52px; font-weight: 200; line-height: 1; font-variant-numeric: tabular-nums; }
+#qp-date { font-size: 12px; opacity: 0.6; margin-top: 6px; letter-spacing: 1px; }
+.qs-close {
+    width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+    color: #fff; font-size: 16px;
+}
+
+.qs-news {
+    display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer;
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+}
+.qs-news-ico { font-size: 22px; }
+.qs-news-txt { flex: 1; overflow: hidden; }
+.qs-news-txt small {
+    display: block; font-size: 10px; letter-spacing: 0.5px;
+    text-transform: uppercase; color: #60a5fa; font-weight: bold;
+}
+.qs-news-txt p {
+    margin: 2px 0 0; font-size: 13px; color: #e4e4e7;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.qs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.qs-tile {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 14px 4px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    transition: background 0.25s, transform 0.2s, box-shadow 0.25s;
+}
+.qs-tile:active { transform: scale(0.93); }
+.qs-tile.on {
+    background: #3b82f6; border-color: #60a5fa;
+    box-shadow: 0 6px 18px rgba(59,130,246,0.35);
+}
+.qs-tile span { font-size: 22px; }
+.qs-tile p { margin: 0; font-size: 10px; font-weight: 600; text-align: center; }
+
+.qs-card {
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 18px;
+}
+.qs-slider-row { display: flex; align-items: center; gap: 12px; }
+.qs-slider-row span { font-size: 18px; width: 24px; text-align: center; }
+.qs-range {
+    -webkit-appearance: none; appearance: none; flex: 1; height: 8px; border-radius: 8px;
+    background: linear-gradient(to right, #3b82f6 var(--v, 50%), rgba(255,255,255,0.15) var(--v, 50%));
+}
+.qs-range::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+    background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+.qs-range::-moz-range-thumb {
+    width: 22px; height: 22px; border: none; border-radius: 50%; background: #fff;
+}
+
+.qs-handle {
+    margin: auto auto 0; width: 120px; height: 5px; border-radius: 10px;
+    background: rgba(255,255,255,0.4); cursor: pointer; flex-shrink: 0;
+}
+
+#brightness-overlay {
+    position: fixed; inset: 0; background: #000; opacity: 0;
+    pointer-events: none; z-index: 100000;
+}
 
     /* --- FASE 1: Intro das Bolas --- */  
     #intro-screen {  
@@ -543,31 +610,66 @@
     </div>
 </div>
 
-<div id="quick-panel">  
-    <div class="panel-header">  
-        <h2 style="margin:0">Painel de Controle</h2>  
-        <button onclick="toggleQuickPanel(false)" style="border:none; background:none; font-size:20px;">✕</button>  
-    </div>  
-<!-- BANNER AD / NOTÍCIA - QUICK PANEL -->
-<div id="panel-ad-banner" onclick="openAdLink()" style="
-    width: 100%; margin-bottom: 20px; padding: 14px;
-    background: #e5e7eb; border-radius: 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;
-">
-    <span style="font-size: 24px;">📰</span>
-    <div style="flex: 1; overflow: hidden;">
-        <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: #2563eb; font-weight: bold; display: block;">Destaque Tech</span>
-        <p id="ad-text-panel" style="margin: 2px 0 0; font-size: 13px; color: #1f2937; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">A carregar anúncio...</p>
+<div id="quick-panel" onclick="if(event.target === this) toggleQuickPanel(false)">
+
+    <div class="qs-head">
+        <div>
+            <div id="qp-time">00:00</div>
+            <div id="qp-date"></div>
+        </div>
+        <button class="qs-close" onclick="toggleQuickPanel(false)">✕</button>
     </div>
+
+    <div id="panel-ad-banner" class="qs-news" onclick="openAdLink(); toggleQuickPanel(false)">
+        <span class="qs-news-ico">📰</span>
+        <div class="qs-news-txt">
+            <small>Destaque Tech</small>
+            <p id="ad-text-panel">A carregar anúncio...</p>
+        </div>
+    </div>
+
+    <div class="qs-grid">
+        <div class="qs-tile" id="tile-wifi" onclick="openPanelApp('Wi-Fi', 'wifi.html')">
+            <span>📡</span><p>Wi-Fi</p>
+        </div>
+        <div class="qs-tile" data-key="sys_invert" onclick="toggleTile(this)">
+            <span>🌗</span><p>Invertido</p>
+        </div>
+        <div class="qs-tile" data-key="sys_immersive" onclick="toggleTile(this)">
+            <span>🖼️</span><p>Imersivo</p>
+        </div>
+        <div class="qs-tile" data-key="sys_gestures_enabled" onclick="toggleTile(this)">
+            <span>👆</span><p>Gestos</p>
+        </div>
+        <div class="qs-tile" data-key="sys_disable_animations" onclick="toggleTile(this)">
+            <span>🚫</span><p>Sem animação</p>
+        </div>
+        <div class="qs-tile" onclick="openPanelApp('Personalização', 'pers.html')">
+            <span>💠</span><p>Personalizar</p>
+        </div>
+        <div class="qs-tile" onclick="openPanelApp('IA', 'IA/ia.html')">
+            <span>🤖</span><p>IA</p>
+        </div>
+        <div class="qs-tile" onclick="openPanelApp('Ajustes', 'ajustes.html')">
+            <span>⚙️</span><p>Ajustes</p>
+        </div>
+    </div>
+
+    <div class="qs-card">
+        <div class="qs-slider-row">
+            <span>☀️</span>
+            <input type="range" id="qs-brightness" class="qs-range" min="30" max="100" value="100">
+        </div>
+        <div class="qs-slider-row">
+            <span>🔊</span>
+            <input type="range" id="qs-volume" class="qs-range" min="0" max="100" value="50">
+        </div>
+    </div>
+
+    <div class="qs-handle" onclick="toggleQuickPanel(false)"></div>
 </div>
 
-    <div class="panel-grid">  
-        <div class="panel-item" onclick="openApp('Wi-Fi', 'wifi.html')"><span>📡</span><p>Wi-Fi</p></div>  
-        <div class="panel-item" onclick="openApp('Personalização', 'pers.html')"><span>💠</span><p>Personalizar</p></div>    
-        <div class="panel-item" onclick="openApp('IA', 'IA/ia.html')"><span>🤖</span><p>IA</p></div>  
-        <div class="panel-item" onclick="toggleQuickPanel(false)"><span>⚙️</span><p>Ajustes</p></div>  
-    </div>  
-</div>  
-
+<div id="brightness-overlay"></div>
 <div id="intro-screen">  
     <div id="typewriter">Bem vindo ao Futuro</div>  
 </div>  
@@ -1124,6 +1226,8 @@ color:#fff;
 }).replace('.', '');
 document.getElementById('status-date').innerText = shortDate;
         document.getElementById('date').innerText = dateStr;
+        document.getElementById('qp-time').innerText = timeStr;
+document.getElementById('qp-date').innerText = dateStr;
     }
 
     setInterval(updateClock, 1000);
@@ -1134,6 +1238,7 @@ document.getElementById('status-date').innerText = shortDate;
     bootAudio.volume = 0.5; // Volume de 0.0 a 1.0
     bootAudio.play().catch(err => console.log("Erro ao tocar áudio:", err));
         document.getElementById('lock-screen').style.transform = 'translateY(-100%)';  
+        if (window.requestGyroPermissionOnUserGesture) window.requestGyroPermissionOnUserGesture();
 setTimeout(() => {
     showNotification('System', 'Todos os drivers foram carregados com sucesso!', '🛡️');
 }, 2000);
@@ -2326,7 +2431,72 @@ initAdSystem();
     };
 })();
 
+// --- QUICK PANEL: TILES, BRILHO E VOLUME ---
+function openPanelApp(name, url) {
+    toggleQuickPanel(false);
+    openApp(name, url);
+}
 
+function tileState(key) {
+    const v = localStorage.getItem(key);
+    return key === 'sys_gestures_enabled' ? v !== 'false' : v === 'true';
+}
+
+function refreshTiles() {
+    document.querySelectorAll('.qs-tile[data-key]').forEach(t => {
+        t.classList.toggle('on', tileState(t.dataset.key));
+    });
+    const wifi = document.getElementById('tile-wifi');
+    if (wifi) wifi.classList.toggle('on', navigator.onLine);
+}
+
+function toggleTile(el) {
+    const key = el.dataset.key;
+    const on = !tileState(key);
+    localStorage.setItem(key, on ? 'true' : 'false');
+    window.postMessage({ type: key, value: on }, '*');   // reaproveita os listeners que você já tem
+
+    // Segurança: no modo imersivo a barra some, então os gestos precisam estar ligados
+    if (key === 'sys_immersive' && on && !tileState('sys_gestures_enabled')) {
+        localStorage.setItem('sys_gestures_enabled', 'true');
+        window.postMessage({ type: 'sys_gestures_enabled', value: true }, '*');
+    }
+    refreshTiles();
+}
+
+function paintRange(el) {
+    const pct = (el.value - el.min) / (el.max - el.min) * 100;
+    el.style.setProperty('--v', pct + '%');
+}
+
+function setBrightness(v) {
+    document.getElementById('brightness-overlay').style.opacity = (100 - v) / 100;
+    localStorage.setItem('sys_brightness', v);
+}
+
+function setVolume(v) {
+    window.sysVolume = v / 100;
+    localStorage.setItem('sys_volume', v);
+    const f = document.getElementById('win-frame');
+    if (f && f.contentWindow) f.contentWindow.postMessage({ type: 'sys_volume', value: v / 100 }, '*');
+}
+
+(function initPanelControls() {
+    const b = document.getElementById('qs-brightness');
+    const v = document.getElementById('qs-volume');
+
+    b.value = localStorage.getItem('sys_brightness') || 100;
+    v.value = localStorage.getItem('sys_volume') || 50;
+    setBrightness(b.value); setVolume(v.value);
+    paintRange(b); paintRange(v);
+
+    b.addEventListener('input', () => { setBrightness(b.value); paintRange(b); });
+    v.addEventListener('input', () => { setVolume(v.value); paintRange(v); });
+
+    refreshTiles();
+    window.addEventListener('online', refreshTiles);
+    window.addEventListener('offline', refreshTiles);
+})();
 </script>
 </body>  
 </html>
