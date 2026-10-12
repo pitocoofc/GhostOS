@@ -1,439 +1,255 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>GhostOS GameSpace v11</title>
-    <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; font-weight: 900; }
-        
-        body {
-            margin: 0; padding: 0;
-            background: #020203;
-            color: #fff;
-            width: 100vw; height: 100vh;
-            overflow: hidden;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #boot-screen {
-            position: fixed; inset: 0;
-            background: #000;
-            z-index: 9999;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            transition: opacity 0.4s ease;
-        }
-        .matrix-glow {
-            position: absolute; width: 250px; height: 250px;
-            background: radial-gradient(circle, rgba(255,0,0,0.15) 0%, rgba(0,0,0,0) 70%);
-            animation: pulseRadius 1s infinite alternate;
-        }
-        .boot-title {
-            color: #fff; font-size: 32px; letter-spacing: 8px;
-            text-shadow: 0 0 10px #ff0033, 0 0 20px #ff0033;
-            opacity: 0; transform: scale(0.9);
-            animation: bootGlitch 1.8s 0.3s forwards cubic-bezier(0.1, 1, 0.1, 1);
-        }
-        .boot-sub {
-            color: #00f0ff; font-size: 10px; letter-spacing: 5px; margin-top: 10px; opacity: 0;
-            animation: fadeIn 0.3s 1s forwards; text-shadow: 0 0 5px #00f0ff;
-        }
-
-        #game-space-core {
-            display: grid;
-            grid-template-columns: 310px 1fr 310px;
-            width: 100%; height: 100%;
-            padding: 20px; gap: 20px;
-            background: 
-                linear-gradient(180deg, rgba(5,5,8,0.95) 0%, rgba(15,3,3,0.95) 100%),
-                radial-gradient(circle at center, rgba(255, 0, 51, 0.08) 0%, transparent 60%);
-            opacity: 0; transform: scale(1.05);
-            transition: all 0.5s cubic-bezier(0.1, 1, 0.1, 1);
-        }
-
-        .side-panel {
-            background: rgba(12, 12, 16, 0.75);
-            border: 1px solid rgba(255, 0, 51, 0.25);
-            border-radius: 16px;
-            padding: 16px;
-            display: flex; flex-direction: column; gap: 12px;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 0 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(255, 0, 51, 0.05);
-            overflow-y: auto;
-        }
-        .panel-left { border-left: 4px solid #ff0033; animation: slideLeft 0.5s 2s both; }
-        .panel-right { border-right: 4px solid #00f0ff; animation: slideRight 0.5s 2s both; }
-
-        .panel-title {
-            font-size: 11px; color: #ff0033; letter-spacing: 2px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid rgba(255, 0, 51, 0.1); padding-bottom: 8px;
-        }
-        .panel-title.cyan { color: #00f0ff; border-bottom-color: rgba(0, 240, 255, 0.1); }
-
-        .center-hub {
-            display: flex; flex-direction: column;
-            justify-content: space-between; align-items: center;
-        }
-        
-        .hud-rings-container {
-            display: flex; gap: 30px; margin-top: 15px;
-        }
-        .ring-stat {
-            position: relative; width: 110px; height: 110px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .ring-svg { transform: rotate(-90deg); width: 110px; height: 110px; }
-        .ring-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 6; }
-        .ring-fill-red { fill: none; stroke: #ff0033; stroke-width: 6; stroke-dasharray: 283; stroke-dashoffset: 85; transition: stroke-dashoffset 0.5s; filter: drop-shadow(0 0 4px #ff0033); }
-        .ring-fill-cyan { fill: none; stroke: #00f0ff; stroke-width: 6; stroke-dasharray: 283; stroke-dashoffset: 120; transition: stroke-dashoffset 0.5s; filter: drop-shadow(0 0 4px #00f0ff); }
-        
-        .ring-text { position: absolute; top: 35%; text-align: center; }
-        .ring-num { font-size: 20px; font-family: monospace; font-weight: 900; }
-        .ring-label { font-size: 8px; color: #666; letter-spacing: 1px; margin-top: 2px; }
-
-        .game-selector-container {
-            width: 100%; display: flex; justify-content: center; gap: 20px; margin: 15px 0;
-        }
-        .game-node {
-            width: 110px; height: 75px;
-            background: linear-gradient(135deg, #12121a 0%, #08080c 100%);
-            border: 1px solid rgba(255,255,255,0.1);
-            clip-path: polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.3s;
-        }
-        .game-node.selected-node {
-            border: 1px solid #ff0033;
-            background: linear-gradient(135deg, rgba(255,0,51,0.15) 0%, #08080c 100%);
-            box-shadow: 0 0 20px rgba(255,0,51,0.2);
-            transform: translateY(-4px);
-        }
-        .game-node span { font-size: 24px; }
-        .game-node label { font-size: 9px; color: #888; margin-top: 4px; letter-spacing: 1px; cursor: pointer; }
-        .game-node.selected-node label { color: #fff; }
-
-        .setting-tile {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 10px; padding: 10px;
-            display: flex; justify-content: space-between; align-items: center;
-            transition: border-color 0.2s;
-        }
-        .setting-tile.disabled-tile {
-            opacity: 0.4;
-            pointer-events: none;
-            border-color: rgba(255,255,255,0.02) !important;
-        }
-        .setting-tile:hover { border-color: rgba(255,0,51,0.3); }
-        .setting-tile.cyan-tile:hover { border-color: rgba(0,240,255,0.3); }
-        
-        .tile-info { display: flex; flex-direction: column; gap: 2px; }
-        .tile-info title { font-size: 11px; color: #ddd; letter-spacing: 0.5px; }
-        .tile-info desc { font-size: 8px; color: #666; font-family: sans-serif; font-weight: normal; }
-
-        .range-container { display: flex; flex-direction: column; gap: 5px; width: 100%; }
-        .range-header { display: flex; justify-content: space-between; font-size: 10px; color: #aaa; }
-        .custom-range {
-            -webkit-appearance: none; width: 100%; height: 4px; background: #222;
-            border-radius: 2px; outline: none;
-        }
-        .custom-range::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 12px; height: 12px; background: #ff0033;
-            border-radius: 50%; cursor: pointer; box-shadow: 0 0 8px #ff0033;
-        }
-        .cyan-range::-webkit-slider-thumb {
-            background: #00f0ff; box-shadow: 0 0 8px #00f0ff;
-        }
-
-        .ghost-switch { position: relative; display: inline-block; width: 38px; height: 16px; }
-        .ghost-switch input { opacity: 0; width: 0; height: 0; }
-        .rm-slider {
-            position: absolute; cursor: pointer; inset: 0; background: #202025;
-            border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s;
-        }
-        .rm-slider:before {
-            position: absolute; content: ""; height: 10px; width: 10px; left: 3px; bottom: 2px;
-            background: #666; border-radius: 2px; transition: 0.2s;
-        }
-        input:checked + .rm-slider { background: rgba(255,0,51,0.2); border-color: #ff0033; }
-        input:checked + .rm-slider:before { background: #ff0033; transform: translateX(20px); box-shadow: 0 0 6px #ff0033; }
-        
-        .cyan-switch input:checked + .rm-slider { background: rgba(0,240,255,0.2); border-color: #00f0ff; }
-        .cyan-switch input:checked + .rm-slider:before { background: #00f0ff; transform: translateX(20px); box-shadow: 0 0 6px #00f0ff; }
-
-        .hex-boost-btn {
-            background: transparent; border: none; position: relative;
-            width: 220px; height: 45px; cursor: pointer; color: #fff;
-            font-size: 12px; letter-spacing: 2px; text-shadow: 0 0 5px #fff;
-            margin-bottom: 5px;
-        }
-        .hex-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-
-        @keyframes pulseRadius { from { transform: scale(0.95); opacity: 0.7; } to { transform: scale(1.05); opacity: 1; } }
-        @keyframes bootGlitch {
-            0% { opacity: 0; transform: scale(0.9) skewX(-10deg); }
-            15% { opacity: 1; transform: scale(1) skewX(10deg); }
-            30% { transform: skewX(-5deg); }
-            45% { transform: skewX(0deg); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-        @keyframes slideLeft { from { transform: translateX(-50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes slideRight { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GhostOS GameSpace v12</title>
+<style>
+*{box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;font-weight:900;margin:0}
+body{background:#020203;color:#fff;width:100vw;height:100vh;height:100dvh;overflow:hidden;user-select:none;display:flex}
+#boot{position:fixed;inset:0;background:#000;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s}
+.bt{font-size:clamp(18px,5vw,32px);letter-spacing:6px;text-align:center;text-shadow:0 0 10px #f03,0 0 20px #f03;animation:bg 1.6s .2s both}
+.bs{color:#00f0ff;font-size:10px;letter-spacing:5px;margin-top:10px;opacity:0;animation:fi .3s 1s forwards}
+@keyframes bg{0%{opacity:0;transform:skewX(-10deg)}15%{opacity:1;transform:skewX(10deg)}30%{transform:skewX(-5deg)}100%{opacity:1;transform:none}}
+@keyframes fi{to{opacity:1}}
+#core{display:grid;grid-template-columns:310px 1fr 310px;width:100%;height:100%;padding:20px;gap:20px;background:linear-gradient(180deg,#050508f2,#0f0303f2),radial-gradient(circle,#ff003314,transparent 60%);opacity:0;transition:opacity .5s}
+#pages{display:contents}
+.side{--a:#f03;background:#0c0c10bf;border:1px solid #ff003340;border-left:4px solid var(--a);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;backdrop-filter:blur(12px);overflow-y:auto}
+.pr{--a:#00f0ff;border:1px solid #00f0ff40;border-right:4px solid var(--a)}
+.hub{display:flex;flex-direction:column;align-items:center;gap:14px;overflow-y:auto;min-width:0}
+.pt{font-size:11px;color:var(--a);letter-spacing:2px;display:flex;justify-content:space-between;border-bottom:2px solid #ffffff12;padding-bottom:8px}
+.rg{display:flex;flex-direction:column;gap:6px}
+.rh{display:flex;justify-content:space-between;font-size:10px;color:#aaa}
+.rh b{color:#fff}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:3px;background:#222;outline:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--a);box-shadow:0 0 8px var(--a);cursor:pointer}
+.tile{background:#ffffff06;border:1px solid #ffffff0d;border-radius:10px;padding:11px 10px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.tile b{display:block;font-size:11px;color:#ddd}
+.tile i{display:block;font-size:9px;color:#777;font-style:normal;font-weight:400;margin-top:2px}
+.sw{position:relative;width:42px;height:22px;flex-shrink:0}
+.sw input{opacity:0;width:0;height:0}
+.sw span{position:absolute;inset:0;background:#202025;border:1px solid #ffffff1a;border-radius:5px;transition:.2s;cursor:pointer}
+.sw span:before{content:"";position:absolute;width:14px;height:14px;left:3px;top:3px;background:#666;border-radius:3px;transition:.2s}
+.sw input:checked+span{background:color-mix(in srgb,var(--a) 20%,transparent);border-color:var(--a)}
+.sw input:checked+span:before{background:var(--a);transform:translateX(20px);box-shadow:0 0 6px var(--a)}
+.seg{display:flex;gap:4px}
+.seg button{flex:1;padding:9px 0;background:#ffffff08;border:1px solid #ffffff14;border-radius:8px;color:#888;font-size:11px;cursor:pointer}
+.seg button.on{color:#fff;border-color:var(--a);background:color-mix(in srgb,var(--a) 18%,transparent)}
+.lbl{font-size:9px;color:#777;letter-spacing:1px}
+#cores{display:flex;gap:4px;height:44px;align-items:flex-end}
+#cores div{flex:1;background:linear-gradient(0deg,var(--a),#ff003355);border-radius:2px;transition:height .4s;min-height:3px}
+.rings{display:flex;gap:12px}
+.ring{position:relative;width:var(--rs,100px);aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring svg{position:absolute;inset:0;width:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:6;stroke-dasharray:283;stroke-linecap:round}
+.ring .bg{stroke:#ffffff0d}
+.ring .fg{transition:stroke-dashoffset .5s,stroke .5s;filter:drop-shadow(0 0 4px currentColor)}
+.rn{font:900 20px monospace;position:relative}
+.rl{font-size:8px;color:#777;letter-spacing:1px;position:relative}
+#ftw{width:100%;max-width:420px}
+canvas{width:100%;height:56px;display:block;background:#ffffff05;border:1px solid #ffffff0d;border-radius:8px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;max-width:420px}
+.stats div{background:#ffffff06;border:1px solid #ffffff0d;border-radius:8px;padding:7px 4px;text-align:center}
+.stats b{display:block;font:900 14px monospace}
+.stats span{font-size:8px;color:#777;letter-spacing:1px}
+.games{display:flex;gap:6px;width:100%;max-width:420px;justify-content:center}
+.gn{flex:1;max-width:110px;min-width:0;height:70px;background:linear-gradient(135deg,#12121a,#08080c);border:1px solid #ffffff1a;clip-path:polygon(15% 0,100% 0,85% 100%,0 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:.3s}
+.gn.on{border-color:#f03;background:linear-gradient(135deg,#ff003326,#08080c);transform:translateY(-3px)}
+.gn span{font-size:22px}.gn label{font-size:9px;color:#888;margin-top:3px;cursor:pointer}.gn.on label{color:#fff}
+#purge{background:0;border:0;position:relative;width:240px;height:48px;cursor:pointer;color:#fff;font-size:12px;letter-spacing:2px;flex-shrink:0}
+#purge svg{position:absolute;inset:0;width:100%;height:100%}
+#purge:disabled{opacity:.5}
+#purge span{position:relative}
+.dev{font-size:10px;color:#889;line-height:1.7;font-weight:400}
+.dev b{color:#cde;font-weight:900}
+#tabs{display:none}
+@media(max-width:900px){
+#core{display:flex;flex-direction:column;padding:10px;gap:10px}
+#pages{display:flex;flex:1;min-height:0}
+.side,.hub{display:none;flex:1;min-width:0}
+.on.side,.on.hub{display:flex}
+.side{padding:12px;border-radius:14px}
+.ring{--rs:30vw}
+.rings{gap:6px}
+.tile{padding:13px 10px}
+.sw{width:46px;height:24px}.sw span:before{width:16px;height:16px;top:3px}.sw input:checked+span:before{transform:translateX(22px)}
+input[type=range]::-webkit-slider-thumb{width:24px;height:24px}
+#tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;flex-shrink:0;background:#0c0c10d9;border:1px solid #ffffff14;border-radius:16px;padding:6px}
+#tabs button{background:0;border:0;color:#777;padding:8px 0;border-radius:12px;font-size:10px;letter-spacing:1px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+#tabs span{font-size:18px}
+#tabs button.on{color:#fff;background:#ff003326;box-shadow:inset 0 0 0 1px #ff003380}
+#tabs button.cy.on{background:#00f0ff1f;box-shadow:inset 0 0 0 1px #00f0ff80}
+}
+@media(max-width:380px){.ring{--rs:28vw}.rn{font-size:16px}}
+</style>
 </head>
 <body>
+<div id="boot"><div class="bt">GHOST GAME FUTURE BOOST</div><div class="bs">GHOST OS INTEGRATION ENGINE</div></div>
 
-    <div id="boot-screen">
-        <div class="matrix-glow"></div>
-        <div class="boot-title">Ghost Game Future Boost</div>
-        <div class="boot-sub">GHOST OS INTEGRATION ENGINE</div>
-    </div>
+<div id="core">
+<div id="pages">
 
-    <div id="game-space-core">
-        
-        <div class="side-panel panel-left">
-            <div class="panel-title"><span>⚡ CORE CPU ENGINE</span><span>LVL 4</span></div>
-            
-            <div class="range-container">
-                <div class="range-header"><span>Frequência Base CPU</span><span id="lbl-cpu-clock">3.19 GHz</span></div>
-                <input type="range" class="custom-range" min="1800" max="3400" value="3190" step="10" oninput="updateCpuSlider(this.value)">
-            </div>
+<section class="side pl" id="pg0">
+  <div class="pt"><span>CPU ENGINE</span><span id="cpuN"></span></div>
+  <div class="rg"><div class="rh"><span>Frequência alvo</span><b id="cpuL">2.80 GHz</b></div>
+    <input type="range" id="cpu" min="1800" max="3400" value="2800" step="10"></div>
+  <div id="cores"></div>
+  <div class="rg"><div class="lbl">AMOSTRAGEM DE TOQUE</div>
+    <div class="seg" id="touch"><button data-v="120">120</button><button data-v="240">240</button><button data-v="480" class="on">480</button><button data-v="960">960 Hz</button></div></div>
+  <div id="tl" style="display:contents"></div>
+</section>
 
-            <div class="setting-tile">
-                <div class="tile-info"><title>Amostragem de Toque</title><desc>Elevar varredura para 960Hz Turbo</desc></div>
-                <label class="ghost-switch"><input type="checkbox" checked><span class="rm-slider"></span></label>
-            </div>
+<section class="hub on" id="pg1">
+  <div class="seg" id="prof" style="width:100%;max-width:420px">
+    <button data-p="eco">Economia</button><button data-p="bal" class="on">Equilíbrio</button><button data-p="perf">Desempenho</button><button data-p="ext">Extremo</button>
+  </div>
+  <div class="rings">
+    <div class="ring" style="color:#f03"><svg viewBox="0 0 110 110"><circle class="bg" cx="55" cy="55" r="45"/><circle class="fg" id="rF" cx="55" cy="55" r="45" stroke="#f03"/></svg><div class="rn" id="tF">--</div><div class="rl">FPS</div></div>
+    <div class="ring" style="color:#00f0ff"><svg viewBox="0 0 110 110"><circle class="bg" cx="55" cy="55" r="45"/><circle class="fg" id="rG" cx="55" cy="55" r="45" stroke="#00f0ff"/></svg><div class="rn" id="tG">--</div><div class="rl">GPU</div></div>
+    <div class="ring" id="ringT"><svg viewBox="0 0 110 110"><circle class="bg" cx="55" cy="55" r="45"/><circle class="fg" id="rT" cx="55" cy="55" r="45" stroke="#fb0"/></svg><div class="rn" id="tT">--</div><div class="rl">SOC °C</div></div>
+  </div>
+  <div id="ftw"><canvas id="cv"></canvas></div>
+  <div class="stats">
+    <div><b id="sLow">--</b><span>1% LOW</span></div>
+    <div><b id="sLat">--</b><span>LATÊNCIA</span></div>
+    <div><b id="sBot">--</b><span>GARGALO</span></div>
+    <div><b id="sRam">--</b><span>RAM</span></div>
+    <div><b id="sBat">--</b><span>BATERIA</span></div>
+    <div><b id="sClk">--</b><span>CLOCK CPU</span></div>
+  </div>
+  <div class="games">
+    <div class="gn on" data-g="roblox"><span>🟩</span><label>Roblox</label></div>
+    <div class="gn" data-g="minecraft"><span>🟫</span><label>Minecraft</label></div>
+    <div class="gn" data-g="retro"><span>👾</span><label>Emuladores</label></div>
+  </div>
+  <button id="purge"><svg viewBox="0 0 220 45" preserveAspectRatio="none"><polygon points="15,0 220,0 205,45 0,45" fill="#ff00331a" stroke="#f03" stroke-width="2"/></svg><span>LIBERAR MEMÓRIA</span></button>
+</section>
 
-            <div class="setting-tile">
-                <div class="tile-info"><title>Escala do Governador</title><desc>Forçar perfil 'Performance' estável</desc></div>
-                <label class="ghost-switch"><input type="checkbox" checked><span class="rm-slider"></span></label>
-            </div>
+<section class="side pr" id="pg2">
+  <div class="pt"><span>GPU GRAPHICS</span><span id="gpuN"></span></div>
+  <div class="rg"><div class="rh"><span>Clock de render</span><b id="gpuL">680 MHz</b></div>
+    <input type="range" id="gpu" min="400" max="950" value="680" step="10"></div>
+  <div class="rg"><div class="lbl">GERAÇÃO DE QUADROS (IA)</div>
+    <div class="seg" id="fg"><button data-v="1" class="on">Off</button><button data-v="2">2x</button><button data-v="3">3x</button><button data-v="4">4x</button></div>
+    <div class="lbl" id="fgInfo" style="font-weight:400"></div></div>
+  <div id="tr" style="display:contents"></div>
+  <div class="dev" id="dev"></div>
+</section>
 
-            <div class="setting-tile">
-                <div class="tile-info"><title>Otimização de Render</title><desc>Ignorar frames nulos no pipeline</desc></div>
-                <label class="ghost-switch"><input type="checkbox" id="sw-render"><span class="rm-slider"></span></label>
-            </div>
+</div>
+<nav id="tabs"><button data-t="0"><span>⚡</span>CPU</button><button data-t="1" class="on"><span>🎮</span>JOGO</button><button data-t="2" class="cy"><span>💎</span>GPU</button></nav>
+</div>
 
-            <div class="setting-tile">
-                <div class="tile-info"><title>Pre-Compilar Shaders</title><desc>Alocar 512MB para cache estático</desc></div>
-                <label class="ghost-switch"><input type="checkbox" checked><span class="rm-slider"></span></label>
-            </div>
-        </div>
+<script>
+const $=id=>document.getElementById(id), cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+const toast=(t,m,i)=>parent.postMessage({type:'SHOW_TOAST',title:t,message:m,icon:i},'*');
 
-        <div class="center-hub">
-            
-            <div class="hud-rings-container">
-                <div class="ring-stat">
-                    <svg class="ring-svg"><circle class="ring-bg" cx="55" cy="55" r="45"/><circle class="ring-fill-red" id="ring-cpu" cx="55" cy="55" r="45"/></svg>
-                    <div class="ring-text"><div class="ring-num" id="txt-fps">90</div><div class="ring-label">FPS/HZ</div></div>
-                </div>
-                <div class="ring-stat">
-                    <svg class="ring-svg"><circle class="ring-bg" cx="55" cy="55" r="45"/><circle class="ring-fill-cyan" id="ring-gpu" cx="55" cy="55" r="45"/></svg>
-                    <div class="ring-text"><div class="ring-num" id="txt-gpu">65%</div><div class="ring-label">GPU LOAD</div></div>
-                </div>
-            </div>
+/* ---------- Dados reais do aparelho ---------- */
+const cores=navigator.hardwareConcurrency||8, memTotal=navigator.deviceMemory||8;
+let gpuName='Indisponível', bat=null, hz=60;
+try{const g=document.createElement('canvas').getContext('webgl'),e=g.getExtension('WEBGL_debug_renderer_info');gpuName=g.getParameter(e.UNMASKED_RENDERER_WEBGL).replace(/ANGLE \(|\)/g,'')}catch(e){}
+if(navigator.getBattery)navigator.getBattery().then(b=>bat=b);
+(()=>{let n=0,t0=performance.now();(function r(t){n++;if(t-t0>=1000){hz=Math.round(n*1000/(t-t0));n=0;t0=t}requestAnimationFrame(r)})(t0)})();
 
-            <div class="game-selector-container">
-                <div class="game-node selected-node" onclick="selectGameNode('Roblox Engine', this)">
-                    <span>🟩</span><label>Roblox</label>
-                </div>
-                <div class="game-node" onclick="selectGameNode('Minecraft Addon', this)">
-                    <span>🟫</span><label>Minecraft</label>
-                </div>
-                <div class="game-node" onclick="selectGameNode('Retro Box', this)">
-                    <span>👾</span><label>Emuladores</label>
-                </div>
-            </div>
+/* ---------- Modelo da simulação ---------- */
+const G={roblox:{n:'Roblox',cw:.6,ram:1.4,base:70},minecraft:{n:'Minecraft',cw:.7,ram:2.2,base:85},retro:{n:'Emuladores',cw:.4,ram:1.1,base:75}};
+const P={eco:[1800,400,0],bal:[2400,560,1],perf:[3000,740,1],ext:[3400,950,1]};
+const s={cpu:2800,gpu:680,game:'roblox',fg:1,touch:480,temp:34,sys:3.1,hitch:0,gov:1,shaders:1,render:0,fan:0,bypass:1,ssa:0,stab:1,hot:0};
+const ft=Array(60).fill(14);
+let m={};
 
-            <button class="hex-boost-btn" onclick="executeSuperPurge()">
-                <svg class="hex-svg" viewBox="0 0 220 45">
-                    <polygon points="15,0 220,0 205,45 0,45" fill="none" stroke="#ff0033" stroke-width="2" />
-                    <polygon points="17,3 218,3 203,42 2,42" fill="rgba(255,0,51,0.1)" />
-                </svg>
-                <span style="position: relative; z-index: 2;">SUPER ENGINE PURGE</span>
-            </button>
-        </div>
+function model(){
+  const g=G[s.game], perf=g.cw*s.cpu/3400+(1-g.cw)*s.gpu/950;
+  const raw=g.base*perf*1.35*(s.ssa?.88:1)*(s.render?1.05:1)*(s.gov?1:.93);
+  const thr=s.temp>44?Math.max(.55,1-(s.temp-44)*.06):1;
+  const used=s.sys+g.ram+(s.fg>1?.3:0), press=used/memTotal>.85;
+  const fps=Math.min(120,raw*thr*(press?.9:1));
+  const cpuB=g.cw*3400/s.cpu, gpuB=(1-g.cw)*950/s.gpu;
+  return{g,raw,thr,fps,out:fps*s.fg,used,press,bot:thr<1?'TÉRMICO':press?'RAM':cpuB>gpuB?'CPU':'GPU'};
+}
+function step(){
+  m=model();
+  const chg=bat&&bat.charging;
+  const tgt=28+Math.pow(s.cpu/3400,2)*12+Math.pow(s.gpu/950,2)*10+(s.fg-1)*1.8+(s.ssa?2:0)+(chg&&!s.bypass?3:0)-(s.fan?6:0);
+  s.temp+=(tgt-s.temp)*.01+(Math.random()-.5)*.05;
+  s.sys=Math.min(3.4,s.sys+.0008);
+  if(s.temp>44&&!s.hot){s.hot=1;toast('Térmico','SoC acima de 44°C: clock reduzido para proteger o chip.','🌡️')}
+  if(s.temp<42)s.hot=0;
+  const base=1000/Math.max(1,m.out), p=(s.shaders?.01:.05)*(s.stab?.4:1)*(m.press?2:1);
+  let f=base*(1+(Math.random()-.5)*(s.stab?.08:.18));
+  if(Math.random()<p)f*=2.5;
+  if(s.hitch>0){f=Math.max(f,120);s.hitch--}
+  ft.push(f);ft.shift();
+}
+function draw(){
+  const c=$('cv'),d=devicePixelRatio||1,W=c.clientWidth,H=c.clientHeight;
+  if(!W)return;c.width=W*d;c.height=H*d;
+  const x=c.getContext('2d');x.scale(d,d);
+  const base=1000/Math.max(1,m.out||60),bw=W/60;
+  ft.forEach((f,i)=>{const h=Math.min(1,f/50)*H;x.fillStyle=f>base*1.8?'#f03':'#00f0ff';x.fillRect(i*bw,H-h,bw-1,h)});
+}
+function ui(){
+  const fps=m.out, thrF=m.thr<1;
+  $('tF').textContent=Math.round(fps);
+  const gpuL=cl(Math.round(fps/((s.gpu/950)*(s.ssa?110:150))*90*(s.fg>1?1+(s.fg-1)*.12:1)),8,100);
+  $('tG').textContent=gpuL+'%';$('tT').textContent=s.temp.toFixed(0);
+  $('rF').style.strokeDashoffset=283-cl(fps/(s.fg>1?240:120),0,1)*283;
+  $('rG').style.strokeDashoffset=283-gpuL/100*283;
+  $('rT').style.strokeDashoffset=283-cl((s.temp-25)/30,0,1)*283;
+  $('rT').setAttribute('stroke',s.temp>44?'#f03':s.temp>40?'#fb0':'#4f8');
+  const srt=[...ft].sort((a,b)=>a-b);
+  $('sLow').textContent=Math.round(1000/srt[58]);
+  $('sLat').textContent=Math.round(1000/s.touch*.5+8+1000/m.fps*1.5+(s.fg>1?1000/m.fps*.8:0))+' ms';
+  $('sBot').textContent=m.bot;$('sBot').style.color=m.bot==='TÉRMICO'?'#f03':'#fff';
+  $('sRam').textContent=m.used.toFixed(1)+'/'+memTotal+' GB';
+  $('sBat').textContent=bat?Math.round(bat.level*100)+'%'+(bat.charging?'⚡':''):'N/D';
+  $('sClk').textContent=(s.cpu*m.thr/1000).toFixed(2)+' GHz';
+  const cpuLoad=cl(m.fps/(s.cpu/3400*130)*100*(.5+m.g.cw)*.8,6,100);
+  [...$('cores').children].forEach(b=>b.style.height=cl(cpuLoad*(.6+Math.random()*.8),4,100)+'%');
+  $('fgInfo').textContent=s.fg>1?`Saída ${Math.round(m.fps)} → ${Math.round(fps)} FPS. Adiciona latência e pode gerar artefatos.`:'';
+  $('dev').innerHTML=`GPU: <b>${gpuName}</b><br>Núcleos: <b>${cores}</b> · RAM: <b>${memTotal} GB</b><br>Tela: <b>${hz} Hz</b> (medido) · Cooler: <b>${s.fan?'22.500 RPM':'passivo'}</b>`;
+}
 
-        <div class="side-panel panel-right">
-            <div class="panel-title cyan"><span>💎 GPU GRAPHICS GFB</span><span>ADRENO</span></div>
+/* ---------- Controles ---------- */
+const tiles=(id,list)=>{$(id).innerHTML=list.map(([k,t,d,on])=>`<div class="tile"><div><b>${t}</b><i>${d}</i></div><label class="sw"><input type="checkbox" data-k="${k}" ${on?'checked':''}><span></span></label></div>`).join('');s.__=0};
+tiles('tl',[['gov','Governador Performance','Clock estável; gasta mais bateria',1],['shaders','Pré-compilar shaders','Cache de 512 MB; menos travadas',1],['render','Pular frames nulos','~5% mais FPS, risco de tearing',0]]);
+tiles('tr',[['fan','Cooler ativo','Reduz ~6°C; mais ruído e consumo',0],['bypass','Bypass de carga','Carrega sem aquecer a bateria',1],['ssa','Super amostragem','Bordas melhores; ~12% menos FPS',0],['stab','Estabilizador de quadros','Reduz oscilações de frametime',1]]);
+document.addEventListener('change',e=>{
+  const k=e.target.dataset.k;if(!k)return;s[k]=+e.target.checked;
+  if(k==='fan')toast('Hardware',s.fan?'Cooler a 22.500 RPM. Queda esperada de ~6°C.':'Cooler desligado.','🌀');
+  if(k==='bypass')toast('Carga',s.bypass?'Bypass ativo: a bateria não aquece ao carregar.':'Carga normal pela bateria.','🔌');
+});
+function setCpu(v){s.cpu=+v;$('cpu').value=v;$('cpuL').textContent=(v/1000).toFixed(2)+' GHz'}
+function setGpu(v){s.gpu=+v;$('gpu').value=v;$('gpuL').textContent=v+' MHz'}
+$('cpu').oninput=e=>{setCpu(e.target.value);if(s.cpu>3100&&!s.over){s.over=1;toast('Ghost Kernel','CPU acima de 3.1 GHz: o calor sobe rápido.','🔥')}if(s.cpu<=3100)s.over=0};
+$('gpu').oninput=e=>setGpu(e.target.value);
+const seg=(id,fn)=>$(id).onclick=e=>{const b=e.target.closest('button');if(!b)return;[...$(id).children].forEach(x=>x.classList.toggle('on',x===b));fn(b)};
+seg('touch',b=>{s.touch=+b.dataset.v;toast('Toque',`Amostragem em ${s.touch} Hz.`,'👆')});
+seg('fg',b=>{s.fg=+b.dataset.v;if(s.fg>1)toast('Quadros por IA',`${s.fg}x: mais fluidez, mais latência e mais calor.`,'🤖')});
+seg('prof',b=>{const[c,g,gv]=P[b.dataset.p];setCpu(c);setGpu(g);s.gov=gv;document.querySelector('[data-k=gov]').checked=!!gv;toast('Perfil',b.textContent+' aplicado.','⚙️')});
+document.querySelectorAll('.gn').forEach(n=>n.onclick=()=>{document.querySelectorAll('.gn').forEach(x=>x.classList.toggle('on',x===n));s.game=n.dataset.g;toast('Game Space',`Perfil de ${G[s.game].n} carregado.`,'🎮')});
+$('purge').onclick=()=>{const b=$('purge'),before=s.sys;b.disabled=true;s.sys=Math.max(2.2,s.sys-1);s.hitch=6;
+  toast('Memória',`Liberando apps em segundo plano de ${G[s.game].n}...`,'🧹');
+  setTimeout(()=>{b.disabled=false;toast('Memória',`${(before-s.sys).toFixed(1)} GB liberados. A RAM volta a subir aos poucos.`,'🚀')},1200)};
 
-            <div class="range-container">
-                <div class="range-header"><span>Clock de Render GPU</span><span id="lbl-gpu-clock">680 MHz</span></div>
-                <input type="range" class="custom-range" style="background:#11222b;" min="400" max="950" value="680" step="10" oninput="updateGpuSlider(this.value)">
-            </div>
+/* ---------- Abas (mobile) + deslizar ---------- */
+let tab=1;
+function goTab(i){tab=cl(i,0,2);[0,1,2].forEach(n=>$('pg'+n).classList.toggle('on',n===tab));[...$('tabs').children].forEach((b,n)=>b.classList.toggle('on',n===tab));$('pg'+tab).scrollTop=0}
+$('tabs').onclick=e=>{const b=e.target.closest('button');if(b)goTab(+b.dataset.t)};
+let tx=0,ty=0;
+$('pages').addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+$('pages').addEventListener('touchend',e=>{
+  if(e.target.type==='range')return;
+  const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>60&&Math.abs(dy)<50)goTab(tab+(dx<0?1:-1));
+},{passive:true});
 
-            <div class="setting-tile cyan-tile" style="flex-direction: column; align-items: stretch; gap: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div class="tile-info">
-                        <title>Geração de Pixels (IA)</title>
-                        <desc>Injeção de quadros neurais preditivos</desc>
-                    </div>
-                    <label class="ghost-switch cyan-switch">
-                        <input type="checkbox" id="sw-ai-frames" onchange="toggleAiFrames(this.checked)">
-                        <span class="rm-slider"></span>
-                    </label>
-                </div>
-                <div class="range-container disabled-tile" id="ai-frame-container" style="transition: opacity 0.2s;">
-                    <div class="range-header"><span style="font-size:8px; color:#888;">Taxa Alvo Neural</span><span id="lbl-ai-frames" style="color:#00f0ff; font-size:9px;">60 Hz</span></div>
-                    <input type="range" class="custom-range cyan-range" min="25" max="1000" value="60" step="5" oninput="updateAiSlider(this.value)">
-                </div>
-            </div>
-
-            <div class="setting-tile">
-                <div class="tile-info"><title>Turbina Física Interna</title><desc>Acelerar cooler para 22.500 RPM</desc></div>
-                <label class="ghost-switch cyan-switch"><input type="checkbox" id="sw-fan" onchange="toggleFan(this.checked)"><span class="rm-slider"></span></label>
-            </div>
-
-            <div class="setting-tile">
-                <div class="tile-info"><title>Bypass de Corrente</title><desc>Carga direta sem passar pela célula</desc></div>
-                <label class="ghost-switch cyan-switch"><input type="checkbox" checked><span class="rm-slider"></span></label>
-            </div>
-
-            <div class="setting-tile">
-                <div class="tile-info"><title>Super Amostragem (SSA)</title><desc>Suavização por hardware forçada</desc></div>
-                <label class="ghost-switch cyan-switch"><input type="checkbox"><span class="rm-slider"></span></label>
-            </div>
-
-            <div class="setting-tile">
-                <div class="tile-info"><title>Estabilizador de Quadros</title><desc>Travar jitter e lag de barramento</desc></div>
-                <label class="ghost-switch cyan-switch"><input type="checkbox" checked><span class="rm-slider"></span></label>
-            </div>
-        </div>
-
-    </div>
-
-    <script>
-        let baseFps = 90;
-        let baseGpuLoad = 65;
-        let activeGame = "Roblox Engine";
-        
-        // Variáveis de controle do modificador de IA
-        let aiFramesActive = false;
-        let targetAiFrames = 60;
-
-        setTimeout(() => {
-            document.getElementById('boot-screen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('boot-screen').style.display = 'none';
-                const core = document.getElementById('game-space-core');
-                core.style.opacity = '1';
-                core.style.transform = 'scale(1)';
-                startGhostTelemetria();
-            }, 400);
-        }, 2500);
-
-        function sendToast(title, desc, icon) {
-            window.parent.postMessage({
-                type: 'SHOW_TOAST', title: title, message: desc, icon: icon
-            }, '*');
-        }
-
-        function updateCpuSlider(val) {
-            document.getElementById('lbl-cpu-clock').innerText = (val / 1000).toFixed(2) + " GHz";
-            if (!aiFramesActive) {
-                if (val > 3100) {
-                    baseFps = 120;
-                    sendToast('Ghost GBF KERNEL', 'Frequência da CPU definida acima do limite térmico padrão!', '🔥');
-                } else {
-                    baseFps = 90;
-                }
-            }
-        }
-
-        function updateGpuSlider(val) {
-            document.getElementById('lbl-gpu-clock').innerText = val + " MHz";
-            if (!aiFramesActive) {
-                baseGpuLoad = Math.floor((val / 950) * 85);
-            }
-        }
-
-        // Lógica dos novos modificadores de IA
-        function toggleAiFrames(active) {
-            aiFramesActive = active;
-            const container = document.getElementById('ai-frame-container');
-            if(active) {
-                container.classList.remove('disabled-tile');
-                baseGpuLoad = 98; // Geração de frames por IA esmaga a GPU
-                sendToast('NEURAL CORE', 'Coprocessador NPU ativado. Iniciando amostragem de vetores ópticos.', '🤖');
-                updateAiSlider(document.getElementById('ai-frame-container').querySelector('input').value);
-            } else {
-                container.classList.add('disabled-tile');
-                const cpuVal = parseInt(document.querySelectorAll('.custom-range')[0].value);
-                const gpuVal = parseInt(document.querySelectorAll('.custom-range')[1].value);
-                baseFps = cpuVal > 3100 ? 120 : 90;
-                baseGpuLoad = Math.floor((gpuVal / 950) * 85);
-                sendToast('NEURAL CORE', 'Interpolação desativada. Renderização nativa retomada.', '⚖️');
-            }
-        }
-
-        function updateAiSlider(val) {
-            targetAiFrames = parseInt(val);
-            document.getElementById('lbl-ai-frames').innerText = val + " FPS";
-            
-            if(aiFramesActive) {
-                baseFps = targetAiFrames;
-                if(targetAiFrames >= 900) {
-                    sendToast('🚨 FRAME OVERFLOW', 'Injetando 1000 quadros neurais! Sincronia vertical comprometida!', '💥');
-                } else if(targetAiFrames >= 500) {
-                    sendToast('NEURAL APEX', 'Taxa ultra-fluida gerando artefatos de amostragem na UI.', '🔮');
-                }
-            }
-        }
-
-        function selectGameNode(gameName, element) {
-            activeGame = gameName;
-            document.querySelectorAll('.game-node').forEach(n => n.classList.remove('selected-node'));
-            element.classList.add('selected-node');
-            sendToast('Game Space 11', `Otimizando barramento dedicado para ${gameName}`, '🎮');
-        }
-
-        function toggleFan(active) {
-            if(active) {
-                sendToast('Hardware', 'Arrefecimento por duto ativo. Redução de até -7°C no SoC.', '🌀');
-            }
-        }
-
-        function executeSuperPurge() {
-            sendToast('Engine v11', `Disparando purga de memória alocada no ${activeGame}...`, '🧹');
-            
-            let oldFps = baseFps;
-            baseFps = 12; // Trava o contador lá embaixo
-            
-            setTimeout(() => {
-                baseFps = oldFps;
-                sendToast('GhostOS Core', 'Limpeza concluída! Coletor de lixo forçado com sucesso.', '🚀');
-            }, 1000);
-        }
-
-        function startGhostTelemetria() {
-            setInterval(() => {
-                // Oscilações proporcionais ao peso da simulação
-                const maxJitter = aiFramesActive && targetAiFrames > 500 ? 15 : 3;
-                const jitterFps = Math.floor(Math.random() * (maxJitter * 2 + 1)) - maxJitter;
-                const jitterGpu = Math.floor(Math.random() * 6) - 3;
-
-                let finalFps = Math.max(1, baseFps + jitterFps);
-                let finalGpu = Math.max(10, Math.min(100, baseGpuLoad + jitterGpu));
-
-                document.getElementById('txt-fps').innerText = finalFps;
-                document.getElementById('txt-gpu').innerText = finalGpu + "%";
-
-                const circumference = 283;
-                
-                // Mapeia o limite do medidor baseado no perfil escolhido (se passar de 144, o anel enche todo)
-                let maxMeter = aiFramesActive ? Math.max(144, targetAiFrames) : (baseFps > 90 ? 144 : 90);
-                const cpuOffset = circumference - (Math.min(finalFps, maxMeter) / maxMeter) * circumference;
-                const gpuOffset = circumference - (finalGpu / 100) * circumference;
-
-                document.getElementById('ring-cpu').style.strokeDashoffset = cpuOffset;
-                document.getElementById('ring-gpu').style.strokeDashoffset = gpuOffset;
-
-            }, 400);
-        }
-    </script>
+/* ---------- Inicialização ---------- */
+for(let i=0;i<Math.min(cores,8);i++)$('cores').appendChild(document.createElement('div'));
+$('cpuN').textContent=cores+' NÚCLEOS';$('gpuN').textContent=gpuName.split(',')[0].slice(0,18).toUpperCase();
+setCpu(2800);setGpu(680);m=model();
+setTimeout(()=>{$('boot').style.opacity=0;setTimeout(()=>{$('boot').style.display='none';$('core').style.opacity=1;
+  let n=0;setInterval(()=>{step();draw();if(++n%5===0)ui()},100);ui()},400)},2200);
+</script>
 </body>
 </html>
