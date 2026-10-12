@@ -1,3 +1,12 @@
+# Update 7.5.0 (19)
+"What's New?"
+- More Security
+
+# Update 7.5.0 (18)
+"What's New?"
+- Optimizations
+- interface refactoring
+
 # Update 7.5.0 (17)
 "What's New?"
 - New Game
