@@ -6,13 +6,49 @@
     <style>  
         * { box-sizing: border-box; outline: none; }  
         body, html { margin: 0; padding: 0; height: 100vh; background: #000; font-family: 'Segoe UI', sans-serif; overflow: hidden; color: #fff; }  /* --- NOVO: STATUS BAR --- */  
-    #status-bar {  
-        position: fixed; top: 0; left: 0; width: 100%; height: 25px;  
-        background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);  
-        display: flex; justify-content: space-between; align-items: center;  
-        padding: 0 15px; font-size: 12px; font-weight: bold; z-index: 600;  
-        cursor: pointer;  
-    }  
+#status-bar {
+    position: fixed; top: 0; left: 0; width: 100%; height: 25px;
+    background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 15px; font-size: 12px; font-weight: bold; z-index: 600;
+    cursor: pointer; font-variant-numeric: tabular-nums;
+    transition: background 0.3s;
+}
+#status-bar.solid { background: rgba(0,0,0,0.85); }
+
+.sb-left, .sb-right { display: flex; align-items: center; gap: 8px; }
+#status-app {
+    font-weight: 500; opacity: 0.8; max-width: 120px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#status-date { font-weight: 400; opacity: 0.6; font-size: 11px; }
+
+/* Bateria desenhada em CSS */
+.batt { display: flex; align-items: center; gap: 4px; }
+.batt-body {
+    position: relative; width: 22px; height: 11px;
+    border: 1.5px solid rgba(255,255,255,0.8); border-radius: 3px;
+}
+.batt-body::after {
+    content: ''; position: absolute; right: -4px; top: 2px;
+    width: 2px; height: 4px; background: rgba(255,255,255,0.8);
+    border-radius: 0 2px 2px 0;
+}
+#batt-fill {
+    height: 100%; width: 100%; background: #22c55e;
+    border-radius: 1px; transition: width 0.3s, background 0.3s;
+}
+#batt-fill.mid { background: #eab308; }
+#batt-fill.low { background: #ef4444; }
+#batt-charge { display: none; font-size: 10px; }
+#batt-charge.show { display: inline; }
+
+#net-icon { font-size: 12px; }
+#notif-dot {
+    display: none; width: 7px; height: 7px;
+    background: #3b82f6; border-radius: 50%;
+}
+#notif-dot.show { display: block; }
 
     /* --- NOVO: QUICK PANEL --- */  
     #quick-panel {  
@@ -490,12 +526,22 @@
 </div>
 
 
-<div id="status-bar" onclick="toggleQuickPanel(true)">  
-    <div id="status-time">00:00</div>  
-    <div style="display:flex; gap:10px;">  
-        <span>📶</span><span>98%🔋</span>  
-    </div>  
-</div>  
+<div id="status-bar" onclick="toggleQuickPanel(true)">
+    <div class="sb-left">
+        <span id="status-time">00:00</span>
+        <span id="status-date"></span>
+        <span id="status-app"></span>
+    </div>
+    <div class="sb-right">
+        <span id="notif-dot"></span>
+        <span id="net-icon">📶</span>
+        <div class="batt">
+            <span id="batt-charge">⚡</span>
+            <div class="batt-body"><div id="batt-fill"></div></div>
+            <span id="batt-pct">--%</span>
+        </div>
+    </div>
+</div>
 
 <div id="quick-panel">  
     <div class="panel-header">  
@@ -1073,6 +1119,10 @@ color:#fff;
 
         document.getElementById('clock').innerText = timeStr;  
         document.getElementById('status-time').innerText = timeStr;  
+        const shortDate = now.toLocaleDateString('pt-BR', {
+    weekday: 'short', day: 'numeric', month: 'short', timeZone: timeZone
+}).replace('.', '');
+document.getElementById('status-date').innerText = shortDate;
         document.getElementById('date').innerText = dateStr;
     }
 
@@ -1124,23 +1174,28 @@ setTimeout(() => {
         document.getElementById('clock').style.display = 'none';
     }
     
-    function openApp(name, url) {  
-        const win = document.getElementById('app-window');  
-        document.getElementById('win-title').innerText = name.toUpperCase();  
-        document.getElementById('win-frame').src = url;  
-        win.classList.add('open');  
-        toggleDrawer(false);   
-    }  
+function openApp(name, url) {
+    const win = document.getElementById('app-window');
+    document.getElementById('win-title').innerText = name.toUpperCase();
+    document.getElementById('win-frame').src = url;
+    win.classList.add('open');
+    toggleDrawer(false);
+    document.getElementById('status-app').innerText = '· ' + name;
+}
 
-    function closeApp() {  
-        const win = document.getElementById('app-window');  
-        win.classList.remove('open');  
-        win.classList.remove('maximized');  
-        setTimeout(() => { document.getElementById('win-frame').src = ''; }, 300);  
-    }  
+function closeApp() {
+    const win = document.getElementById('app-window');
+    win.classList.remove('open');
+    win.classList.remove('maximized');
+    document.getElementById('status-bar').classList.remove('solid');
+    document.getElementById('status-app').innerText = '';
+    setTimeout(() => { document.getElementById('win-frame').src = ''; }, 300);
+}
 
-    function toggleMaximize() { document.getElementById('app-window').classList.toggle('maximized'); }  
-
+function toggleMaximize() {
+    const maxed = document.getElementById('app-window').classList.toggle('maximized');
+    document.getElementById('status-bar').classList.toggle('solid', maxed);
+}
     function goHome() {  
         closeApp();  
         toggleDrawer(false);  
@@ -2218,6 +2273,59 @@ initAdSystem();
 
     resetIdleTimer();
 })();
+// --- STATUS BAR: BATERIA, REDE E NOTIFICAÇÕES ---
+(function initStatusBar() {
+    const fill = document.getElementById('batt-fill');
+    const pct = document.getElementById('batt-pct');
+    const charge = document.getElementById('batt-charge');
+
+    function paintBattery(b) {
+        const level = Math.round(b.level * 100);
+        pct.innerText = level + '%';
+        fill.style.width = level + '%';
+        fill.className = level <= 10 ? 'low' : level <= 20 ? 'mid' : '';
+        charge.classList.toggle('show', b.charging);
+    }
+
+    if (navigator.getBattery) {
+        navigator.getBattery().then(b => {
+            paintBattery(b);
+            ['levelchange', 'chargingchange'].forEach(ev =>
+                b.addEventListener(ev, () => paintBattery(b)));
+        });
+    } else {
+        pct.innerText = '';
+        document.querySelector('.batt').style.display = 'none';
+    }
+
+    const net = document.getElementById('net-icon');
+    function paintNet() {
+        net.innerText = navigator.onLine ? '📶' : '🚫';
+    }
+    window.addEventListener('online', () => {
+        paintNet();
+        showNotification('Rede', 'Conexão restabelecida', '📶');
+    });
+    window.addEventListener('offline', () => {
+        paintNet();
+        showNotification('Rede', 'Sem conexão com a internet', '🚫');
+    });
+    paintNet();
+
+    // Ponto azul: aparece quando chega notificação, some ao abrir o painel
+    const dot = document.getElementById('notif-dot');
+    const originalShow = window.showNotification;
+    window.showNotification = function () {
+        dot.classList.add('show');
+        return originalShow.apply(this, arguments);
+    };
+    const originalToggle = window.toggleQuickPanel;
+    window.toggleQuickPanel = function (show) {
+        if (show) dot.classList.remove('show');
+        return originalToggle.apply(this, arguments);
+    };
+})();
+
 
 </script>
 </body>  
