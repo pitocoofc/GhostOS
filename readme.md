@@ -1,5 +1,9 @@
 # Update 7.5.0 (29)
 "What's New?"
+- New WiFi app
+
+# Update 7.5.0 (29)
+"What's New?"
 - Bug fixes
 
 # Update 7.5.0 (28)
