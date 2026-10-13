@@ -2,344 +2,1267 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#111">
 <title>Personalização Avançada</title>
 
 <style>
-    body {
-        margin: 0;
-        font-family: 'Segoe UI', sans-serif;
-        background: #111;
-        color: #fff;
-        padding: 20px;
-    }
+:root {
+    --bg: #111;
+    --bg-card: #1c1c1c;
+    --bg-elevated: #222;
+    --bg-input: #2a2a2a;
+    --text: #fff;
+    --text-muted: #999;
+    --text-dim: #666;
+    --border: #2e2e2e;
+    --border-strong: #3d3d3d;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --purple: #8b5cf6;
+    --pink: #ec4899;
+    --cyan: #06b6d4;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
 
-    h1 {
-        font-size: 20px;
-        margin-bottom: 20px;
-    }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-    .section {
-        margin-bottom: 25px;
-        padding: 15px;
-        background: #1c1c1c;
-        border-radius: 12px;
-        border: 1px solid #333;
-    }
+body {
+    margin: 0;
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 16px 16px calc(24px + var(--safe-bottom));
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+}
 
-    label {
-        display: block;
-        margin-bottom: 8px;
-        font-size: 14px;
-        font-weight: 500;
-        color: #ccc;
-    }
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 4px 4px 0;
+}
+header h1 {
+    font-size: 20px;
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.header-actions { display: flex; gap: 6px; }
+.icon-btn {
+    width: 36px; height: 36px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: all 0.15s;
+}
+.icon-btn:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+.icon-btn:active { transform: scale(0.92); }
+.icon-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
 
-    input, select, button {
-        width: 100%;
-        padding: 10px;
-        border-radius: 8px;
-        border: none;
-        outline: none;
-        margin-bottom: 10px;
-        font-size: 14px;
-        box-sizing: border-box;
-    }
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-card);
+    padding: 4px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border: 1px solid var(--border);
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+.tab:hover:not(.active) { color: var(--text); }
+.tab.active {
+    background: var(--accent);
+    color: white;
+}
 
-    input[type="color"] {
-        height: 50px;
-        padding: 5px;
-        cursor: pointer;
-        background: #222;
-    }
+/* Seções */
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn 0.2s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    select, input[type="text"] {
-        background: #222;
-        color: #fff;
-        border: 1px solid #444;
-    }
+.section {
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.section h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin: 0;
+}
+.section-reset {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.15s;
+}
+.section-reset:hover { color: var(--danger); background: rgba(239,68,68,0.1); }
 
-    button {
-        background: #3b82f6;
-        color: white;
-        cursor: pointer;
-        font-weight: 600;
-        transition: background 0.2s;
-    }
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+.hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: -2px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
 
-    button:hover {
-        background: #2563eb;
-    }
+input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-input);
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+}
 
-    button:active {
-        transform: scale(0.98);
-    }
+input[type="color"] {
+    height: 48px;
+    padding: 4px;
+    cursor: pointer;
+    background: var(--bg-input);
+}
 
-    .row-btns {
-        display: flex;
-        gap: 10px;
-    }
+select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    cursor: pointer;
+}
 
-    .checkbox-group {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
+button.primary {
+    width: 100%;
+    padding: 11px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 8px;
+}
+button.primary:hover { background: var(--accent-hover); }
+button.primary:active { transform: scale(0.98); }
 
-    .checkbox-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: #222;
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: 1px solid #333;
-    }
+/* Toggle switch */
+.toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 0;
+}
+.toggle-row + .toggle-row {
+    border-top: 1px solid var(--border);
+}
+.toggle-info { min-width: 0; flex: 1; }
+.toggle-info label {
+    margin-bottom: 2px;
+    cursor: pointer;
+    display: block;
+}
+.toggle-info .desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
 
-    .checkbox-item label {
-        margin-bottom: 0;
-    }
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 26px;
+    flex-shrink: 0;
+}
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+.switch .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: var(--border-strong);
+    border-radius: 26px;
+    transition: background 0.25s;
+}
+.switch .slider::before {
+    content: "";
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.25s cubic-bezier(.2,.8,.2,1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.switch input:checked + .slider { background: var(--accent); }
+.switch input:checked + .slider::before { transform: translateX(18px); }
+.switch input:focus-visible + .slider { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-    .checkbox-item input[type="checkbox"] {
-        width: auto;
-        margin-bottom: 0;
-        cursor: pointer;
+/* Color row */
+.color-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+.color-row input[type="color"] { flex: 0 0 80px; }
+.color-row .hex-input {
+    flex: 1;
+    font-family: ui-monospace, monospace;
+    text-transform: uppercase;
+}
+
+/* Wallpaper preview */
+.wall-preview {
+    margin-top: 10px;
+    height: 120px;
+    background: var(--bg-input) center/cover no-repeat;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+.wall-preview::after {
+    content: 'Preview';
+    position: absolute;
+    top: 8px; left: 8px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.7);
+    background: rgba(0,0,0,0.5);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.wall-preview.empty {
+    background: var(--bg-input);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-size: 12px;
+}
+.wall-preview.empty::after { display: none; }
+
+/* Preset grid */
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+.preset {
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-input);
+    display: flex;
+    flex-direction: column;
+}
+.preset:hover { transform: scale(1.04); border-color: var(--accent); }
+.preset:active { transform: scale(0.98); }
+.preset .colors {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.preset .colors > div { flex: 1; }
+.preset .name {
+    font-size: 9px;
+    text-align: center;
+    padding: 3px;
+    background: var(--bg-card);
+    color: var(--text);
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+/* App chips */
+.apps-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+.app-chip {
+    padding: 7px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-input);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.app-chip:hover { border-color: var(--border-strong); color: var(--text); }
+.app-chip.hidden-app {
+    background: rgba(239,68,68,0.12);
+    border-color: rgba(239,68,68,0.3);
+    color: var(--danger);
+    text-decoration: line-through;
+}
+.app-chip .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+}
+.app-chip.hidden-app .dot { background: var(--danger); }
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: calc(24px + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    padding: 11px 18px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(.2,.8,.2,1);
+    z-index: 999;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 90vw;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: rgba(34,197,94,0.4); }
+.toast.error { border-color: rgba(239,68,68,0.4); }
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+    animation: fadeIn 0.15s;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    padding: 20px;
+    width: 100%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+.modal h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 700;
+}
+.modal p {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+.modal textarea {
+    min-height: 150px;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    resize: vertical;
+}
+.modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+.modal-actions button {
+    flex: 1;
+    padding: 11px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    background: var(--bg-input);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.modal-actions button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    margin-top: 0;
+}
+.modal-actions button:hover:not(.primary) { background: var(--bg-elevated); }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
     }
+}
 </style>
 </head>
 
 <body>
 
-<h1>🎨 Personalização Avançada</h1>
-
-<!-- Relógio: Cor -->
-<div class="section">
-    <label>Cor do Relógio</label>
-    <input type="color" id="colorPicker">
-    <button onclick="applyColor()">Aplicar Cor</button>
-</div>
-
-<!-- Relógio: Fonte -->
-<div class="section">
-    <label>Fonte do Relógio</label>
-    <select id="fontSelect">
-        <option value="Segoe UI">Padrão (Segoe UI)</option>
-        <option value="Arial">Arial</option>
-        <option value="Courier New">Courier</option>
-        <option value="monospace">Monospace</option>
-        <option value="fantasy">Fantasy</option>
-    </select>
-    <button onclick="applyFont()">Aplicar Fonte</button>
-</div>
-
-<!-- Relógio: Mostrar/Ocultar -->
-<div class="section">
-    <label>Exibir Relógio</label>
-    <div class="row-btns">
-        <button onclick="toggleClock(true)">Mostrar</button>
-        <button onclick="toggleClock(false)" style="background: #ef4444;">Ocultar</button>
+<header>
+    <h1>🎨 Personalização</h1>
+    <div class="header-actions">
+        <button class="icon-btn" id="btnImport" title="Importar" aria-label="Importar config">📥</button>
+        <button class="icon-btn" id="btnExport" title="Exportar" aria-label="Exportar config">📤</button>
+        <button class="icon-btn" id="btnResetAll" title="Resetar tudo" aria-label="Resetar tudo">🔄</button>
     </div>
+</header>
+
+<div class="tabs" role="tablist">
+    <button class="tab active" data-tab="relogio" role="tab">🕐 Relógio</button>
+    <button class="tab" data-tab="aparencia" role="tab">🎨 Aparência</button>
+    <button class="tab" data-tab="sistema" role="tab">⚙️ Sistema</button>
+    <button class="tab" data-tab="apps" role="tab">📱 Apps</button>
+    <button class="tab" data-tab="avancado" role="tab">🔧 Avançado</button>
 </div>
 
-<!-- Wallpaper -->
-<div class="section">
-    <label>Wallpaper (URL da imagem)</label>
-    <input type="text" id="wallInput" placeholder="https://...">
-    <button onclick="applyWallpaper()">Aplicar Wallpaper</button>
-</div>
-
-<!-- Font Size Global, Inverter Cores e Ocultar Textos -->
-<div class="section">
-    <label>Tamanho da Fonte Global</label>
-    <select id="fontSizeSelect" onchange="applyFontSize(this.value)">
-        <option value="12px">Pequena</option>
-        <option value="16px" selected>Normal</option>
-        <option value="20px">Grande</option>
-    </select>
-</div>
-
-<div class="section">
-    <label>Modo de Cores</label>
-    <button onclick="toggleInvert()" style="background: #8b5cf6;">Alternar Inversão de Cores</button>
-</div>
-
-<div class="section">
-    <label>Textos dos Aplicativos</label>
-    <button onclick="toggleAppText()" style="background: #10b981;">Mostrar / Ocultar Textos</button>
-</div>
-
-<!-- BARRA SUPERIOR -->
-<div class="section">
-    <label>Barra Superior (Status Bar)</label>
-    <button onclick="toggleStatusBar()" style="background: #f59e0b;">Mostrar / Ocultar Barra Superior</button>
-</div>
-
-<!-- BOTÕES DA TASKBAR -->
-<div class="section">
-    <label>Botões da Barra Inferior (Taskbar)</label>
-    <div class="checkbox-group">
-        <div class="checkbox-item">
-            <label>Botão Home (⚪)</label>
-            <input type="checkbox" id="btn-home" checked onchange="toggleTaskbarBtn('home', this.checked)">
+<!-- RELÓGIO -->
+<div class="panel active" data-panel="relogio">
+    <div class="section">
+        <div class="section-header">
+            <h2>Cor do Relógio</h2>
+            <button class="section-reset" data-reset="clock_color">resetar</button>
         </div>
-        <div class="checkbox-item">
-            <label>Botão Games (🎮)</label>
-            <input type="checkbox" id="btn-games" checked onchange="toggleTaskbarBtn('games', this.checked)">
+        <div class="color-row">
+            <input type="color" id="clock_color" value="#ffffff" aria-label="Cor do relógio">
+            <input type="text" class="hex-input" id="clock_color_hex" value="#FFFFFF" maxlength="7" aria-label="Cor em hexadecimal">
         </div>
-        <div class="checkbox-item">
-            <label>Botão Recents (🔳)</label>
-            <input type="checkbox" id="btn-recents" checked onchange="toggleTaskbarBtn('recents', this.checked)">
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2>Fonte do Relógio</h2>
+            <button class="section-reset" data-reset="clock_font">resetar</button>
+        </div>
+        <select id="clock_font" aria-label="Fonte do relógio">
+            <option value="Segoe UI">Padrão (Segoe UI)</option>
+            <option value="Arial">Arial</option>
+            <option value="Courier New">Courier</option>
+            <option value="monospace">Monospace</option>
+            <option value="fantasy">Fantasy</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Impact">Impact</option>
+        </select>
+        <div class="hint" id="fontPreview" style="margin-top:8px;padding:8px;background:var(--bg-input);border-radius:6px;text-align:center;">12:34</div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2>Exibição</h2>
+            <button class="section-reset" data-reset="clock_toggle">resetar</button>
+        </div>
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <label for="clock_toggle">Exibir Relógio</label>
+                <div class="desc">Mostra ou oculta o relógio na tela inicial</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="clock_toggle" checked>
+                <span class="slider"></span>
+            </label>
         </div>
     </div>
 </div>
 
-<!-- APPS INVISÍVEIS -->
-<div class="section">
-    <label>Visibilidade dos Aplicativos (Desktop)</label>
-    <select id="appHideSelect">
-        <option value="TRADUTOR">Tradutor</option>
-        <option value="RELOGIO">Relógio</option>
-        <option value="MAPA">Mapa</option>
-        <option value="AJUSTES">Ajustes</option>
-        <option value="RADIO">Rádio</option>
-        <option value="GHOSTNET">GhostNet</option>
-        <option value="CALCULADORA">Calculadora</option>
-        <option value="ANIME">Animes</option>
-        <option value="GALERIA">Galeria</option>
-        <option value="BUSSOLA">Bússola</option>
-        <option value="STOAT">Stoat</option>
-        <option value="ARQUIVOS">Arquivos</option>
-    </select>
-    <button onclick="toggleAppVisibility()" style="background: #ec4899;">Alternar Ocultar / Mostrar App</button>
+<!-- APARÊNCIA -->
+<div class="panel" data-panel="aparencia">
+    <div class="section">
+        <div class="section-header">
+            <h2>Wallpaper</h2>
+            <button class="section-reset" data-reset="ghost_wallpaper">resetar</button>
+        </div>
+        <input type="text" id="ghost_wallpaper" placeholder="https://exemplo.com/imagem.jpg" aria-label="URL do wallpaper">
+        <div class="wall-preview empty" id="wallPreview">Sem wallpaper</div>
+        <button class="primary" id="btnApplyWall">Aplicar Wallpaper</button>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2>Presets de Tema</h2>
+        </div>
+        <div class="preset-grid" id="presetGrid"></div>
+    </div>
 </div>
 
-<!-- NOTIFICAÇÕES E ANIMAÇÕES -->
-<div class="section">
-    <label>Notificações do Sistema</label>
-    <button onclick="toggleNotifications()" style="background: #0ea5e9;">Ativar / Desativar Notificações</button>
+<!-- SISTEMA -->
+<div class="panel" data-panel="sistema">
+    <div class="section">
+        <div class="section-header">
+            <h2>Fonte Global</h2>
+            <button class="section-reset" data-reset="sys_font_size">resetar</button>
+        </div>
+        <select id="sys_font_size" aria-label="Tamanho da fonte global">
+            <option value="12px">Pequena (12px)</option>
+            <option value="16px" selected>Normal (16px)</option>
+            <option value="20px">Grande (20px)</option>
+        </select>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2>Aparência do Sistema</h2>
+        </div>
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <label for="sys_invert">Inverter Cores</label>
+                <div class="desc">Aplica filtro de inversão na interface</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="sys_invert">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <label for="sys_hide_text">Ocultar Textos dos Apps</label>
+                <div class="desc">Esconde os nomes abaixo dos ícones</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="sys_hide_text">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <label for="sys_hide_statusbar">Ocultar Barra Superior</label>
+                <div class="desc">Esconde a status bar do sistema</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="sys_hide_statusbar">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2>Comportamento</h2>
+        </div>
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <label for="sys_disable_notifications">Desativar Notificações</label>
+                <div class="desc">Bloqueia notificações do sistema</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="sys_disable_notifications">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <label for="sys_disable_animations">Desativar Animações</label>
+                <div class="desc">Remove transições e efeitos visuais</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="sys_disable_animations">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <label for="sys_immersive">Modo Imersivo</label>
+                <div class="desc">Oculta status bar + taskbar simultaneamente</div>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="sys_immersive">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2>Barra Inferior (Taskbar)</h2>
+        </div>
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <label for="taskbar_home">Botão Home</label>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="taskbar_home" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <label for="taskbar_games">Botão Games</label>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="taskbar_games" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="toggle-row">
+            <div class="toggle-info">
+                <label for="taskbar_recents">Botão Recents</label>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="taskbar_recents" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
 </div>
 
-<div class="section">
-    <label>Animações do Sistema</label>
-    <button onclick="toggleAnimations()" style="background: #14b8a6;">Ativar / Desativar Animações</button>
+<!-- APPS -->
+<div class="panel" data-panel="apps">
+    <div class="section">
+        <div class="section-header">
+            <h2>Visibilidade dos Aplicativos</h2>
+            <button class="section-reset" data-reset="sys_hidden_apps">resetar</button>
+        </div>
+        <div class="hint">Toque para ocultar / mostrar. Apps ocultos ficam riscados.</div>
+        <div class="apps-grid" id="appsGrid"></div>
+    </div>
 </div>
 
-<!-- MODO IMERSIVO -->
-<div class="section">
-    <label>Modo Imersivo (Oculta Status Bar + Taskbar)</label>
-    <button onclick="toggleImmersive()" style="background: #6366f1;">Alternar Modo Imersivo</button>
+<!-- AVANÇADO -->
+<div class="panel" data-panel="avancado">
+    <div class="section">
+        <div class="section-header">
+            <h2>Importar / Exportar</h2>
+        </div>
+        <div class="hint">Salve suas configurações em JSON para backup ou transferir para outro dispositivo.</div>
+        <button class="primary" id="btnExportPanel">📤 Exportar configurações</button>
+        <button class="primary" id="btnImportPanel" style="background:var(--purple);margin-top:8px;">📥 Importar configurações</button>
+        <input type="file" id="importFile" accept="application/json" hidden>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2>Diagnóstico</h2>
+        </div>
+        <div class="hint">Estado atual do localStorage (chaves gerenciadas por esta tela):</div>
+        <div id="diagContent" style="font-family:ui-monospace,monospace;font-size:11px;background:var(--bg-input);padding:10px;border-radius:8px;color:var(--text-muted);max-height:200px;overflow-y:auto;line-height:1.6;"></div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <h2>Zona de Perigo</h2>
+        </div>
+        <div class="hint">Restaura todas as configurações para os valores padrão.</div>
+        <button class="primary" id="btnResetAllPanel" style="background:var(--danger);">🔄 Restaurar padrões</button>
+    </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<!-- Modal de import -->
+<div class="modal-overlay" id="importModal">
+    <div class="modal">
+        <h3>Importar configurações</h3>
+        <p>Cole o JSON abaixo ou selecione um arquivo. Configurações existentes serão sobrescritas.</p>
+        <textarea id="importText" placeholder='{"clock_color":"#ff0000",...}'></textarea>
+        <div class="modal-actions">
+            <button id="btnImportText">Colar JSON</button>
+            <button class="primary" id="btnImportApply">Aplicar</button>
+        </div>
+        <div class="modal-actions">
+            <button id="btnImportCancel" style="flex:1;">Cancelar</button>
+        </div>
+    </div>
 </div>
 
 <script>
-function send(data){
-    window.parent.postMessage(data, '*');
+(() => {
+'use strict';
+
+// ============================================
+// SCHEMA — fonte única de verdade
+// ============================================
+const SETTINGS = {
+    clock_color:              { type: 'color',   default: '#ffffff' },
+    clock_font:               { type: 'select',  default: 'Segoe UI' },
+    clock_toggle:             { type: 'bool',    default: true },
+    ghost_wallpaper:          { type: 'string',  default: '' },
+    sys_font_size:            { type: 'string',  default: '16px' },
+    sys_invert:               { type: 'bool',    default: false },
+    sys_hide_text:            { type: 'bool',    default: false },
+    sys_hide_statusbar:       { type: 'bool',    default: false },
+    sys_disable_notifications:{ type: 'bool',    default: false },
+    sys_disable_animations:   { type: 'bool',    default: false },
+    sys_immersive:            { type: 'bool',    default: false },
+    sys_hidden_apps:          { type: 'array',   default: [] },
+    taskbar_home:             { type: 'bool',    default: true },
+    taskbar_games:            { type: 'bool',    default: true },
+    taskbar_recents:          { type: 'bool',    default: true }
+};
+
+const APPS = [
+    { id: 'TRADUTOR',    label: 'Tradutor',    emoji: '🌐' },
+    { id: 'RELOGIO',     label: 'Relógio',     emoji: '🕐' },
+    { id: 'MAPA',        label: 'Mapa',        emoji: '🗺️' },
+    { id: 'AJUSTES',     label: 'Ajustes',     emoji: '⚙️' },
+    { id: 'RADIO',       label: 'Rádio',       emoji: '📻' },
+    { id: 'GHOSTNET',    label: 'GhostNet',    emoji: '📡' },
+    { id: 'CALCULADORA', label: 'Calculadora', emoji: '🧮' },
+    { id: 'ANIME',       label: 'Animes',      emoji: '🎬' },
+    { id: 'GALERIA',     label: 'Galeria',     emoji: '🖼️' },
+    { id: 'BUSSOLA',     label: 'Bússola',     emoji: '🧭' },
+    { id: 'STOAT',       label: 'Stoat',       emoji: '💬' },
+    { id: 'ARQUIVOS',    label: 'Arquivos',    emoji: '📁' }
+];
+
+const PRESETS = [
+    { id: 'default',  name: 'Padrão',  colors: ['#3b82f6', '#1c1c1c', '#111'] },
+    { id: 'amoled',   name: 'AMOLED',  colors: ['#22c55e', '#0a0a0a', '#000'] },
+    { id: 'nord',     name: 'Nord',    colors: ['#88c0d0', '#2e3440', '#3b4252'] },
+    { id: 'dracula',  name: 'Dracula', colors: ['#bd93f9', '#282a36', '#44475a'] },
+    { id: 'sunset',   name: 'Sunset',  colors: ['#f97316', '#1a0b2e', '#2d1b4e'] },
+    { id: 'cyberpunk',name: 'Cyber',   colors: ['#f0f',   '#0a0014', '#1a0033'] }
+];
+
+// ============================================
+// HELPERS
+// ============================================
+const $ = id => document.getElementById(id);
+
+function safeParse(str, fallback) {
+    try {
+        const v = JSON.parse(str);
+        return v == null ? fallback : v;
+    } catch { return fallback; }
 }
 
-function applyColor(){
-    const color = document.getElementById('colorPicker').value;
-    localStorage.setItem('clock_color', color);
-    send({ type: 'clock_color', value: color });
+function getSetting(key) {
+    const schema = SETTINGS[key];
+    if (!schema) return undefined;
+    const raw = localStorage.getItem(key);
+    if (raw === null) return schema.default;
+    try {
+        if (schema.type === 'bool')    return raw === 'true';
+        if (schema.type === 'array')   return safeParse(raw, schema.default);
+        return raw;
+    } catch { return schema.default; }
 }
 
-function applyFont(){
-    const font = document.getElementById('fontSelect').value;
-    localStorage.setItem('clock_font', font);
-    send({ type: 'clock_font', value: font });
+function setSetting(key, value) {
+    const schema = SETTINGS[key];
+    if (!schema) return;
+    let toStore;
+    if (schema.type === 'bool')  toStore = value ? 'true' : 'false';
+    else if (schema.type === 'array') toStore = JSON.stringify(value);
+    else toStore = String(value);
+    try { localStorage.setItem(key, toStore); } catch {}
 }
 
-function toggleClock(state){
-    localStorage.setItem('clock_toggle', state);
-    send({ type: 'clock_toggle', value: state });
-}
-
-function applyWallpaper(){
-    const url = document.getElementById('wallInput').value;
-    if(url) {
-        localStorage.setItem('ghost_wallpaper', url);
-        send({ type: 'SET_WALLPAPER', url: url });
+function send(payload) {
+    try {
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage(payload, '*');
+        }
+    } catch (e) {
+        console.warn('postMessage falhou:', e);
     }
 }
 
-function applyFontSize(val){
-    localStorage.setItem('sys_font_size', val);
-    send({ type: 'sys_font_size', value: val });
+function vibrate(ms) { try { navigator.vibrate?.(ms); } catch {} }
+
+let toastTimer = null;
+function toast(msg, type = 'success', ms = 1800) {
+    const el = $('toast');
+    el.textContent = msg;
+    el.className = 'toast ' + type;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), ms);
 }
 
-function toggleInvert(){
-    let atual = localStorage.getItem('sys_invert') === 'true';
-    localStorage.setItem('sys_invert', !atual);
-    send({ type: 'sys_invert', value: !atual });
+// ============================================
+// APPLY — envia para o parent e persiste
+// ============================================
+function applySetting(key, value, opts = {}) {
+    setSetting(key, value);
+    send({ type: key, value });
+    if (!opts.silent) vibrate(6);
 }
 
-function toggleAppText(){
-    let atual = localStorage.getItem('sys_hide_text') === 'true';
-    localStorage.setItem('sys_hide_text', !atual);
-    send({ type: 'sys_hide_text', value: !atual });
+// ============================================
+// UI: SYNC
+// ============================================
+function syncUI() {
+    // Bools
+    Object.keys(SETTINGS).forEach(key => {
+        const schema = SETTINGS[key];
+        const el = $(key);
+        if (!el) return;
+        const val = getSetting(key);
+        if (schema.type === 'bool') el.checked = !!val;
+        else el.value = val;
+    });
+
+    // Cor + hex
+    const color = getSetting('clock_color');
+    const hexInput = $('clock_color_hex');
+    if (hexInput) hexInput.value = String(color).toUpperCase();
+
+    // Wallpaper preview
+    updateWallPreview(getSetting('ghost_wallpaper'));
+
+    // Fonte preview
+    updateFontPreview();
+
+    // Taskbar toggles (chaves separadas)
+    ['home', 'games', 'recents'].forEach(btn => {
+        const el = $('taskbar_' + btn);
+        if (el) {
+            const hidden = getSetting('sys_hidden_apps'); // placeholder — taskbar usa chave própria
+            el.checked = getSetting('taskbar_' + btn) !== false;
+        }
+    });
+
+    // Apps grid
+    renderAppsGrid();
+
+    // Diagnóstico
+    renderDiagnostic();
 }
 
-function toggleStatusBar(){
-    let atual = localStorage.getItem('sys_hide_statusbar') === 'true';
-    localStorage.setItem('sys_hide_statusbar', !atual);
-    send({ type: 'sys_hide_statusbar', value: !atual });
-}
-
-function toggleTaskbarBtn(btn, visible){
-    let hiddenBtns = JSON.parse(localStorage.getItem('sys_hidden_taskbar_btns')) || [];
-    if(!visible){
-        if(!hiddenBtns.includes(btn)) hiddenBtns.push(btn);
+function updateWallPreview(url) {
+    const preview = $('wallPreview');
+    if (!preview) return;
+    if (url) {
+        preview.style.backgroundImage = `url("${url.replace(/"/g, '%22')}")`;
+        preview.classList.remove('empty');
+        preview.textContent = '';
     } else {
-        hiddenBtns = hiddenBtns.filter(b => b !== btn);
+        preview.style.backgroundImage = '';
+        preview.classList.add('empty');
+        preview.textContent = 'Sem wallpaper';
     }
-    localStorage.setItem('sys_hidden_taskbar_btns', JSON.stringify(hiddenBtns));
-    send({ type: 'sys_hidden_taskbar_btns', value: hiddenBtns });
 }
 
-function toggleAppVisibility(){
-    let appId = document.getElementById('appHideSelect').value;
-    let hiddenApps = JSON.parse(localStorage.getItem('sys_hidden_apps')) || [];
-    if(hiddenApps.includes(appId)){
+function updateFontPreview() {
+    const sel = $('clock_font');
+    const prev = $('fontPreview');
+    if (sel && prev) prev.style.fontFamily = sel.value;
+}
+
+function renderAppsGrid() {
+    const grid = $('appsGrid');
+    if (!grid) return;
+    const hiddenApps = getSetting('sys_hidden_apps');
+    grid.innerHTML = APPS.map(app => {
+        const hidden = hiddenApps.includes(app.id);
+        return `
+            <button type="button" class="app-chip ${hidden ? 'hidden-app' : ''}" data-app="${app.id}" aria-pressed="${!hidden}">
+                <span class="dot"></span>
+                <span>${app.emoji} ${app.label}</span>
+            </button>
+        `;
+    }).join('');
+
+    grid.querySelectorAll('.app-chip').forEach(chip => {
+        chip.addEventListener('click', () => toggleApp(chip.dataset.app));
+    });
+}
+
+function toggleApp(appId) {
+    let hiddenApps = getSetting('sys_hidden_apps');
+    if (hiddenApps.includes(appId)) {
         hiddenApps = hiddenApps.filter(id => id !== appId);
+        toast(`${appId} visível`);
     } else {
-        hiddenApps.push(appId);
+        hiddenApps = [...hiddenApps, appId];
+        toast(`${appId} oculto`, 'error');
     }
-    localStorage.setItem('sys_hidden_apps', JSON.stringify(hiddenApps));
-    send({ type: 'sys_hidden_apps', value: hiddenApps });
+    applySetting('sys_hidden_apps', hiddenApps);
+    renderAppsGrid();
+    renderDiagnostic();
 }
 
-function toggleNotifications(){
-    let atual = localStorage.getItem('sys_disable_notifications') === 'true';
-    localStorage.setItem('sys_disable_notifications', !atual);
-    send({ type: 'sys_disable_notifications', value: !atual });
+function renderDiagnostic() {
+    const el = $('diagContent');
+    if (!el) return;
+    const lines = Object.keys(SETTINGS).map(key => {
+        const val = getSetting(key);
+        const display = Array.isArray(val) ? JSON.stringify(val) : String(val);
+        return `${key}: ${display}`;
+    });
+    el.innerHTML = lines.map(l => `<div>${l.replace(/</g, '&lt;')}</div>`).join('');
 }
 
-function toggleAnimations(){
-    let atual = localStorage.getItem('sys_disable_animations') === 'true';
-    localStorage.setItem('sys_disable_animations', !atual);
-    send({ type: 'sys_disable_animations', value: !atual });
+// ============================================
+// PRESETS
+// ============================================
+function renderPresets() {
+    const grid = $('presetGrid');
+    if (!grid) return;
+    grid.innerHTML = PRESETS.map(p => `
+        <button type="button" class="preset" data-preset="${p.id}" aria-label="Aplicar tema ${p.name}">
+            <div class="colors">
+                <div style="background:${p.colors[0]}"></div>
+                <div style="background:${p.colors[1]}"></div>
+                <div style="background:${p.colors[2]}"></div>
+            </div>
+            <div class="name">${p.name}</div>
+        </button>
+    `).join('');
+
+    grid.querySelectorAll('.preset').forEach(el => {
+        el.addEventListener('click', () => applyPreset(el.dataset.preset));
+    });
 }
 
-function toggleImmersive(){
-    let atual = localStorage.getItem('sys_immersive') === 'true';
-    localStorage.setItem('sys_immersive', !atual);
-    send({ type: 'sys_immersive', value: !atual });
+function applyPreset(id) {
+    const preset = PRESETS.find(p => p.id === id);
+    if (!preset) return;
+    // Aplica cor do relógio como accent visual (exemplo)
+    applySetting('clock_color', preset.colors[0]);
+    const colorEl = $('clock_color');
+    const hexEl = $('clock_color_hex');
+    if (colorEl) colorEl.value = preset.colors[0];
+    if (hexEl) hexEl.value = preset.colors[0].toUpperCase();
+    toast(`Tema "${preset.name}" aplicado`);
 }
 
-window.onload = () => {
-    const savedColor = localStorage.getItem('clock_color');
-    if(savedColor) document.getElementById('colorPicker').value = savedColor;
+// ============================================
+// EVENTS
+// ============================================
+function bindEvents() {
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            const panel = document.querySelector(`[data-panel="${tab.dataset.tab}"]`);
+            if (panel) panel.classList.add('active');
+            vibrate(4);
+        });
+    });
 
-    const savedFont = localStorage.getItem('clock_font');
-    if(savedFont) document.getElementById('fontSelect').value = savedFont;
+    // Cor + hex sync
+    const colorEl = $('clock_color');
+    const hexEl = $('clock_color_hex');
+    if (colorEl) {
+        colorEl.addEventListener('input', () => {
+            if (hexEl) hexEl.value = colorEl.value.toUpperCase();
+            applySetting('clock_color', colorEl.value);
+        });
+    }
+    if (hexEl) {
+        hexEl.addEventListener('input', () => {
+            let v = hexEl.value.trim();
+            if (!v.startsWith('#')) v = '#' + v;
+            if (/^#[0-9a-f]{6}$/i.test(v)) {
+                if (colorEl) colorEl.value = v;
+                applySetting('clock_color', v);
+            }
+        });
+    }
 
-    const savedFontSize = localStorage.getItem('sys_font_size');
-    if(savedFontSize) document.getElementById('fontSizeSelect').value = savedFontSize;
+    // Fonte do relógio
+    const fontEl = $('clock_font');
+    if (fontEl) {
+        fontEl.addEventListener('change', () => {
+            applySetting('clock_font', fontEl.value);
+            updateFontPreview();
+            toast('Fonte aplicada');
+        });
+    }
 
-    const hiddenBtns = JSON.parse(localStorage.getItem('sys_hidden_taskbar_btns')) || [];
-    document.getElementById('btn-home').checked = !hiddenBtns.includes('home');
-    document.getElementById('btn-games').checked = !hiddenBtns.includes('games');
-    document.getElementById('btn-recents').checked = !hiddenBtns.includes('recents');
+    // Bools simples — binding genérico
+    Object.keys(SETTINGS).forEach(key => {
+        const schema = SETTINGS[key];
+        if (schema.type !== 'bool') return;
+        const el = $(key);
+        if (!el) return;
+        el.addEventListener('change', () => {
+            applySetting(key, el.checked);
+            renderDiagnostic();
+        });
+    });
+
+    // Fonte global (select)
+    const fontGlobal = $('sys_font_size');
+    if (fontGlobal) {
+        fontGlobal.addEventListener('change', () => {
+            applySetting('sys_font_size', fontGlobal.value);
+            toast('Tamanho aplicado');
+        });
+    }
+
+    // Wallpaper
+    const wallInput = $('ghost_wallpaper');
+    const btnWall = $('btnApplyWall');
+    if (wallInput) {
+        wallInput.addEventListener('input', () => updateWallPreview(wallInput.value.trim()));
+    }
+    if (btnWall) {
+        btnWall.addEventListener('click', () => {
+            const url = wallInput.value.trim();
+            applySetting('ghost_wallpaper', url);
+            updateWallPreview(url);
+            toast(url ? 'Wallpaper aplicado' : 'Wallpaper removido');
+        });
+    }
+
+    // Taskbar (chaves separadas, não estão no SETTINGS como bools "padrão")
+    ['home', 'games', 'recents'].forEach(btn => {
+        const el = $('taskbar_' + btn);
+        if (!el) return;
+        el.addEventListener('change', () => {
+            applySetting('taskbar_' + btn, el.checked);
+            renderDiagnostic();
+        });
+    });
+
+    // Reset por seção
+    document.querySelectorAll('.section-reset').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const key = btn.dataset.reset;
+            const schema = SETTINGS[key];
+            if (!schema) return;
+            applySetting(key, schema.default);
+            if (key === 'clock_color') {
+                if (colorEl) colorEl.value = schema.default;
+                if (hexEl) hexEl.value = schema.default.toUpperCase();
+            }
+            if (key === 'ghost_wallpaper') updateWallPreview('');
+            syncUI();
+            toast('Valor restaurado');
+        });
+    });
+
+    // Export / Import (header)
+    $('btnExport').addEventListener('click', doExport);
+    $('btnExportPanel')?.addEventListener('click', doExport);
+
+    $('btnImport').addEventListener('click', openImport);
+    $('btnImportPanel')?.addEventListener('click', openImport);
+
+    $('btnResetAll').addEventListener('click', confirmResetAll);
+    $('btnResetAllPanel')?.addEventListener('click', confirmResetAll);
+
+    // Modal de import
+    $('btnImportCancel').addEventListener('click', closeImport);
+    $('btnImportApply').addEventListener('click', applyImportText);
+    $('btnImportText').addEventListener('click', pasteFromClipboard);
+    $('importFile').addEventListener('change', importFromFile);
+
+    // Fechar modal clicando fora
+    $('importModal').addEventListener('click', e => {
+        if (e.target === $('importModal')) closeImport();
+    });
 }
+
+// ============================================
+// EXPORT / IMPORT
+// ============================================
+function collectConfig() {
+    const data = { version: 1, exportedAt: new Date().toISOString(), settings: {} };
+    Object.keys(SETTINGS).forEach(key => data.settings[key] = getSetting(key));
+    return data;
+}
+
+function doExport() {
+    const data = collectConfig();
+    const text = JSON.stringify(data, null, 2);
+
+    if (navigator.share) {
+        navigator.share({ title: 'GhostOS Config', text }).catch(() => copyToClipboard(text));
+    } else {
+        copyToClipboard(text);
+    }
+}
+
+async function copyToClipboard(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        toast('Configuração copiada');
+    } catch {
+        // Fallback: download
+        const blob = new Blob([text], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `ghost-config-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        toast('Arquivo baixado');
+    }
+}
+
+function openImport() {
+    $('importText').value = '';
+    $('importModal').classList.add('show');
+}
+
+function closeImport() {
+    $('importModal').classList.remove('show');
+}
+
+async function pasteFromClipboard() {
+    try {
+        const text = await navigator.clipboard.readText();
+        $('importText').value = text;
+        toast('Colado da área de transferência');
+    } catch {
+        toast('Não foi possível colar', 'error');
+    }
+}
+
+function importFromFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        $('importText').value = reader.result;
+        toast('Arquivo carregado');
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+}
+
+function applyImportText() {
+    const raw = $('importText').value.trim();
+    if (!raw) { toast('Cole um JSON primeiro', 'error'); return; }
+    try {
+        const parsed = JSON.parse(raw);
+        const settings = parsed.settings || parsed;
+        if (!settings || typeof settings !== 'object') throw new Error('Formato inválido');
+
+        let count = 0;
+        Object.keys(settings).forEach(key => {
+            if (SETTINGS[key]) {
+                applySetting(key, settings[key], { silent: true });
+                count++;
+            }
+        });
+        syncUI();
+        closeImport();
+        toast(`${count} configurações importadas`);
+    } catch (e) {
+        console.error(e);
+        toast('JSON inválido', 'error');
+    }
+}
+
+function confirmResetAll() {
+    if (!confirm('Restaurar TODAS as configurações padrão? Esta ação não pode ser desfeita.')) return;
+    Object.keys(SETTINGS).forEach(key => {
+        applySetting(key, SETTINGS[key].default, { silent: true });
+    });
+    syncUI();
+    toast('Configurações restauradas');
+}
+
+// ============================================
+// INIT
+// ============================================
+function init() {
+    syncUI();
+    renderPresets();
+    bindEvents();
+    renderDiagnostic();
+}
+
+init();
+
+})();
 </script>
-
 </body>
 </html>
