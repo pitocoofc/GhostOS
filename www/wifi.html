@@ -20,10 +20,12 @@
     --border-strong: #d0d3d9;
     --accent: #007aff;
     --accent-hover: #0066d6;
+    --accent-soft: #e6f2ff;
     --accent-grad: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
     --danger: #ff3b30;
     --success: #34c759;
     --warning: #ff9500;
+    --purple: #a855f7;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --radius: 16px;
@@ -42,6 +44,7 @@
     --border-strong: #3a3a3c;
     --accent: #0a84ff;
     --accent-hover: #3395ff;
+    --accent-soft: #0a2540;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -58,9 +61,9 @@ body {
     -webkit-font-smoothing: antialiased;
     -webkit-user-select: none;
     user-select: none;
+    min-height: 100vh;
 }
 
-/* Ícones base */
 .icon {
     width: 1em; height: 1em;
     display: inline-block;
@@ -79,16 +82,16 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
 }
 .header h1 {
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 400;
     margin: 0;
-    color: var(--text);
     letter-spacing: -0.5px;
 }
 .header-actions { display: flex; gap: 4px; }
+
 .icon-btn {
     width: 36px; height: 36px;
     border: none;
@@ -97,7 +100,8 @@ body {
     border-radius: 10px;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s;
+    transition: background 0.15s, color 0.15s;
+    position: relative;
 }
 .icon-btn .icon { width: 18px; height: 18px; }
 .icon-btn:hover, .icon-btn:focus-visible {
@@ -105,15 +109,23 @@ body {
     outline: none;
 }
 .icon-btn:active { transform: scale(0.92); }
+.icon-btn.active { background: var(--accent-soft); color: var(--accent); }
 
 /* ============ TOGGLE ROW ============ */
 .setting-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     font-weight: 600;
-    font-size: 18px;
+    font-size: 17px;
+}
+.setting-row .sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    display: block;
+    margin-top: 2px;
 }
 .toggle-switch {
     position: relative;
@@ -121,11 +133,7 @@ body {
     width: 50px; height: 26px;
     flex-shrink: 0;
 }
-.toggle-switch input {
-    opacity: 0;
-    width: 0; height: 0;
-    position: absolute;
-}
+.toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
 .slider {
     position: absolute;
     cursor: pointer;
@@ -155,17 +163,24 @@ input:focus-visible + .slider {
 .active-network {
     background: var(--accent-grad);
     color: white;
-    padding: 18px 20px;
+    padding: 16px 18px;
     border-radius: var(--radius);
     display: flex;
     align-items: center;
     justify-content: space-between;
     box-shadow: 0 4px 16px rgba(0,122,255,0.25);
-    margin-bottom: 30px;
-    transition: opacity 0.3s, background 0.3s, filter 0.3s;
+    margin-bottom: 20px;
+    transition: opacity 0.3s, background 0.3s, filter 0.3s, transform 0.3s;
     cursor: pointer;
     position: relative;
     overflow: hidden;
+}
+.active-network::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(255,255,255,0.15), transparent 60%);
+    pointer-events: none;
 }
 .active-network::after {
     content: '';
@@ -177,19 +192,22 @@ input:focus-visible + .slider {
     pointer-events: none;
 }
 .active-network:active::after { transform: translateX(100%); }
-.active-network.connecting {
-    animation: cardPulse 1.2s ease-in-out infinite;
-}
+.active-network.connecting { animation: cardPulse 1.2s ease-in-out infinite; }
 @keyframes cardPulse {
     0%, 100% { box-shadow: 0 4px 16px rgba(0,122,255,0.25); }
-    50%      { box-shadow: 0 4px 24px rgba(0,122,255,0.5); }
+    50%      { box-shadow: 0 4px 28px rgba(0,122,255,0.55); }
 }
 .active-network.disabled {
     background: var(--border-strong);
     box-shadow: none;
     cursor: default;
+    color: var(--text);
 }
 .active-network.disabled .network-status { opacity: 0.7; }
+.active-network.disconnected {
+    background: linear-gradient(135deg, #ff9500, #ff6b00);
+    box-shadow: 0 4px 16px rgba(255,149,0,0.25);
+}
 
 .network-info {
     display: flex;
@@ -222,7 +240,7 @@ input:focus-visible + .slider {
 
 .network-text { min-width: 0; flex: 1; }
 .network-name {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 600;
     display: block;
     overflow: hidden;
@@ -230,11 +248,25 @@ input:focus-visible + .slider {
     white-space: nowrap;
 }
 .network-status {
-    font-size: 12.5px;
+    font-size: 12px;
     opacity: 0.85;
     display: block;
     margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
+.network-status .dot {
+    width: 6px; height: 6px;
+    background: #34c759;
+    border-radius: 50%;
+    animation: statusPulse 2s ease-in-out infinite;
+}
+@keyframes statusPulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.5; }
+}
+
 .network-actions {
     display: flex;
     align-items: center;
@@ -259,19 +291,63 @@ input:focus-visible + .slider {
     flex-shrink: 0;
 }
 
+/* ============ QUICK STATS ============ */
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+}
+.stat-mini {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    text-align: center;
+    transition: all 0.15s;
+}
+.stat-mini .stat-mini-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-faint);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.stat-mini .stat-mini-value {
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+}
+.stat-mini .stat-mini-value .unit {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-left: 2px;
+}
+.stat-mini.good .stat-mini-value { color: var(--success); }
+.stat-mini.warn .stat-mini-value { color: var(--warning); }
+.stat-mini.bad  .stat-mini-value { color: var(--danger); }
+
 /* ============ SECTION TITLE ============ */
 .section-title {
     color: var(--text-muted);
-    font-size: 13px;
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-weight: 600;
+    font-weight: 700;
 }
-.section-title .refresh-btn {
+.section-title .title-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+.section-title button {
     background: transparent;
     border: none;
     color: var(--text-muted);
@@ -282,9 +358,10 @@ input:focus-visible + .slider {
     align-items: center;
     transition: all 0.15s;
 }
-.section-title .refresh-btn .icon { width: 16px; height: 16px; transition: transform 0.5s; }
-.section-title .refresh-btn.scanning .icon { animation: spin 1s linear infinite; }
-.section-title .refresh-btn:hover { color: var(--accent); background: var(--bg-elevated); }
+.section-title button .icon { width: 16px; height: 16px; }
+.section-title button.scanning .icon { animation: spin 1s linear infinite; }
+.section-title button:hover { color: var(--accent); background: var(--bg-elevated); }
+.section-title button.active { color: var(--accent); }
 
 /* ============ NETWORK LIST ============ */
 .list-wrap {
@@ -298,7 +375,7 @@ input:focus-visible + .slider {
 #available-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
     min-height: 60px;
 }
 .list-empty {
@@ -318,11 +395,12 @@ input:focus-visible + .slider {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 12px;
+    padding: 12px 10px;
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: background 0.15s, transform 0.1s;
     animation: itemIn 0.3s cubic-bezier(.2,.8,.2,1);
+    position: relative;
 }
 @keyframes itemIn {
     from { opacity: 0; transform: translateY(-6px); }
@@ -330,10 +408,12 @@ input:focus-visible + .slider {
 }
 .network-item:hover { background: var(--bg-card); }
 .network-item:active { background: var(--bg-elevated); transform: scale(0.99); }
-.network-item.connecting { background: var(--accent-soft, rgba(0,122,255,0.08)); }
+.network-item.connecting { background: var(--accent-soft); }
+.network-item.blocked { opacity: 0.55; }
+.network-item.blocked .name-text { text-decoration: line-through; }
 
 .network-item-name {
-    font-size: 15.5px;
+    font-size: 15px;
     font-weight: 500;
     display: flex;
     align-items: center;
@@ -346,6 +426,7 @@ input:focus-visible + .slider {
     align-items: center;
     color: var(--text);
     flex-shrink: 0;
+    position: relative;
 }
 .network-item-name .wifi-signal .icon { width: 18px; height: 18px; }
 .network-item-name .name-text {
@@ -354,22 +435,41 @@ input:focus-visible + .slider {
     white-space: nowrap;
 }
 .network-item-name .tag {
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 6px;
+    font-size: 9px;
+    padding: 2px 5px;
+    border-radius: 5px;
     background: var(--accent);
     color: white;
     font-weight: 700;
     letter-spacing: 0.3px;
     flex-shrink: 0;
+    text-transform: uppercase;
 }
 .network-item-name .tag.open { background: var(--success); }
 .network-item-name .tag.saved { background: var(--text-faint); }
+.network-item-name .tag.new { background: var(--warning); animation: newPulse 1.5s ease-in-out infinite; }
+@keyframes newPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.08); }
+}
+.network-item-name .tag.blocked { background: var(--danger); }
+
+.freq-tag {
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-weight: 700;
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+    letter-spacing: 0.3px;
+}
+.freq-tag.g5 { background: rgba(0,122,255,0.15); color: var(--accent); }
+.freq-tag.g6 { background: rgba(168,85,247,0.15); color: var(--purple); }
 
 .item-icons {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     color: var(--text-muted);
 }
 .item-icons .lock-icon { color: var(--text-muted); }
@@ -383,36 +483,36 @@ input:focus-visible + .slider {
 .divider {
     border: 0;
     border-top: 1px solid var(--border);
-    margin: 25px 0;
+    margin: 22px 0;
 }
 .more-label {
     color: var(--text-faint);
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 /* ============ INFO GRID ============ */
 .info-title {
     text-align: center;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 1.2px;
     color: var(--text-muted);
-    margin: 20px 0;
+    margin: 18px 0;
 }
 .info-grid {
     display: flex;
     justify-content: space-between;
     border-top: 1px solid var(--border);
-    padding-top: 20px;
+    padding-top: 18px;
     gap: 12px;
 }
 .info-column {
     flex: 1;
-    font-size: 13.5px;
+    font-size: 13px;
     line-height: 1.7;
     color: var(--text-muted);
 }
@@ -422,12 +522,32 @@ input:focus-visible + .slider {
     color: var(--accent);
     font-variant-numeric: tabular-nums;
 }
-.info-column.right {
-    text-align: right;
-    color: var(--text);
-    font-weight: 600;
-}
+.info-column.right { text-align: right; color: var(--text); font-weight: 600; }
 .info-label { color: var(--text-faint); }
+
+/* ============ SPARKLINE ============ */
+.sparkline-wrap {
+    margin-top: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+}
+.sparkline-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+}
+.sparkline {
+    width: 100%;
+    height: 44px;
+    display: block;
+}
 
 /* ============ MODAL ============ */
 .overlay {
@@ -468,16 +588,14 @@ input:focus-visible + .slider {
 .sheet-icon {
     width: 56px; height: 56px;
     border-radius: 16px;
-    background: var(--accent-soft, rgba(0,122,255,0.12));
+    background: var(--accent-soft);
     color: var(--accent);
     display: flex; align-items: center; justify-content: center;
     margin: 0 auto 14px;
 }
 .sheet-icon .icon { width: 26px; height: 26px; }
-.sheet-icon.danger {
-    background: rgba(255,59,48,0.12);
-    color: var(--danger);
-}
+.sheet-icon.danger { background: rgba(255,59,48,0.12); color: var(--danger); }
+.sheet-icon.success { background: rgba(52,199,89,0.12); color: var(--success); }
 .sheet h3 {
     font-size: 1.15rem;
     font-weight: 700;
@@ -515,10 +633,10 @@ input:focus-visible + .slider {
     margin-top: 8px;
 }
 .sheet-btn {
-    padding: 14px;
+    padding: 13px;
     border-radius: 12px;
     border: none;
-    font-size: 15px;
+    font-size: 14.5px;
     font-weight: 600;
     cursor: pointer;
     font-family: inherit;
@@ -529,42 +647,37 @@ input:focus-visible + .slider {
     gap: 8px;
 }
 .sheet-btn .icon { width: 16px; height: 16px; }
-.sheet-btn.primary {
-    background: var(--accent);
-    color: white;
-}
+.sheet-btn.primary { background: var(--accent); color: white; }
 .sheet-btn.primary:hover { background: var(--accent-hover); }
-.sheet-btn.primary:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
+.sheet-btn.primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .sheet-btn.secondary {
     background: var(--bg-card);
     color: var(--text);
     border: 1px solid var(--border);
 }
 .sheet-btn.secondary:hover { background: var(--bg-elevated); }
-.sheet-btn.destructive {
-    background: rgba(255,59,48,0.1);
-    color: var(--danger);
-}
+.sheet-btn.destructive { background: rgba(255,59,48,0.1); color: var(--danger); }
 .sheet-btn.destructive:hover { background: rgba(255,59,48,0.15); }
 .sheet-btn:active:not(:disabled) { transform: scale(0.98); }
 
 .sheet-details {
     background: var(--bg-card);
     border-radius: 12px;
-    padding: 14px 16px;
-    margin-bottom: 16px;
-    font-size: 0.85rem;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 0.82rem;
 }
 .detail-row {
     display: flex;
     justify-content: space-between;
-    padding: 6px 0;
+    padding: 5px 0;
     gap: 12px;
 }
-.detail-row + .detail-row { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
+.detail-row + .detail-row {
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 3px;
+}
 .detail-label { color: var(--text-muted); }
 .detail-value {
     font-weight: 600;
@@ -573,6 +686,82 @@ input:focus-visible + .slider {
     color: var(--text);
     text-align: right;
     word-break: break-all;
+    font-size: 0.78rem;
+}
+
+/* ============ TABS ============ */
+.tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 3px;
+    margin-bottom: 14px;
+}
+.tab {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+.tab.active {
+    background: var(--bg);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.tab:hover:not(.active) { color: var(--text); }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.2s; }
+
+/* ============ HISTORY LIST ============ */
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 8px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+}
+.history-item + .history-item { border-top: 1px solid var(--border); }
+.history-item .h-name {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+}
+.history-item .h-name .icon { width: 14px; height: 14px; color: var(--text-muted); }
+.history-item .h-name span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.history-item .h-time {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    flex-shrink: 0;
+}
+.history-empty {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--text-faint);
+    font-size: 0.82rem;
 }
 
 /* ============ TOAST ============ */
@@ -607,8 +796,72 @@ input:focus-visible + .slider {
 .toast.success .icon { color: var(--success); }
 .toast.error .icon { color: var(--danger); }
 .toast.info .icon { color: var(--accent); }
+.toast.warning .icon { color: var(--warning); }
 
-/* ============ WIFI TOGGLE ANIMATION ============ */
+/* ============ SCAN WAVE ============ */
+.scan-wave {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.scan-wave.active { opacity: 1; }
+.scan-wave::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, var(--accent) 50%, transparent);
+    opacity: 0.15;
+    animation: scanMove 1.2s linear infinite;
+}
+@keyframes scanMove {
+    to { left: 100%; }
+}
+
+/* ============ BATTERY ============ */
+.battery-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--text-faint);
+    font-weight: 600;
+}
+.battery-indicator .battery-bar {
+    width: 22px;
+    height: 11px;
+    border: 1.5px solid currentColor;
+    border-radius: 3px;
+    position: relative;
+    display: flex;
+    padding: 1px;
+}
+.battery-indicator .battery-bar::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 5px;
+    background: currentColor;
+    border-radius: 0 2px 2px 0;
+}
+.battery-indicator .battery-fill {
+    height: 100%;
+    background: var(--success);
+    border-radius: 1px;
+    transition: width 0.3s;
+}
+.battery-indicator.low .battery-fill { background: var(--danger); }
+.battery-indicator.medium .battery-fill { background: var(--warning); }
+
+/* ============ RESPONSIVE ============ */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -623,15 +876,26 @@ input:focus-visible + .slider {
 <header class="header">
     <h1>Wi-Fi</h1>
     <div class="header-actions">
-        <button class="icon-btn" id="btnTheme" title="Alternar tema" aria-label="Alternar tema">
-            <!-- preenchido por JS -->
+        <div class="battery-indicator" id="batteryIndicator" title="Bateria do dispositivo">
+            <div class="battery-bar"><div class="battery-fill" id="batteryFill" style="width: 100%"></div></div>
+            <span id="batteryText">100%</span>
+        </div>
+        <button class="icon-btn" id="btnExport" title="Exportar dados" aria-label="Exportar">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </button>
+        <button class="icon-btn" id="btnAirplane" title="Modo avião" aria-label="Modo avião">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+        </button>
+        <button class="icon-btn" id="btnTheme" title="Alternar tema" aria-label="Alternar tema"></button>
     </div>
 </header>
 
 <!-- TOGGLE -->
 <div class="setting-row">
-    <span>Wi-Fi</span>
+    <div>
+        <span>Wi-Fi</span>
+        <span class="sub" id="wifiSub">Simulação ativa</span>
+    </div>
     <label class="toggle-switch">
         <input type="checkbox" id="wifi-toggle" checked aria-label="Ativar Wi-Fi">
         <span class="slider"></span>
@@ -642,7 +906,6 @@ input:focus-visible + .slider {
 <div class="active-network" id="active-net-card" role="button" tabindex="0" aria-label="Rede conectada">
     <div class="network-info">
         <div class="wifi-icon-wrap" id="active-icon-wrap">
-            <!-- preenchido por JS -->
             <div class="spinner"></div>
         </div>
         <div class="network-text">
@@ -651,10 +914,24 @@ input:focus-visible + .slider {
         </div>
     </div>
     <div class="network-actions">
-        <div class="lock-icon" id="active-lock">
-            <!-- preenchido por JS -->
-        </div>
+        <div class="lock-icon" id="active-lock"></div>
         <div class="arrow-right" aria-hidden="true">›</div>
+    </div>
+</div>
+
+<!-- QUICK STATS -->
+<div class="quick-stats">
+    <div class="stat-mini" id="statPing">
+        <div class="stat-mini-label">Ping</div>
+        <div class="stat-mini-value" id="statPingValue">--<span class="unit">ms</span></div>
+    </div>
+    <div class="stat-mini" id="statLoss">
+        <div class="stat-mini-label">Perda</div>
+        <div class="stat-mini-value" id="statLossValue">0.0<span class="unit">%</span></div>
+    </div>
+    <div class="stat-mini" id="statSpeed">
+        <div class="stat-mini-label">Total</div>
+        <div class="stat-mini-value" id="statSpeedValue">0.00<span class="unit">GB</span></div>
     </div>
 </div>
 
@@ -662,16 +939,32 @@ input:focus-visible + .slider {
 <div class="list-wrap" id="wifi-list-area">
     <div class="section-title">
         <span>Redes disponíveis</span>
-        <button class="refresh-btn" id="btnRefresh" title="Escanear novamente" aria-label="Escanear novamente">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <polyline points="23 4 23 10 17 10"/>
-                <polyline points="1 20 1 14 7 14"/>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
-                <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
-            </svg>
-        </button>
+        <div class="title-actions">
+            <button id="btnSort" title="Ordenar" aria-label="Ordenar">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M7 12h10M10 18h4"/></svg>
+            </button>
+            <button id="btnFilter" title="Filtrar" aria-label="Filtrar">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            </button>
+            <button id="btnHidden" title="Rede oculta" aria-label="Adicionar rede oculta">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <button class="refresh-btn" id="btnRefresh" title="Escanear novamente" aria-label="Escanear novamente">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/></svg>
+            </button>
+        </div>
     </div>
     <div id="available-list"></div>
+    <div class="scan-wave" id="scanWave"></div>
+</div>
+
+<!-- SPARKLINE -->
+<div class="sparkline-wrap">
+    <div class="sparkline-header">
+        <span>Tráfego (últimos 60s)</span>
+        <span id="sparkMax">-- MB/s</span>
+    </div>
+    <canvas class="sparkline" id="sparkline"></canvas>
 </div>
 
 <!-- DIVIDER -->
@@ -679,21 +972,22 @@ input:focus-visible + .slider {
 <div class="more-label">Mais definições</div>
 
 <!-- INFO -->
-<div style="margin-top: 20px;">
+<div style="margin-top: 16px;">
     <div class="info-title">adicionais</div>
     <div class="info-grid">
         <div class="info-column">
             <span class="info-label">IP:</span> <strong id="stat-ip">—</strong><br>
-            <span class="info-label">Segurança:</span> <strong id="stat-security">WPA2-PSK</strong><br>
-            <span class="info-label">Tipo:</span> <strong id="stat-type">Móvel</strong><br>
+            <span class="info-label">Gateway:</span> <strong id="stat-gateway">—</strong><br>
+            <span class="info-label">Segurança:</span> <strong id="stat-security">—</strong><br>
+            <span class="info-label">Tipo:</span> <strong id="stat-type">—</strong><br>
             <span class="info-label">Upload:</span> <span class="stat-value" id="stat-upload">--</span> MB/s<br>
             <span class="info-label">Download:</span> <span class="stat-value" id="stat-download">--</span> MB/s<br>
-            <span class="info-label">Usuários:</span> <strong id="stat-users">01</strong><br>
-            <span class="info-label">Freq:</span> <strong id="stat-freq">2.4/5G</strong><br>
+            <span class="info-label">Usuários:</span> <strong id="stat-users">—</strong><br>
+            <span class="info-label">Freq:</span> <strong id="stat-freq">—</strong><br>
             <span class="info-label">Limite:</span> <strong id="stat-gasto">0.00</strong>/75GB
         </div>
         <div class="info-column right">
-            <span class="info-label" style="font-weight: 500; font-size: 12.5px;">Operadora:</span><br>
+            <span class="info-label" style="font-weight: 500; font-size: 12px;">Operadora:</span><br>
             <span id="stat-operadora" style="font-weight: 700;">GhostNet</span>
         </div>
     </div>
@@ -704,22 +998,14 @@ input:focus-visible + .slider {
     <div class="sheet" role="dialog" aria-labelledby="pwdTitle">
         <div class="sheet-handle"></div>
         <div class="sheet-icon">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <rect x="3" y="11" width="18" height="11" rx="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
         <h3 id="pwdTitle">Rede protegida</h3>
-        <p id="pwdSubtitle">Digite a senha para conectar a <strong id="pwdNetName">—</strong></p>
+        <p>Digite a senha para conectar a <strong id="pwdNetName">—</strong></p>
         <input type="password" class="sheet-input" id="pwdInput" placeholder="Senha" autocomplete="off" inputmode="text">
         <div class="sheet-actions">
             <button class="sheet-btn primary" id="pwdConnect" disabled>
-                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
-                    <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
-                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
-                    <line x1="12" y1="20" x2="12.01" y2="20"/>
-                </svg>
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
                 Conectar
             </button>
             <button class="sheet-btn secondary" data-close="passwordModal">Cancelar</button>
@@ -732,23 +1018,93 @@ input:focus-visible + .slider {
     <div class="sheet" role="dialog">
         <div class="sheet-handle"></div>
         <div class="sheet-icon">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="16" x2="12" y2="12"/>
-                <line x1="12" y1="8" x2="12.01" y2="8"/>
-            </svg>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
         </div>
-        <h3 id="detailsTitle">Detalhes da rede</h3>
-        <div class="sheet-details" id="detailsContent"></div>
+        <h3 id="detailsTitle">Detalhes</h3>
+
+        <div class="tabs" role="tablist">
+            <button class="tab active" data-tab="info" role="tab">Info</button>
+            <button class="tab" data-tab="stats" role="tab">Stats</button>
+            <button class="tab" data-tab="history" role="tab">Histórico</button>
+        </div>
+
+        <div class="tab-content active" id="tab-info">
+            <div class="sheet-details" id="detailsContent"></div>
+            <div class="sheet-actions">
+                <button class="sheet-btn secondary" id="btnBlock">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    Bloquear rede
+                </button>
+                <button class="sheet-btn destructive" id="btnForget">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    Esquecer rede
+                </button>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-stats">
+            <div class="sheet-details" id="statsContent"></div>
+        </div>
+
+        <div class="tab-content" id="tab-history">
+            <div class="history-list" id="historyContent"></div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Ordenar -->
+<div class="overlay" id="sortModal">
+    <div class="sheet">
+        <div class="sheet-handle"></div>
+        <h3 style="margin-bottom: 16px;">Ordenar por</h3>
         <div class="sheet-actions">
-            <button class="sheet-btn destructive" id="btnForget">
-                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                </svg>
-                Esquecer rede
+            <button class="sheet-btn secondary" data-sort="signal">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+                Sinal (forte → fraco)
             </button>
-            <button class="sheet-btn secondary" data-close="detailsModal">Fechar</button>
+            <button class="sheet-btn secondary" data-sort="name">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h6"/></svg>
+                Nome (A → Z)
+            </button>
+            <button class="sheet-btn secondary" data-sort="recent">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Recentes primeiro
+            </button>
+            <button class="sheet-btn secondary" data-sort="saved">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                Salvas primeiro
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Filtrar -->
+<div class="overlay" id="filterModal">
+    <div class="sheet">
+        <div class="sheet-handle"></div>
+        <h3 style="margin-bottom: 16px;">Filtrar</h3>
+        <div class="sheet-actions">
+            <button class="sheet-btn secondary" data-filter="all">Todas as redes</button>
+            <button class="sheet-btn secondary" data-filter="5g">Somente 5GHz</button>
+            <button class="sheet-btn secondary" data-filter="open">Somente abertas</button>
+            <button class="sheet-btn secondary" data-filter="saved">Somente salvas</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Rede oculta -->
+<div class="overlay" id="hiddenModal">
+    <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-icon">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <h3>Rede oculta</h3>
+        <p>Digite o nome exato (SSID) da rede</p>
+        <input type="text" class="sheet-input" id="hiddenSSID" placeholder="Nome da rede" autocomplete="off">
+        <div class="sheet-actions">
+            <button class="sheet-btn primary" id="hiddenConnect" disabled>Conectar</button>
+            <button class="sheet-btn secondary" data-close="hiddenModal">Cancelar</button>
         </div>
     </div>
 </div>
@@ -760,22 +1116,34 @@ input:focus-visible + .slider {
 (() => {
 'use strict';
 
-// ============= CONSTANTS =============
-const STORAGE_KEY = 'ghost_wifi_state';
+// ============================================
+// CONSTANTS
+// ============================================
+const STORAGE_KEY = 'ghost_wifi_state_v2';
 const THEME_KEY = 'ghost_wifi_theme';
 const CORRECT_PASSWORD = '1234';
 const SCAN_DURATION = 1800;
 const MAX_DATA_GB = 75;
 const SPEED_UPDATE_MS = 1000;
+const HISTORY_SIZE = 60;      // 60 amostras de velocidade
+const HISTORY_MAX = 20;       // últimas 20 conexões
 
-// ============= STATE =============
+// ============================================
+// STATE
+// ============================================
 let state = {
     enabled: true,
-    activeNet: null,          // { name, ip, security, freq, locked }
-    knownNets: [],            // redes salvas
-    networks: [],             // todas as redes conhecidas
-    gasUsed: 0,               // GB
-    theme: 'light'
+    airplane: false,
+    activeNet: null,
+    knownNets: [],
+    networks: [],
+    gasUsed: 0,
+    theme: 'light',
+    connectionHistory: [],     // [{ name, ip, at }]
+    sortBy: 'signal',
+    filter: 'all',
+    sessionStart: Date.now(),
+    newNets: []                // redes que apareceram no último scan
 };
 
 let speedState = {
@@ -783,18 +1151,25 @@ let speedState = {
     down: 0,
     targetUp: 0,
     targetDown: 0,
-    lastUpdate: 0,
-    jitterTimer: 0
+    ping: 12,
+    targetPing: 12,
+    loss: 0,
+    jitterTimer: 0,
+    burstTimer: 0,
+    history: []                // { up, down, t }
 };
 
-// ============= SVG ICONS =============
+let isScanning = false;
+let isConnecting = false;
+
+// ============================================
+// ICONS
+// ============================================
 const ICONS = {
-    // Wi-Fi com intensidade 1-4
     wifi1: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`,
     wifi2: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><path d="M5 12.55a11 11 0 0 1 14.08 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`,
     wifi3: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`,
     wifi4: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`,
-
     lock: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
     lockOpen: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`,
     sun: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/></svg>`,
@@ -802,10 +1177,13 @@ const ICONS = {
     check: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`,
     error: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
     info: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`,
+    warning: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
     wifiOff: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`
 };
 
-// ============= DOM =============
+// ============================================
+// DOM
+// ============================================
 const $ = id => document.getElementById(id);
 const listEl = $('available-list');
 const activeCard = $('active-net-card');
@@ -815,11 +1193,13 @@ const activeIconWrap = $('active-icon-wrap');
 const activeLock = $('active-lock');
 const toastEl = $('toast');
 
-// ============= UTILS =============
+// ============================================
+// UTILS
+// ============================================
 let toastTimer = null;
 function toast(msg, type = 'info', ms = 2200) {
     toastEl.className = 'toast ' + type;
-    toastEl.innerHTML = (ICONS[type === 'success' ? 'check' : type === 'error' ? 'error' : 'info']) + `<span>${escapeHtml(msg)}</span>`;
+    toastEl.innerHTML = (ICONS[type === 'success' ? 'check' : type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'info']) + `<span>${escapeHtml(msg)}</span>`;
     toastEl.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
@@ -832,53 +1212,106 @@ function escapeHtml(str) {
 function vibrate(ms) {
     try { navigator.vibrate?.(ms); } catch {}
 }
-function ipFor(name) {
-    // IP determinístico baseado no nome
+function hashStr(str, mod) {
     let h = 0;
-    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
-    const last = Math.abs(h % 253) + 1;
-    const second = Math.abs((h >> 8) % 253) + 1;
-    return `192.168.${second}.${last}`;
+    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+    return Math.abs(h) % mod;
+}
+function ipFor(name) {
+    const h = hashStr(name, 1000000);
+    return `192.168.${(h % 253) + 1}.${((h >> 8) % 253) + 1}`;
+}
+function macFor(name) {
+    const h = hashStr(name, 0xFFFFFF);
+    const parts = [];
+    for (let i = 0; i < 6; i++) parts.push(((h >> (i * 4)) & 0xFF).toString(16).padStart(2, '0').toUpperCase());
+    return parts.join(':');
 }
 function signalBarsFor(name) {
-    let h = 0;
-    for (let i = 0; i < name.length; i++) h = (h * 17 + name.charCodeAt(i)) | 0;
-    return 1 + (Math.abs(h) % 4);
+    return 1 + hashStr(name, 4);
 }
 function wifiIconFor(bars) {
     return ICONS['wifi' + Math.max(1, Math.min(4, bars))];
 }
+function freqTag(freq) {
+    if (!freq) return '';
+    if (freq.includes('6')) return 'g6';
+    if (freq.includes('5')) return 'g5';
+    return '';
+}
+function vendorFor(name) {
+    const vendors = ['TP-Link', 'Netgear', 'Linksys', 'Asus', 'Intelbras', 'Huawei', 'Cisco', 'Ubiquiti'];
+    return vendors[hashStr(name, vendors.length)];
+}
+function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+}
+function debounce(fn, ms) {
+    let t;
+    return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), ms);
+    };
+}
+function relativeTime(ts) {
+    const diff = Date.now() - ts;
+    if (diff < 60000) return 'agora';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}min atrás`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h atrás`;
+    return new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
 
-// ============= PERSISTENCE =============
+// ============================================
+// PERSISTENCE
+// ============================================
 function saveState() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+    try {
+        const snapshot = { ...state };
+        delete snapshot.newNets;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    } catch {}
 }
 function loadState() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) Object.assign(state, JSON.parse(raw));
-    } catch {}
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            // Validação mínima
+            if (parsed && typeof parsed === 'object') {
+                Object.assign(state, parsed);
+                if (!Array.isArray(state.networks)) state.networks = [];
+                if (!Array.isArray(state.connectionHistory)) state.connectionHistory = [];
+                if (!Array.isArray(state.knownNets)) state.knownNets = [];
+            }
+        }
+    } catch { /* ignora storage corrompido */ }
     try {
         const t = localStorage.getItem(THEME_KEY);
-        if (t) state.theme = t;
+        if (t === 'dark' || t === 'light') state.theme = t;
     } catch {}
 }
 
-// ============= NETWORKS =============
+// ============================================
+// NETWORKS
+// ============================================
 function defaultNetworks() {
     return [
-        { name: 'GhostPhone 5G',  ip: ipFor('GhostPhone 5G'),  locked: true,  freq: '5G',   saved: true,  signal: 4 },
-        { name: 'SkillForge_2.4G', ip: ipFor('SkillForge'),   locked: true,  freq: '2.4G', saved: true,  signal: 3 },
-        { name: 'FabioGigaSky',    ip: ipFor('FabioGigaSky'), locked: true,  freq: '5G',   saved: false, signal: 2 },
-        { name: 'Linksys_0042',    ip: ipFor('Linksys_0042'), locked: true,  freq: '2.4G', saved: false, signal: 2 },
-        { name: 'Cafe_Guest',      ip: ipFor('Cafe_Guest'),   locked: false, freq: '2.4G', saved: false, signal: 1 }
+        { name: 'GhostPhone 5G',    locked: true,  freq: '5GHz',  saved: true,  signal: 4, users: 3 },
+        { name: 'SkillForge_2.4G',  locked: true,  freq: '2.4GHz',saved: true,  signal: 3, users: 5 },
+        { name: 'FabioGigaSky',     locked: true,  freq: '5GHz',  saved: false, signal: 2, users: 2 },
+        { name: 'Linksys_0042',     locked: true,  freq: '2.4GHz',saved: false, signal: 2, users: 1 },
+        { name: 'Cafe_Guest',       locked: false, freq: '2.4GHz',saved: false, signal: 1, users: 8 },
+        { name: 'NETGEAR_5G-Plus',  locked: true,  freq: '5GHz',  saved: false, signal: 3, users: 4 },
+        { name: 'IoT_Devices',      locked: true,  freq: '2.4GHz',saved: false, signal: 1, users: 12 },
     ];
 }
 
-// ============= THEME =============
+// ============================================
+// THEME
+// ============================================
 function applyTheme(t) {
     state.theme = t;
-    document.documentElement.dataset.theme = t;
+    document.documentElement.dataset.theme = t === 'light' ? '' : t;
     document.querySelector('meta[name="theme-color"]')
         ?.setAttribute('content', t === 'dark' ? '#000000' : '#ffffff');
     try { localStorage.setItem(THEME_KEY, t); } catch {}
@@ -886,13 +1319,53 @@ function applyTheme(t) {
 }
 $('btnTheme').addEventListener('click', () => {
     applyTheme(state.theme === 'dark' ? 'light' : 'dark');
+    vibrate(8);
 });
 
-// ============= RENDER =============
+// ============================================
+// BATTERY
+// ============================================
+function initBattery() {
+    if (!navigator.getBattery) {
+        // Fake: descarrega lentamente
+        let level = 0.87;
+        const tick = () => {
+            level = Math.max(0.05, level - 0.0001);
+            updateBatteryUI(level);
+        };
+        tick();
+        setInterval(tick, 60000);
+        return;
+    }
+    navigator.getBattery().then(bat => {
+        const update = () => updateBatteryUI(bat.level);
+        bat.addEventListener('levelchange', update);
+        update();
+    }).catch(() => updateBatteryUI(0.87));
+}
+function updateBatteryUI(level) {
+    const pct = Math.round(level * 100);
+    $('batteryFill').style.width = pct + '%';
+    $('batteryText').textContent = pct + '%';
+    const ind = $('batteryIndicator');
+    ind.classList.toggle('low', pct < 20);
+    ind.classList.toggle('medium', pct >= 20 && pct < 50);
+}
+
+// ============================================
+// RENDER: ACTIVE CARD
+// ============================================
 function renderActive() {
+    if (state.airplane) {
+        activeCard.className = 'active-network disabled';
+        activeName.textContent = 'Modo avião';
+        activeStatus.innerHTML = '<span class="dot"></span>Radios desligados';
+        activeIconWrap.innerHTML = ICONS.wifiOff + '<div class="spinner"></div>';
+        activeLock.innerHTML = '';
+        return;
+    }
     if (!state.enabled) {
-        activeCard.classList.add('disabled');
-        activeCard.classList.remove('connecting');
+        activeCard.className = 'active-network disabled';
         activeName.textContent = 'Desativado';
         activeStatus.textContent = 'Wi-Fi desligado';
         activeIconWrap.innerHTML = ICONS.wifiOff + '<div class="spinner"></div>';
@@ -900,63 +1373,87 @@ function renderActive() {
         return;
     }
     if (!state.activeNet) {
-        activeCard.classList.add('disabled');
+        activeCard.className = 'active-network disabled';
         activeName.textContent = 'Não conectado';
         activeStatus.textContent = 'Selecione uma rede';
         activeIconWrap.innerHTML = ICONS.wifiOff + '<div class="spinner"></div>';
         activeLock.innerHTML = '';
         return;
     }
-    activeCard.classList.remove('disabled');
-    activeName.textContent = state.activeNet.name;
-    activeStatus.textContent = state.activeNet.connecting ? 'Conectando…' : 'Conectado';
-    activeIconWrap.innerHTML = wifiIconFor(state.activeNet.signal || 4) + '<div class="spinner"></div>';
-    activeLock.innerHTML = state.activeNet.locked ? ICONS.lock : ICONS.lockOpen;
 
+    activeCard.className = 'active-network';
     if (state.activeNet.connecting) {
         activeCard.classList.add('connecting');
         activeIconWrap.classList.add('loading');
     } else {
-        activeCard.classList.remove('connecting');
         activeIconWrap.classList.remove('loading');
     }
 
+    activeName.textContent = state.activeNet.name;
+    if (state.activeNet.connecting) {
+        activeStatus.textContent = 'Conectando…';
+    } else if (state.activeNet.disconnected) {
+        activeCard.classList.add('disconnected');
+        activeStatus.textContent = 'Desconectado · tentando reconectar…';
+    } else {
+        activeStatus.innerHTML = `<span class="dot"></span>Conectado · ${state.activeNet.freq || '2.4GHz'}`;
+    }
+
+    activeIconWrap.innerHTML = wifiIconFor(state.activeNet.signal || 4) + '<div class="spinner"></div>';
+    activeLock.innerHTML = state.activeNet.locked ? ICONS.lock : ICONS.lockOpen;
+
     $('stat-ip').textContent = state.activeNet.ip || '—';
+    $('stat-gateway').textContent = state.activeNet.ip ? state.activeNet.ip.split('.').slice(0, 3).join('.') + '.1' : '—';
     $('stat-security').textContent = state.activeNet.locked ? 'WPA2-PSK' : 'Aberta';
+    $('stat-type').textContent = state.activeNet.locked ? 'Móvel' : 'Público';
+    $('stat-users').textContent = String(state.activeNet.users || 1).padStart(2, '0');
     $('stat-freq').textContent = state.activeNet.freq || '2.4/5G';
 }
 
+// ============================================
+// RENDER: LIST
+// ============================================
 function renderList() {
     listEl.innerHTML = '';
-    if (!state.enabled) {
+    if (!state.enabled || state.airplane) {
         listEl.innerHTML = `
             <div class="list-empty">
                 ${ICONS.wifiOff}
-                <div>Wi-Fi desligado</div>
+                <div>${state.airplane ? 'Modo avião ativo' : 'Wi-Fi desligado'}</div>
             </div>
         `;
         return;
     }
 
     const activeName = state.activeNet?.name;
-    const visible = state.networks
-        .filter(n => n.name !== activeName)
-        .sort((a, b) => (b.signal || 0) - (a.signal || 0));
+    let visible = state.networks.filter(n => n.name !== activeName);
+
+    // Filtro
+    if (state.filter === '5g') visible = visible.filter(n => n.freq?.includes('5'));
+    else if (state.filter === 'open') visible = visible.filter(n => !n.locked);
+    else if (state.filter === 'saved') visible = visible.filter(n => n.saved);
+
+    // Ordenação
+    const sortFns = {
+        signal: (a, b) => (b.signal || 0) - (a.signal || 0),
+        name: (a, b) => a.name.localeCompare(b.name),
+        recent: (a, b) => (b.lastSeen || 0) - (a.lastSeen || 0),
+        saved: (a, b) => (b.saved ? 1 : 0) - (a.saved ? 1 : 0)
+    };
+    visible.sort(sortFns[state.sortBy] || sortFns.signal);
 
     if (visible.length === 0) {
         listEl.innerHTML = `
             <div class="list-empty">
                 ${ICONS.wifiOff}
-                <div>Nenhuma rede encontrada</div>
+                <div>${state.filter !== 'all' ? 'Nenhuma rede atende ao filtro' : 'Nenhuma rede encontrada'}</div>
             </div>
         `;
         return;
     }
 
     const frag = document.createDocumentFragment();
-    visible.forEach(net => {
-        frag.appendChild(makeNetworkItem(net));
-    });
+    visible.forEach(net => frag.appendChild(makeNetworkItem(net)));
     listEl.appendChild(frag);
 }
 
@@ -966,6 +1463,7 @@ function makeNetworkItem(net) {
     item.dataset.name = net.name;
     item.setAttribute('role', 'button');
     item.setAttribute('tabindex', '0');
+    if (net.blocked) item.classList.add('blocked');
 
     const nameWrap = document.createElement('div');
     nameWrap.className = 'network-item-name';
@@ -981,7 +1479,17 @@ function makeNetworkItem(net) {
     nameWrap.appendChild(signal);
     nameWrap.appendChild(nameText);
 
-    if (net.saved) {
+    if (state.newNets.includes(net.name)) {
+        const tag = document.createElement('span');
+        tag.className = 'tag new';
+        tag.textContent = 'Nova';
+        nameWrap.appendChild(tag);
+    } else if (net.blocked) {
+        const tag = document.createElement('span');
+        tag.className = 'tag blocked';
+        tag.textContent = 'Bloqueada';
+        nameWrap.appendChild(tag);
+    } else if (net.saved) {
         const tag = document.createElement('span');
         tag.className = 'tag saved';
         tag.textContent = 'Salva';
@@ -991,6 +1499,13 @@ function makeNetworkItem(net) {
         tag.className = 'tag open';
         tag.textContent = 'Aberta';
         nameWrap.appendChild(tag);
+    }
+
+    if (net.freq) {
+        const fTag = document.createElement('span');
+        fTag.className = 'freq-tag ' + freqTag(net.freq);
+        fTag.textContent = net.freq.replace('GHz', 'G');
+        nameWrap.appendChild(fTag);
     }
 
     const icons = document.createElement('div');
@@ -1016,53 +1531,166 @@ function makeNetworkItem(net) {
     return item;
 }
 
+// ============================================
+// RENDER: STATS
+// ============================================
 function renderStats() {
     $('stat-gasto').textContent = state.gasUsed.toFixed(2);
     $('stat-upload').textContent = speedState.up.toFixed(1);
     $('stat-download').textContent = speedState.down.toFixed(1);
+
+    // Quick stats
+    const pingVal = Math.round(speedState.ping);
+    $('statPingValue').innerHTML = `${pingVal}<span class="unit">ms</span>`;
+    $('statPing').className = 'stat-mini ' + (pingVal < 30 ? 'good' : pingVal < 80 ? 'warn' : 'bad');
+
+    const lossVal = speedState.loss.toFixed(1);
+    $('statLossValue').innerHTML = `${lossVal}<span class="unit">%</span>`;
+    $('statLoss').className = 'stat-mini ' + (speedState.loss < 0.5 ? 'good' : speedState.loss < 2 ? 'warn' : 'bad');
+
+    $('statSpeedValue').innerHTML = `${state.gasUsed.toFixed(2)}<span class="unit">GB</span>`;
+    $('statSpeed').className = 'stat-mini ' + (state.gasUsed < MAX_DATA_GB * 0.75 ? 'good' : 'warn');
 }
 
-function renderAll() {
-    renderActive();
-    renderList();
-    renderStats();
-}
+// ============================================
+// SPARKLINE
+// ============================================
+function drawSparkline() {
+    const canvas = $('sparkline');
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+    }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
 
-// ============= SPEED SIMULATION =============
-function tickSpeed(now) {
-    if (!state.enabled || !state.activeNet || state.activeNet.connecting) {
-        speedState.targetUp = 0;
-        speedState.targetDown = 0;
-    } else if (now - speedState.jitterTimer > 3000) {
-        // Novo alvo a cada 3s
-        speedState.jitterTimer = now;
-        const isIdle = Math.random() < 0.15;
-        const base = isIdle ? 5 : 60;
-        speedState.targetUp = base + Math.random() * 55;
-        speedState.targetDown = base + Math.random() * 55;
+    const hist = speedState.history;
+    if (hist.length < 2) {
+        $('sparkMax').textContent = '-- MB/s';
+        return;
     }
 
-    // Interpolação suave em direção ao alvo
+    const maxVal = Math.max(...hist.map(p => p.up + p.down), 1);
+    $('sparkMax').textContent = maxVal.toFixed(0) + ' MB/s';
+
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#007aff';
+
+    // Área up+down
+    const stepX = w / (HISTORY_SIZE - 1);
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, accent + '55');
+    grad.addColorStop(1, accent + '00');
+
+    ctx.beginPath();
+    ctx.moveTo(0, h);
+    hist.forEach((p, i) => {
+        const total = p.up + p.down;
+        const y = h - (total / maxVal) * (h - 4);
+        ctx.lineTo(i * stepX, y);
+    });
+    ctx.lineTo((hist.length - 1) * stepX, h);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Linha
+    ctx.beginPath();
+    hist.forEach((p, i) => {
+        const total = p.up + p.down;
+        const y = h - (total / maxVal) * (h - 4);
+        if (i === 0) ctx.moveTo(0, y);
+        else ctx.lineTo(i * stepX, y);
+    });
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+}
+
+// ============================================
+// SPEED SIMULATION
+// ============================================
+function tickSpeed(now) {
+    const isConnected = state.enabled && !state.airplane && state.activeNet && !state.activeNet.connecting && !state.activeNet.disconnected;
+
+    if (!isConnected) {
+        speedState.targetUp = 0;
+        speedState.targetDown = 0;
+        speedState.targetPing = 0;
+        speedState.loss = 0;
+    } else {
+        // Ciclo de tráfego baseado na hora do dia
+        const hour = new Date().getHours();
+        const isPeak = hour >= 19 && hour <= 23;
+        const isNight = hour >= 1 && hour <= 6;
+        const baseMultiplier = isPeak ? 1 : isNight ? 0.15 : 0.6;
+
+        if (now - speedState.jitterTimer > 2500) {
+            speedState.jitterTimer = now;
+            const isIdle = Math.random() < 0.2;
+            const base = isIdle ? 3 : 40 * baseMultiplier;
+            speedState.targetUp = base + Math.random() * 60 * baseMultiplier;
+            speedState.targetDown = base + Math.random() * 80 * baseMultiplier;
+            speedState.targetPing = 8 + Math.random() * 20 + (speedState.targetUp > 60 ? 10 : 0);
+        }
+
+        // Bursts ocasionais (download grande, backup)
+        if (now - speedState.burstTimer > 25000 && Math.random() < 0.3) {
+            speedState.burstTimer = now;
+            if (Math.random() < 0.7) {
+                speedState.targetDown = 100 + Math.random() * 80;
+            } else {
+                speedState.targetUp = 60 + Math.random() * 40;
+            }
+        }
+
+        // Perda de pacotes ocasional
+        speedState.loss = Math.random() < 0.05 ? Math.random() * 3 : Math.random() * 0.2;
+    }
+
+    // Interpolação
     const ease = 0.08;
     speedState.up += (speedState.targetUp - speedState.up) * ease;
     speedState.down += (speedState.targetDown - speedState.down) * ease;
+    speedState.ping += (speedState.targetPing - speedState.ping) * 0.15;
 
-    // Consumo de dados
-    if (state.activeNet && !state.activeNet.connecting) {
+    // Consumo
+    if (isConnected) {
         state.gasUsed += (speedState.up + speedState.down) / 20000;
         if (state.gasUsed > MAX_DATA_GB) state.gasUsed = MAX_DATA_GB;
     }
 
+    // Histórico
+    speedState.history.push({ up: speedState.up, down: speedState.down, t: now });
+    if (speedState.history.length > HISTORY_SIZE) speedState.history.shift();
+
     renderStats();
+    if (Math.random() < 0.5) drawSparkline();
 }
 
-// ============= CONNECTION =============
+// ============================================
+// CONNECTION
+// ============================================
 function tryConnect(net) {
+    if (isConnecting) return;
+    if (state.airplane) {
+        toast('Desative o modo avião', 'error');
+        return;
+    }
     if (!state.enabled) {
         toast('Ative o Wi-Fi primeiro', 'error');
         return;
     }
-    if (state.activeNet?.name === net.name) {
+    if (net.blocked) {
+        toast('Esta rede está bloqueada', 'error');
+        return;
+    }
+    if (state.activeNet?.name === net.name && !state.activeNet.disconnected) {
         toast('Já conectado a esta rede', 'info');
         return;
     }
@@ -1074,45 +1702,53 @@ function tryConnect(net) {
 }
 
 async function connectTo(net) {
-    // Marca visualmente
+    isConnecting = true;
+
     document.querySelectorAll('.network-item').forEach(el => el.classList.remove('connecting'));
     const item = document.querySelector(`.network-item[data-name="${CSS.escape(net.name)}"]`);
     if (item) item.classList.add('connecting');
 
-    state.activeNet = {
-        ...net,
-        connecting: true
-    };
+    state.activeNet = { ...net, connecting: true, disconnected: false };
     renderActive();
     vibrate(10);
 
-    // Simula handshake
-    await sleep(1400);
+    await sleep(1200 + Math.random() * 800);
 
     state.activeNet = {
         ...net,
         connecting: false,
-        ip: net.ip || ipFor(net.name)
+        disconnected: false,
+        ip: net.ip || ipFor(net.name),
+        lastConnected: Date.now()
     };
-    if (!state.knownNets.includes(net.name)) {
-        state.knownNets.push(net.name);
-    }
-    // salva como conhecida
+
+    if (!state.knownNets.includes(net.name)) state.knownNets.push(net.name);
+
     const idx = state.networks.findIndex(n => n.name === net.name);
     if (idx >= 0) state.networks[idx].saved = true;
+
+    // Adiciona ao histórico de conexões
+    state.connectionHistory.unshift({
+        name: net.name,
+        ip: state.activeNet.ip,
+        at: Date.now()
+    });
+    if (state.connectionHistory.length > HISTORY_MAX) state.connectionHistory.pop();
+
+    // Remove da lista de "novas"
+    state.newNets = state.newNets.filter(n => n !== net.name);
 
     saveState();
     renderActive();
     renderList();
     vibrate(25);
     toast(`Conectado a ${net.name}`, 'success');
+    isConnecting = false;
 }
 
-function sleep(ms) {
-    return new Promise(r => setTimeout(r, ms));
-}
-
-// ============= PASSWORD MODAL =============
+// ============================================
+// PASSWORD MODAL
+// ============================================
 let pendingNet = null;
 
 function openPasswordModal(net) {
@@ -1139,6 +1775,7 @@ async function submitPassword() {
     const pwd = $('pwdInput').value;
     if (!pwd || !pendingNet) return;
     $('pwdConnect').disabled = true;
+    await sleep(400);
     if (pwd !== CORRECT_PASSWORD) {
         vibrate(80);
         $('passwordModal').classList.remove('show');
@@ -1149,50 +1786,86 @@ async function submitPassword() {
     const net = pendingNet;
     pendingNet = null;
     $('passwordModal').classList.remove('show');
-    // salva como conhecida antes de conectar
     const idx = state.networks.findIndex(n => n.name === net.name);
     if (idx >= 0) state.networks[idx].saved = true;
     saveState();
     connectTo(net);
 }
 
-// ============= DETAILS MODAL =============
+// ============================================
+// DETAILS MODAL
+// ============================================
+let currentTab = 'info';
+
 function openDetails() {
     if (!state.activeNet || state.activeNet.connecting) return;
     const net = state.activeNet;
     $('detailsTitle').textContent = net.name;
+
+    // Tab info
+    const signalPct = Math.round(((net.signal || 4) / 4) * 100);
+    const rssi = -30 - ((4 - (net.signal || 4)) * 15) - Math.floor(Math.random() * 5);
     $('detailsContent').innerHTML = `
-        <div class="detail-row">
-            <span class="detail-label">Endereço IP</span>
-            <span class="detail-value">${escapeHtml(net.ip || '—')}</span>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">Gateway</span>
-            <span class="detail-value">192.168.${net.ip?.split('.')[2] || '1'}.1</span>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">Máscara</span>
-            <span class="detail-value">255.255.255.0</span>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">DNS</span>
-            <span class="detail-value">8.8.8.8, 8.8.4.4</span>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">Segurança</span>
-            <span class="detail-value">${net.locked ? 'WPA2-PSK' : 'Aberta'}</span>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">Banda</span>
-            <span class="detail-value">${escapeHtml(net.freq || '2.4/5G')}</span>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">Sinal</span>
-            <span class="detail-value">${net.signal || 4}/4</span>
-        </div>
+        <div class="detail-row"><span class="detail-label">Endereço IP</span><span class="detail-value">${escapeHtml(net.ip || '—')}</span></div>
+        <div class="detail-row"><span class="detail-label">Gateway</span><span class="detail-value">${net.ip ? net.ip.split('.').slice(0, 3).join('.') + '.1' : '—'}</span></div>
+        <div class="detail-row"><span class="detail-label">Máscara</span><span class="detail-value">255.255.255.0</span></div>
+        <div class="detail-row"><span class="detail-label">DNS</span><span class="detail-value">8.8.8.8</span></div>
+        <div class="detail-row"><span class="detail-label">BSSID</span><span class="detail-value">${macFor(net.name)}</span></div>
+        <div class="detail-row"><span class="detail-label">Fabricante</span><span class="detail-value">${vendorFor(net.name)}</span></div>
+        <div class="detail-row"><span class="detail-label">Segurança</span><span class="detail-value">${net.locked ? 'WPA2-PSK' : 'Aberta'}</span></div>
+        <div class="detail-row"><span class="detail-label">Banda</span><span class="detail-value">${escapeHtml(net.freq || '—')}</span></div>
+        <div class="detail-row"><span class="detail-label">Canal</span><span class="detail-value">${hashStr(net.name, 11) + 1}</span></div>
+        <div class="detail-row"><span class="detail-label">Sinal</span><span class="detail-value">${signalPct}% (${rssi} dBm)</span></div>
     `;
+
+    // Tab stats
+    const totalMin = Math.floor((Date.now() - (state.sessionStart || Date.now())) / 60000);
+    $('statsContent').innerHTML = `
+        <div class="detail-row"><span class="detail-label">Tempo conectado</span><span class="detail-value">${Math.floor(totalMin / 60)}h ${totalMin % 60}min</span></div>
+        <div class="detail-row"><span class="detail-label">Upload agora</span><span class="detail-value">${speedState.up.toFixed(1)} MB/s</span></div>
+        <div class="detail-row"><span class="detail-label">Download agora</span><span class="detail-value">${speedState.down.toFixed(1)} MB/s</span></div>
+        <div class="detail-row"><span class="detail-label">Ping</span><span class="detail-value">${Math.round(speedState.ping)} ms</span></div>
+        <div class="detail-row"><span class="detail-label">Perda de pacotes</span><span class="detail-value">${speedState.loss.toFixed(2)}%</span></div>
+        <div class="detail-row"><span class="detail-label">Dados usados</span><span class="detail-value">${state.gasUsed.toFixed(2)} GB</span></div>
+        <div class="detail-row"><span class="detail-label">Limite mensal</span><span class="detail-value">${MAX_DATA_GB} GB</span></div>
+        <div class="detail-row"><span class="detail-label">Restante</span><span class="detail-value">${(MAX_DATA_GB - state.gasUsed).toFixed(2)} GB</span></div>
+    `;
+
+    // Tab histórico
+    const hist = state.connectionHistory;
+    if (hist.length === 0) {
+        $('historyContent').innerHTML = `<div class="history-empty">Nenhuma conexão registrada</div>`;
+    } else {
+        $('historyContent').innerHTML = hist.map(h => `
+            <div class="history-item">
+                <div class="h-name">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/></svg>
+                    <span>${escapeHtml(h.name)}</span>
+                </div>
+                <div class="h-time">${relativeTime(h.at)}</div>
+            </div>
+        `).join('');
+    }
+
+    // Botão bloquear reflete estado
+    const isBlocked = state.networks.find(n => n.name === net.name)?.blocked;
+    $('btnBlock').innerHTML = isBlocked
+        ? `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Desbloquear rede`
+        : `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Bloquear rede`;
+
+    switchTab('info');
     $('detailsModal').classList.add('show');
 }
+
+function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tab));
+}
+
+document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => switchTab(t.dataset.tab));
+});
 
 $('btnForget').addEventListener('click', async () => {
     if (!state.activeNet) return;
@@ -1206,45 +1879,214 @@ $('btnForget').addEventListener('click', async () => {
     toast(`Rede "${name}" esquecida`, 'info');
 });
 
-// ============= TOGGLE =============
-$('wifi-toggle').addEventListener('change', e => {
+$('btnBlock').addEventListener('click', () => {
+    if (!state.activeNet) return;
+    const idx = state.networks.findIndex(n => n.name === state.activeNet.name);
+    if (idx < 0) return;
+    state.networks[idx].blocked = !state.networks[idx].blocked;
+    const blocked = state.networks[idx].blocked;
+    if (blocked) {
+        // Desconecta se estiver bloqueada
+        state.activeNet = null;
+        $('detailsModal').classList.remove('show');
+    }
+    saveState();
+    renderAll();
+    toast(blocked ? 'Rede bloqueada' : 'Rede desbloqueada', 'info');
+});
+
+// ============================================
+// TOGGLE
+// ============================================
+$('wifi-toggle').addEventListener('change', async e => {
     state.enabled = e.target.checked;
+    vibrate(12);
     if (!state.enabled) {
         state.activeNet = null;
-    } else if (!state.activeNet) {
-        // Tenta reconectar à última rede salva
-        const last = state.networks.find(n => n.saved);
+        $('wifiSub').textContent = 'Desligado';
+    } else {
+        $('wifiSub').textContent = 'Simulação ativa';
+        const last = state.networks.find(n => n.saved && !n.blocked);
         if (last) {
-            // reconecta silenciosamente (sem senha se já salva)
-            connectTo(last);
+            saveState();
+            renderAll();
+            await connectTo(last);
             return;
         }
     }
     saveState();
     renderAll();
-    vibrate(12);
 });
 
-// ============= SCAN =============
+// ============================================
+// AIRPLANE MODE
+// ============================================
+$('btnAirplane').addEventListener('click', () => {
+    state.airplane = !state.airplane;
+    $('btnAirplane').classList.toggle('active', state.airplane);
+    if (state.airplane) {
+        state.activeNet = null;
+        toast('Modo avião ativado', 'warning');
+    } else {
+        toast('Modo avião desativado', 'info');
+    }
+    vibrate(15);
+    saveState();
+    renderAll();
+});
+
+// ============================================
+// SCAN
+// ============================================
 $('btnRefresh').addEventListener('click', async () => {
-    if (!state.enabled) {
-        toast('Ative o Wi-Fi primeiro', 'error');
+    if (isScanning) return;
+    if (!state.enabled || state.airplane) {
+        toast('Wi-Fi indisponível', 'error');
         return;
     }
+    isScanning = true;
     const btn = $('btnRefresh');
     btn.classList.add('scanning');
+    $('scanWave').classList.add('active');
+    vibrate(8);
+
+    // Limpa "novas" do scan anterior
+    state.newNets = [];
+
     // Simula variação de sinal
     state.networks.forEach(n => {
         n.signal = Math.max(1, Math.min(4, (n.signal || 2) + (Math.random() < 0.5 ? -1 : 1)));
+        n.lastSeen = Date.now();
     });
+
     await sleep(SCAN_DURATION);
+
+    // Chance de aparecer uma nova rede
+    if (Math.random() < 0.4) {
+        const extras = ['Home_5G', 'Xfinity_Public', 'Moto_G8_Hotspot', 'Vivo-Fibra-2G', 'MOVISTAR_5G'];
+        const candidate = extras[hashStr(String(Date.now()), extras.length)];
+        if (!state.networks.find(n => n.name === candidate)) {
+            const newNet = {
+                name: candidate,
+                locked: Math.random() > 0.3,
+                freq: candidate.includes('5') || candidate.includes('Fibra') ? '5GHz' : '2.4GHz',
+                saved: false,
+                signal: 1 + Math.floor(Math.random() * 4),
+                users: 1 + Math.floor(Math.random() * 10),
+                lastSeen: Date.now()
+            };
+            state.networks.push(newNet);
+            state.newNets.push(candidate);
+            toast(`Nova rede detectada: ${candidate}`, 'warning', 3000);
+        }
+    }
+
     btn.classList.remove('scanning');
+    $('scanWave').classList.remove('active');
+    saveState();
     renderList();
     toast('Redes atualizadas', 'info', 1500);
-    vibrate(8);
+    isScanning = false;
 });
 
-// ============= MODAL CLOSE =============
+// ============================================
+// SORT / FILTER / HIDDEN
+// ============================================
+$('btnSort').addEventListener('click', () => $('sortModal').classList.add('show'));
+$('btnFilter').addEventListener('click', () => $('filterModal').classList.add('show'));
+$('btnHidden').addEventListener('click', () => {
+    $('hiddenSSID').value = '';
+    $('hiddenConnect').disabled = true;
+    $('hiddenModal').classList.add('show');
+    setTimeout(() => $('hiddenSSID').focus(), 250);
+});
+
+document.querySelectorAll('[data-sort]').forEach(el => {
+    el.addEventListener('click', () => {
+        state.sortBy = el.dataset.sort;
+        saveState();
+        renderList();
+        $('sortModal').classList.remove('show');
+        toast('Ordenação aplicada', 'info', 1500);
+    });
+});
+
+document.querySelectorAll('[data-filter]').forEach(el => {
+    el.addEventListener('click', () => {
+        state.filter = el.dataset.filter;
+        saveState();
+        renderList();
+        $('filterModal').classList.remove('show');
+        $('btnFilter').classList.toggle('active', state.filter !== 'all');
+        toast('Filtro aplicado', 'info', 1500);
+    });
+});
+
+$('hiddenSSID').addEventListener('input', e => {
+    $('hiddenConnect').disabled = !e.target.value.trim();
+});
+$('hiddenConnect').addEventListener('click', async () => {
+    const name = $('hiddenSSID').value.trim();
+    if (!name) return;
+    $('hiddenModal').classList.remove('show');
+    // Cria rede virtual
+    let net = state.networks.find(n => n.name === name);
+    if (!net) {
+        net = {
+            name,
+            locked: true,
+            freq: '5GHz',
+            saved: false,
+            signal: 3,
+            users: 2,
+            lastSeen: Date.now(),
+            hidden: true
+        };
+        state.networks.push(net);
+    }
+    saveState();
+    // Vai direto pro password
+    openPasswordModal(net);
+});
+
+// ============================================
+// EXPORT
+// ============================================
+$('btnExport').addEventListener('click', async () => {
+    const data = {
+        exportedAt: new Date().toISOString(),
+        activeNet: state.activeNet?.name || null,
+        activeIp: state.activeNet?.ip || null,
+        dataUsed: state.gasUsed.toFixed(2) + ' GB',
+        enabled: state.enabled,
+        airplane: state.airplane,
+        knownNets: state.knownNets,
+        networks: state.networks.map(n => ({
+            name: n.name,
+            freq: n.freq,
+            signal: n.signal,
+            saved: n.saved,
+            locked: n.locked,
+            blocked: n.blocked || false
+        })),
+        history: state.connectionHistory.slice(0, 20)
+    };
+    const text = JSON.stringify(data, null, 2);
+    try {
+        if (navigator.share) {
+            await navigator.share({ title: 'Wi-Fi State', text });
+        } else {
+            await navigator.clipboard.writeText(text);
+            toast('Estado copiado', 'success');
+        }
+    } catch {
+        toast('Não foi possível exportar', 'error');
+    }
+});
+
+// ============================================
+// MODAL CLOSE
+// ============================================
 document.querySelectorAll('[data-close]').forEach(el => {
     el.addEventListener('click', () => $(el.dataset.close).classList.remove('show'));
 });
@@ -1253,40 +2095,67 @@ document.querySelectorAll('.overlay').forEach(ov => {
         if (e.target === ov) ov.classList.remove('show');
     });
 });
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.overlay.show').forEach(o => o.classList.remove('show'));
+    }
+});
 
-// ============= CARD CLICK =============
+// ============================================
+// ACTIVE CARD CLICK
+// ============================================
 activeCard.addEventListener('click', () => {
-    if (state.activeNet && !state.activeNet.connecting) openDetails();
+    if (state.activeNet && !state.activeNet.connecting && !state.activeNet.disconnected) openDetails();
 });
 activeCard.addEventListener('keydown', e => {
-    if ((e.key === 'Enter' || e.key === ' ') && state.activeNet) {
+    if ((e.key === 'Enter' || e.key === ' ') && state.activeNet && !state.activeNet.connecting) {
         e.preventDefault();
         openDetails();
     }
 });
 
-// ============= MESSAGES (integração com parent) =============
-window.addEventListener('message', (event) => {
-    const data = event.data || {};
-    if (data.type === 'ACTIVATE_RUNET') {
-        activateRunet();
-    } else if (data.type === 'RESET_NET') {
-        resetNetwork();
+// ============================================
+// NETWORK DROP (raro)
+// ============================================
+function maybeDropConnection() {
+    if (!state.activeNet || state.activeNet.connecting || state.activeNet.disconnected) return;
+    if (Math.random() < 0.02) {  // 2% chance por checagem (~30s)
+        state.activeNet.disconnected = true;
+        renderActive();
+        toast('Conexão perdida · tentando reconectar', 'warning', 3000);
+        setTimeout(() => {
+            if (state.activeNet?.disconnected) {
+                state.activeNet.disconnected = false;
+                renderActive();
+                toast('Reconectado', 'success');
+            }
+        }, 4000);
     }
+}
+
+// ============================================
+// MESSAGES
+// ============================================
+window.addEventListener('message', event => {
+    const data = event.data || {};
+    if (data.type === 'ACTIVATE_RUNET') activateRunet();
+    else if (data.type === 'RESET_NET') resetNetwork();
 });
 
 function activateRunet() {
     if (!state.activeNet) return;
-    const net = state.activeNet;
-    net.name = 'Рунет (Protected)';
-    net.ip = '95.161.226.13';
-    net.secure = true;
-    state.activeNet = net;
+    state.activeNet = {
+        ...state.activeNet,
+        name: 'Рунет (Protected)',
+        ip: '95.161.226.13',
+        locked: true,
+        freq: '6GHz'
+    };
     saveState();
-    renderAll();
+    renderActive();
     activeCard.style.filter = 'hue-rotate(180deg) brightness(1.15)';
     setTimeout(() => { activeCard.style.filter = ''; }, 800);
-    toast('Rede alterada para Рунет', 'info', 2500);
+    toast('Rede alterada para Рунет', 'warning', 2500);
 }
 
 function resetNetwork() {
@@ -1297,49 +2166,73 @@ function resetNetwork() {
     toast('Rede resetada', 'info');
 }
 
-// ============= VISIBILITY =============
+// ============================================
+// VISIBILITY
+// ============================================
+let speedLoop = null;
+function startSpeedLoop() {
+    if (speedLoop) clearInterval(speedLoop);
+    speedLoop = setInterval(() => tickSpeed(performance.now()), SPEED_UPDATE_MS);
+}
+function stopSpeedLoop() {
+    if (speedLoop) { clearInterval(speedLoop); speedLoop = null; }
+}
 document.addEventListener('visibilitychange', () => {
-    // Pausa o loop de velocidade em background
-    if (document.hidden) {
-        clearInterval(speedLoop);
-    } else {
-        speedLoop = setInterval(() => tickSpeed(performance.now()), SPEED_UPDATE_MS);
+    if (document.hidden) stopSpeedLoop();
+    else startSpeedLoop();
+});
+
+// ============================================
+// INIT
+// ============================================
+function renderAll() {
+    renderActive();
+    renderList();
+    renderStats();
+    drawSparkline();
+    $('wifi-toggle').checked = state.enabled;
+    $('btnAirplane').classList.toggle('active', state.airplane);
+    $('btnFilter').classList.toggle('active', state.filter !== 'all');
+    $('wifiSub').textContent = state.enabled
+        ? (state.airplane ? 'Modo avião' : 'Simulação ativa')
+        : 'Desligado';
+}
+
+function init() {
+    loadState();
+    applyTheme(state.theme);
+    initBattery();
+
+    if (!state.networks || state.networks.length === 0) {
+        state.networks = defaultNetworks();
     }
-});
 
-// ============= INIT =============
-loadState();
-applyTheme(state.theme);
-// Se não tem redes ainda, cria as padrão
-if (!state.networks || state.networks.length === 0) {
-    state.networks = defaultNetworks();
+    if (state.enabled && !state.airplane && state.activeNet && !state.activeNet.connecting) {
+        // mantém
+    } else if (state.enabled && !state.airplane) {
+        const last = state.networks.find(n => n.name === state.knownNets?.[state.knownNets.length - 1]);
+        if (last) state.activeNet = { ...last, ip: last.ip || ipFor(last.name), connecting: false };
+    }
+
+    if (state.activeNet && !state.activeNet.ip) {
+        state.activeNet.ip = ipFor(state.activeNet.name);
+    }
+
+    renderAll();
+    startSpeedLoop();
+    tickSpeed(performance.now());
+
+    // Drop check a cada 30s
+    setInterval(maybeDropConnection, 30000);
+
+    // Window resize → redesenha sparkline
+    window.addEventListener('resize', debounce(drawSparkline, 200));
+
+    // Avisa o parent
+    try { window.parent.postMessage({ type: 'IFRAME_LOADED', module: 'wifi' }, '*'); } catch {}
 }
-// Se tem activeNet salvo, reconecta
-if (state.enabled && state.activeNet && !state.activeNet.connecting) {
-    // mantém
-} else if (state.enabled) {
-    // auto-connect à última salva ou GhostPhone
-    const last = state.networks.find(n => n.name === state.knownNets?.[state.knownNets.length - 1]);
-    if (last) state.activeNet = { ...last, ip: last.ip || ipFor(last.name), connecting: false };
-}
-if (state.activeNet && !state.activeNet.ip) {
-    state.activeNet.ip = ipFor(state.activeNet.name);
-}
 
-$('wifi-toggle').checked = state.enabled;
-renderAll();
-
-// Loop de velocidade
-let speedLoop = setInterval(() => tickSpeed(performance.now()), SPEED_UPDATE_MS);
-tickSpeed(performance.now());
-
-// Anima entrada
-requestAnimationFrame(() => {
-    document.body.style.opacity = '1';
-});
-
-// Avisa o parent que carregou
-try { window.parent.postMessage({ type: 'IFRAME_LOADED', module: 'wifi' }, '*'); } catch {}
+init();
 
 })();
 </script>
