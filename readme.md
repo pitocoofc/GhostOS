@@ -1,3 +1,27 @@
+# Update 7.5.0 (29)
+"What's New?"
+- Bug fixes
+
+# Update 7.5.0 (28)
+"What's New?"
+- new file manager 
+
+# Update 7.5.0 (27)
+"What's New?"
+- New gallery
+
+# Update 7.5.0 (26)
+"What's New?"
+- Optimization in the gamespa
+
+# Update 7.5.0 (25)
+"What's New?"
+- New workspace 
+
+# Update 7.5.0 (24)
+"What's New?"
+- New gamespace
+
 # Update 7.5.0 (23)
 "What's New?"
 - improvements
