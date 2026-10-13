@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GhostClock OS</title>
     <style>
-        :root { --green: #00ff9d; --red: #ff3b30; --bg: #000; }
+        :root { --green: #00ff9d; --red: #ff3b30; --bg: #000; --ios-orange: #ff9f0a; --ios-green: #34c759; --ios-sep: #38383a; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
         body { background: var(--bg); color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
         /* HEADER / TABS */
-        .tabs { display: flex; justify-content: center; gap: 15px; padding: 20px; background: #111; border-bottom: 1px solid #222; }
-        .tab-btn { background: none; border: none; color: #555; font-weight: bold; font-size: 14px; padding: 10px 20px; cursor: pointer; border-radius: 8px; transition: 0.3s; }
+        .tabs { display: flex; justify-content: center; gap: 4px; padding: 14px 8px; background: #111; border-bottom: 1px solid #222; }
+        .tab-btn { background: none; border: none; color: #555; font-weight: bold; font-size: 13px; padding: 10px 12px; cursor: pointer; border-radius: 8px; transition: 0.3s; }
         .tab-btn.active { color: var(--green); background: #222; }
 
         /* CONTAINER DE CONTEÚDO */
@@ -34,12 +34,65 @@
         .footer { padding: 30px; text-align: center; }
         #region-select { background: #111; color: white; border: 1px solid #333; padding: 12px; border-radius: 10px; width: 80%; max-width: 300px; outline: none; }
         .fade-out { opacity: 0; }
+
+        /* ===== ALARME (estilo iOS) ===== */
+        #screen-alarm { top: 0; bottom: 0; display: flex; flex-direction: column; text-align: left; overflow-y: auto; padding-bottom: 30px; }
+        #screen-alarm::-webkit-scrollbar { display: none; }
+
+        .al-top { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px 0; }
+        .al-link { background: none; border: none; color: var(--ios-orange); font-size: 17px; cursor: pointer; }
+        .al-plus { font-size: 32px; line-height: 1; padding: 0 4px; }
+        .al-title { font-size: 34px; font-weight: 700; padding: 6px 20px 10px; }
+        .al-sec { font-size: 13px; color: #8e8e93; padding: 10px 20px 6px; }
+
+        .al-row { display: flex; align-items: center; gap: 12px; padding: 10px 20px; border-bottom: 1px solid var(--ios-sep); cursor: pointer; }
+        .al-row:active { background: #1c1c1e; }
+        .al-main { flex: 1; min-width: 0; }
+        .al-time { font-size: 52px; font-weight: 300; line-height: 1.05; letter-spacing: -1px; }
+        .al-sub { font-size: 14px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .al-row.off .al-time, .al-row.off .al-sub { color: #8e8e93; }
+        .al-minus { display: none; width: 24px; height: 24px; border-radius: 50%; border: none; background: #ff3b30; color: #fff; font-size: 18px; line-height: 1; flex-shrink: 0; cursor: pointer; }
+        .editing .al-minus { display: block; }
+        .editing .al-row .ios-sw { display: none; }
+        .al-empty { color: #8e8e93; text-align: center; padding: 60px 20px; font-size: 15px; line-height: 1.6; }
+
+        .ios-sw { position: relative; width: 51px; height: 31px; flex-shrink: 0; }
+        .ios-sw input { opacity: 0; width: 0; height: 0; }
+        .ios-sw span { position: absolute; inset: 0; background: #39393d; border-radius: 16px; transition: .25s; cursor: pointer; }
+        .ios-sw span:before { content: ""; position: absolute; width: 27px; height: 27px; left: 2px; top: 2px; background: #fff; border-radius: 50%; box-shadow: 0 2px 4px #0004; transition: .25s; }
+        .ios-sw input:checked + span { background: var(--ios-green); }
+        .ios-sw input:checked + span:before { transform: translateX(20px); }
+
+        /* Folha de edição */
+        #al-sheet { position: fixed; inset: 0; background: #000000a0; z-index: 50; display: none; align-items: flex-end; }
+        #al-sheet.open { display: flex; }
+        .sheet { width: 100%; max-height: 94%; overflow-y: auto; background: #1c1c1e; border-radius: 14px 14px 0 0; animation: sheetUp .3s cubic-bezier(.2,.8,.2,1); }
+        @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+        .sh-bar { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; font-size: 17px; }
+        .sh-bar b { font-weight: 600; }
+
+        .wheels { position: relative; display: flex; justify-content: center; height: 180px; margin: 6px 16px 16px; background: #2c2c2e; border-radius: 14px; overflow: hidden; }
+        .wheels:before { content: ""; position: absolute; left: 8px; right: 8px; top: 72px; height: 36px; background: #ffffff1a; border-radius: 8px; pointer-events: none; }
+        .wheels:after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(#2c2c2e, #2c2c2e00 35%, #2c2c2e00 65%, #2c2c2e); }
+        .wheel { width: 80px; height: 180px; overflow-y: auto; scroll-snap-type: y mandatory; padding: 72px 0; text-align: center; }
+        .wheel::-webkit-scrollbar { display: none; }
+        .wheel div { height: 36px; line-height: 36px; font-size: 24px; scroll-snap-align: center; }
+        .colon { align-self: center; font-size: 24px; }
+
+        .grp { background: #2c2c2e; border-radius: 12px; margin: 0 16px 16px; overflow: hidden; }
+        .grp-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--ios-sep); font-size: 16px; }
+        .grp-row input[type=text] { flex: 1; min-width: 0; background: none; border: none; color: #fff; text-align: right; font-size: 16px; outline: none; }
+        .days { display: flex; justify-content: space-between; padding: 12px 16px; }
+        .day { width: 36px; height: 36px; border-radius: 50%; border: none; background: #3a3a3c; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .day.on { background: var(--ios-orange); color: #000; }
+        .del { display: block; width: calc(100% - 32px); margin: 0 16px 24px; padding: 14px; border: none; border-radius: 12px; background: #2c2c2e; color: #ff453a; font-size: 17px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="tabs">
         <button id="tab-clock" class="tab-btn active" onclick="showScreen('clock')">RELÓGIO</button>
+        <button id="tab-alarm" class="tab-btn" onclick="showScreen('alarm')">ALARME</button>
         <button id="tab-sw" class="tab-btn" onclick="showScreen('sw')">CRONÔMETRO</button>
     </div>
 
@@ -47,6 +100,16 @@
         <div id="screen-clock" class="screen active">
             <span id="txt-time" class="time-text">00:00</span>
             <div id="txt-date" class="date-text">CARREGANDO...</div>
+        </div>
+
+        <div id="screen-alarm" class="screen">
+            <div class="al-top">
+                <button class="al-link" id="al-edit" onclick="toggleEdit()">Editar</button>
+                <button class="al-link al-plus" onclick="openSheet()">+</button>
+            </div>
+            <div class="al-title">Alarme</div>
+            <div class="al-sec">Alarmes</div>
+            <div id="al-list"></div>
         </div>
 
         <div id="screen-sw" class="screen">
@@ -58,42 +121,31 @@
         </div>
     </div>
 
+    <div id="al-sheet" onclick="if(event.target === this) closeSheet()">
+        <div class="sheet">
+            <div class="sh-bar">
+                <button class="al-link" onclick="closeSheet()">Cancelar</button>
+                <b id="sh-title">Adicionar Alarme</b>
+                <button class="al-link" style="font-weight:600" onclick="saveAlarm()">Salvar</button>
+            </div>
+            <div class="wheels">
+                <div class="wheel" id="w-h"></div>
+                <span class="colon">:</span>
+                <div class="wheel" id="w-m"></div>
+            </div>
+            <div class="grp">
+                <div class="days" id="days"></div>
+                <div class="grp-row"><span>Etiqueta</span><input type="text" id="al-label" placeholder="Alarme" maxlength="24"></div>
+                <div class="grp-row"><span>Soneca</span><label class="ios-sw"><input type="checkbox" id="al-snooze" checked><span></span></label></div>
+            </div>
+            <button class="del" id="al-del" onclick="deleteFromSheet()">Excluir Alarme</button>
+        </div>
+    </div>
+
     <div class="footer" id="region-container">
         <select id="region-select" onchange="saveAndRefresh()">
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<option disabled value="">── A ──</option>
 <option value="en-AI">🇦🇮 ANGUILLA</option>
 <option value="za-ZA">🇿🇦 ÁFRICA DO SUL</option>
 <option value="az-AZ">🇦🇿 AZERBAIJÃO</option>
@@ -111,8 +163,7 @@
 <option value="ao-AO">🇦🇴 ANGOLA</option>
 <option value="dz-DZ">🇩🇿 ARGÉLIA</option>
 
-<option value="pt-BR">B</option>
-
+<option disabled value="">── B ──</option>
 <option value="en-BS">🇧🇸 BAHAMAS</option>
 <option value="bn-BN">🇧🇳 BRUNEI</option>
 <option value="by-BY">🇧🇾 BELARUS</option>
@@ -130,10 +181,9 @@
 <option value="bt-BT">🇧🇹 BUTÃO</option>
 <option value="bf-BF">🇧🇫 BURKINA FASO</option>
 <option value="bg-BG">🇧🇬 BULGÁRIA</option>
-<option value="ba-BA">🇧🇦 BÓSNIA & HERZEGOVINA</option>
+<option value="ba-BA">🇧🇦 BÓSNIA &amp; HERZEGOVINA</option>
 
-<option value="ko-KR">C</option>
-
+<option disabled value="">── C ──</option>
 <option value="kz-KZ">🇰🇿 CAZAQUISTÃO</option>
 <option value="cg-CG">🇨🇬 CONGO</option>
 <option value="hr-HR">🇭🇷 CROÁCIA</option>
@@ -153,14 +203,12 @@
 <option value="td-TD">🇹🇩 CHADE</option>
 <option value="qa-QA">🇶🇦 CATAR</option>
 
-<option value="dk-DK">D</option>
-
+<option disabled value="">── D ──</option>
 <option value="en-DM">🇩🇲 DOMINICA</option>
 <option value="dk-DK">🇩🇰 DINAMARCA</option>
 <option value="dj-DJ">🇩🇯 DJIBOUTI</option>
 
-<option value="en-US">E</option>
-
+<option disabled value="">── E ──</option>
 <option value="sk-SK">🇸🇰 ESLOVÁQUIA</option>
 <option value="eg-EG">🇪🇬 EGITO</option>
 <option value="sz-SZ">🇸🇿 ESWATINI</option>
@@ -174,17 +222,14 @@
 <option value="et-ET">🇪🇹 ETIÓPIA</option>
 <option value="ae-AE">🇦🇪 EMIRADOS ÁRABES</option>
 
-
-<option value="fr-FR">F</option>
-
+<option disabled value="">── F ──</option>
 <option value="en-FK">🇫🇰 FALKLAND</option>
 <option value="en-FJ">🇫🇯 FIJI</option>
 <option value="fi-FI">🇫🇮 FINLÂNDIA</option>
 <option value="fr-FR">🇫🇷 FRANÇA</option>
 <option value="ph-PH">🇵🇭 FILIPINAS</option>
 
-<option value="el-GR">G</option>
-
+<option disabled value="">── G ──</option>
 <option value="gy-GY">🇬🇾 GUIANA</option>
 <option value="gm-GM">🇬🇲 GÂMBIA</option>
 <option value="gl-GL">🇬🇱 GROENLÂNDIA</option>
@@ -202,15 +247,14 @@
 <option value="ga-GA">🇬🇦 GABÃO</option>
 <option value="gh-GH">🇬🇭 GANA</option>
 
-<option value="nl-NL">H</option>
-
+<option disabled value="">── H ──</option>
 <option value="cn-HK">🇭🇰 HONG KONG</option>
 <option value="nl-NL">🇳🇱 HOLANDA</option>
+<option value="es-HN">🇭🇳 HONDURAS</option>
 <option value="hu-HU">🇭🇺 HUNGRIA</option>
 <option value="ht-HT">🇭🇹 HAITI</option>
 
-<option value="mv-MV">I</option>
-
+<option disabled value="">── I ──</option>
 <option value="ye-YE">🇾🇪 IÊMEN</option>
 <option value="is-IS">🇮🇸 ISLÂNDIA</option>
 <option value="im-IM">🇮🇲 ILHA DE MAN</option>
@@ -226,23 +270,19 @@
 <option value="iq-IQ">🇮🇶 IRAQUE</option>
 <option value="id-ID">🇮🇩 INDONÉSIA</option>
 
-<option value="ja-JP">J</option>
-
+<option disabled value="">── J ──</option>
 <option value="ja-JP">🇯🇵 JAPÃO</option>
 <option value="en-JM">🇯🇲 JAMAICA</option>
 <option value="jo-JO">🇯🇴 JORDÂNIA</option>
 <option value="je-JE">🇯🇪 JERSEY</option>
 
-
-<option value="ki-KI">K</option>
-
+<option disabled value="">── K ──</option>
 <option value="ki-KI">🇰🇮 KIRIBATI</option>
 <option value="kw-KW">🇰🇼 KUWAIT</option>
-<option value="ru-KGD">🇷🇺 KALININGRADO</option> 
+<option value="ru-KGD">🇷🇺 KALININGRADO</option>
 <option value="xk-XK">🇽🇰 KOSOVO</option>
 
-<option value="lv-LV">L</option>
-
+<option disabled value="">── L ──</option>
 <option value="lv-LV">🇱🇻 LETÔNIA</option>
 <option value="lt-LT">🇱🇹 LITUÂNIA</option>
 <option value="li-LI">🇱🇮 LIECHTENSTEIN</option>
@@ -253,11 +293,7 @@
 <option value="ly-LY">🇱🇾 LÍBIA</option>
 <option value="lr-LR">🇱🇷 LIBÉRIA</option>
 
-
-
-
-<option value="es-MX">M</option>
-
+<option disabled value="">── M ──</option>
 <option value="my-MY">🇲🇾 MALÁSIA</option>
 <option value="cn-MO">🇲🇴 MACAU</option>
 <option value="me-ME">🇲🇪 MONTENEGRO</option>
@@ -280,9 +316,8 @@
 <option value="ma-MA">🇲🇦 MARROCOS</option>
 <option value="mr-MR">🇲🇷 MAURITÂNIA</option>
 
-<option value="no-NO">N</option>
-
-<<option value="na-NA">🇳🇦 NAMÍBIA</option>
+<option disabled value="">── N ──</option>
+<option value="na-NA">🇳🇦 NAMÍBIA</option>
 <option value="nr-NR">🇳🇷 NAURU</option>
 <option value="ne-NE">🇳🇪 NÍGER</option>
 <option value="np-NP">🇳🇵 NEPAL</option>
@@ -291,12 +326,10 @@
 <option value="no-NO">🇳🇴 NORUEGA</option>
 <option value="en-NZ">🇳🇿 NOVA ZELÂNDIA</option>
 
-<option value="om-OM">O</option>
-
+<option disabled value="">── O ──</option>
 <option value="om-OM">🇴🇲 OMÃ</option>
 
-<option value="pk-PK">P</option>
-
+<option disabled value="">── P ──</option>
 <option value="pk-PK">🇵🇰 PAQUISTÃO</option>
 <option value="pw-PW">🇵🇼 PALAU</option>
 <option value="pl-PL">🇵🇱 POLÔNIA</option>
@@ -307,14 +340,11 @@
 <option value="es-PR">🇵🇷 PORTO RICO</option>
 <option value="en-PG">🇵🇬 PAPUA-NOVA GUINÉ</option>
 
-<option value="ke-KE">Q</option>
-
+<option disabled value="">── Q ──</option>
 <option value="ke-KE">🇰🇪 QUÊNIA</option>
 <option value="kg-KG">🇰🇬 QUIRGUISTÃO</option>
 
-
-<option value="ru-RU">R</option>
-
+<option disabled value="">── R ──</option>
 <option value="en-GB">🇬🇧 REINO UNIDO</option>
 <option value="ro-RO">🇷🇴 ROMÊNIA</option>
 <option value="rw-RW">🇷🇼 RUANDA</option>
@@ -324,29 +354,23 @@
 <option value="es-DO">🇩🇴 REP. DOMINICANA</option>
 <option value="cz-CZ">🇨🇿 REP. TCHECA</option>
 
-
-<option value="sv-SE">S</option>
-
+<option disabled value="">── S ──</option>
 <option value="so-SO">🇸🇴 SOMÁLIA</option>
-<option value="rs-RS">🇷🇸 SÉRVIA</option>
+<option value="sr-RS">🇷🇸 SÉRVIA</option>
 <option value="sl-SL">🇸🇱 SERRA LEOA</option>
 <option value="ss-SS">🇸🇸 SUDÃO DO SUL</option>
-<option value="pm-PM">🇵🇲 ST PIERRE & MIQUELON</option> 
-<option value="en-KN">🇰🇳 ST KITTS & NEVIS</option>
+<option value="en-KN">🇰🇳 ST KITTS &amp; NEVIS</option>
 <option value="en-LC">🇱🇨 SANTA LÚCIA</option>
 <option value="sv-SE">🇸🇪 SUÉCIA</option>
 <option value="sy-SY">🇸🇾 SÍRIA</option>
 <option value="de-CH">🇨🇭 SUÍÇA</option>
-<option value="sr-RS">🇷🇸 SÉRVIA</option>
 <option value="sm-SM">🇸🇲 SAN MARINO</option>
-<option value="st-ST">🇸🇹 SÃO TOMÉ & PRÍNCIPE</option>
+<option value="st-ST">🇸🇹 SÃO TOMÉ &amp; PRÍNCIPE</option>
 <option value="sc-SC">🇸🇨 SEYCHELLES</option>
 <option value="en-VC">🇻🇨 SÃO VICENTE</option>
 <option value="en-BL">🇧🇱 SAINT BARTHÉLEMY</option>
-<option value="fr-BL">🇧🇱 SAINT BARTHÉLEMY (FR)</option>
 <option value="en-SX">🇸🇽 SINT MAARTEN</option>
-<option value="nl-SX">🇸🇽 SINT MAARTEN (NL)</option>
-<option value="fr-PM">🇵🇲 ST PIERRE & MIQUELON</option>
+<option value="fr-PM">🇵🇲 ST PIERRE &amp; MIQUELON</option>
 <option value="sr-SR">🇸🇷 SURINAME</option>
 <option value="sd-SD">🇸🇩 SUDÃO</option>
 <option value="sn-SN">🇸🇳 SENEGAL</option>
@@ -354,44 +378,59 @@
 <option value="lk-LK">🇱🇰 SRI LANKA</option>
 <option value="ws-WS">🇼🇸 SAMOA</option>
 
-<option value="tr-TR">T</option>
-
+<option disabled value="">── T ──</option>
 <option value="tz-TZ">🇹🇿 TANZÂNIA</option>
 <option value="to-TO">🇹🇴 TONGA</option>
 <option value="tn-TN">🇹🇳 TUNÍSIA</option>
 <option value="tv-TV">🇹🇻 TUVALU</option>
 <option value="tl-TL">🇹🇱 TIMOR-LESTE</option>
 <option value="th-TH">🇹🇭 TAILÂNDIA</option>
-<option value="tr-TR">🇹🇷 TURQUIA</option> 
+<option value="tr-TR">🇹🇷 TURQUIA</option>
 <option value="tj-TJ">🇹🇯 TAJIQUISTÃO</option>
 <option value="tm-TM">🇹🇲 TURCOMENISTÃO</option>
 <option value="tg-TG">🇹🇬 TOGO</option>
-<option value="en-TC">🇹🇨 TURKS & CAICOS</option>
-<option value="en-TT">🇹🇹 TRINIDAD & TOBAGO</option>
+<option value="en-TC">🇹🇨 TURKS &amp; CAICOS</option>
+<option value="en-TT">🇹🇹 TRINIDAD &amp; TOBAGO</option>
 
-<option value="ua-UA">U</option>
-
+<option disabled value="">── U ──</option>
 <option value="es-UY">🇺🇾 URUGUAI</option>
 <option value="ua-UA">🇺🇦 UCRÂNIA</option>
 <option value="ug-UG">🇺🇬 UGANDA</option>
 <option value="uz-UZ">🇺🇿 UZBEQUISTÃO</option>
 
-<option value="va-VA">V</option>
-
-<option value="en-VG">🇺🇲 VIRGENS (UK)</option>
+<option disabled value="">── V ──</option>
+<option value="en-VG">🇻🇬 VIRGENS (UK)</option>
 <option value="en-VI">🇻🇮 VIRGENS (US)</option>
 <option value="es-VE">🇻🇪 VENEZUELA</option>
 <option value="vi-VN">🇻🇳 VIETNÃ</option>
 <option value="vu-VU">🇻🇺 VANUATU</option>
 <option value="va-VA">🇻🇦 VATICANO</option>
 
-<option value="zw-ZW">Z</option>
-
+<option disabled value="">── Z ──</option>
 <option value="zw-ZW">🇿🇼 ZIMBABWE</option>
 
+<option disabled value="">── Fusos regionais ──</option>
+<option value="pt-BR-FN">🇧🇷 BRASIL · FERNANDO DE NORONHA</option>
+<option value="en-US-ET">🇺🇸 EUA · LESTE (NOVA YORK)</option>
+<option value="en-US-CT">🇺🇸 EUA · CENTRAL (CHICAGO)</option>
+<option value="en-US-MT">🇺🇸 EUA · MONTANHA (DENVER)</option>
+<option value="en-US-AZ">🇺🇸 EUA · ARIZONA</option>
+<option value="en-US-PT">🇺🇸 EUA · PACÍFICO (LOS ANGELES)</option>
+<option value="en-US-AK">🇺🇸 EUA · ALASCA</option>
+<option value="en-US-HI">🇺🇸 EUA · HAVAÍ</option>
+<option value="en-CA-NF">🇨🇦 CANADÁ · TERRA NOVA</option>
+<option value="en-CA-AT">🇨🇦 CANADÁ · ATLÂNTICO</option>
+<option value="en-CA-ET">🇨🇦 CANADÁ · LESTE (TORONTO)</option>
+<option value="en-CA-CT">🇨🇦 CANADÁ · CENTRAL</option>
+<option value="en-CA-MT">🇨🇦 CANADÁ · MONTANHA</option>
+<option value="en-CA-PT">🇨🇦 CANADÁ · PACÍFICO (VANCOUVER)</option>
+<option value="es-MX-CE">🇲🇽 MÉXICO · CENTRO</option>
+<option value="es-MX-NW">🇲🇽 MÉXICO · NOROESTE (TIJUANA)</option>
+<option value="es-MX-PA">🇲🇽 MÉXICO · PACÍFICO</option>
+<option value="es-MX-QR">🇲🇽 MÉXICO · QUINTANA ROO</option>
+<option value="es-EC-G">🇪🇨 EQUADOR · GALÁPAGOS</option>
 
-
-<option value="aq-MC">Antártida</option>
+<option disabled value="">── Antártida ──</option>
 <option value="aq-CA">🇦🇶 CASEY/AUS</option>
 <option value="aq-DA">🇦🇶 DAVIS/AUS</option>
 <option value="aq-DU">🇦🇶 DUMONT D'URVILLE/FRA</option>
@@ -404,20 +443,150 @@
 <option value="aq-SY">🇦🇶 SYOWA/JP</option>
 <option value="aq-TR">🇦🇶 TROLL/NO</option>
 <option value="aq-VO">🇦🇶 VOSTOK/RUS</option>
-<option value="pt-BR">🇦🇶 EACF/BR</option>
         </select>
     </div>
 
     <script>
+        // --- ALARME (estilo iOS) ---
+        // Aqui fica só a interface. Quem toca o alarme é o agendador do index.
+        const DAYS = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+        const DAYN = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+        let alarms = [], editingId = null, editMode = false;
+
+        const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+        function loadAlarms() {
+            try { alarms = JSON.parse(localStorage.getItem('ghost_alarms')) || []; } catch (e) { alarms = []; }
+        }
+        function persist() {
+            try { localStorage.setItem('ghost_alarms', JSON.stringify(alarms)); } catch (e) {}
+            parent.postMessage({ type: 'alarms_changed' }, '*');   // o index atualiza o ⏰ da barra
+        }
+
+        function repeatText(a) {
+            const r = a.repeat || [];
+            if (!r.length) return '';
+            if (r.length === 7) return 'Todos os dias';
+            if (r.length === 5 && [1, 2, 3, 4, 5].every(d => r.includes(d))) return 'Dias úteis';
+            if (r.length === 2 && r.includes(0) && r.includes(6)) return 'Fins de semana';
+            return r.slice().sort((x, y) => x - y).map(d => DAYN[d]).join(', ');
+        }
+
+        function renderAlarms() {
+            document.getElementById('screen-alarm').classList.toggle('editing', editMode);
+            document.getElementById('al-edit').textContent = editMode ? 'OK' : 'Editar';
+            const box = document.getElementById('al-list');
+            if (!alarms.length) {
+                box.innerHTML = '<div class="al-empty">Nenhum alarme.<br>Toque em + para criar um.</div>';
+                return;
+            }
+            const sorted = [...alarms].sort((a, b) => a.h * 60 + a.m - (b.h * 60 + b.m));
+            box.innerHTML = sorted.map(a => {
+                const sub = [a.label || 'Alarme', repeatText(a)].filter(Boolean).join(', ');
+                const t = String(a.h).padStart(2, '0') + ':' + String(a.m).padStart(2, '0');
+                return `<div class="al-row ${a.on ? '' : 'off'}" onclick="openSheet('${a.id}')">
+                    <button class="al-minus" onclick="event.stopPropagation();removeAlarm('${a.id}')">−</button>
+                    <div class="al-main"><div class="al-time">${t}</div><div class="al-sub">${esc(sub)}</div></div>
+                    <label class="ios-sw" onclick="event.stopPropagation()">
+                        <input type="checkbox" ${a.on ? 'checked' : ''} onchange="toggleAlarm('${a.id}', this.checked)"><span></span>
+                    </label>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleEdit() { editMode = !editMode; renderAlarms(); }
+
+        function toggleAlarm(id, on) {
+            const a = alarms.find(x => x.id === id);
+            if (!a) return;
+            a.on = on; persist(); renderAlarms();
+            if (on) toastNext(a);
+        }
+
+        function removeAlarm(id) {
+            alarms = alarms.filter(x => x.id !== id);
+            persist(); renderAlarms();
+        }
+
+        // "Toca em 7 h 20 min", como o iOS mostra ao salvar
+        function nextIn(a) {
+            const now = new Date();
+            for (let i = 0; i < 8; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i, a.h, a.m, 0);
+                if (d <= now) continue;
+                if (a.repeat && a.repeat.length && !a.repeat.includes(d.getDay())) continue;
+                return d - now;
+            }
+            return null;
+        }
+        function toastNext(a) {
+            const ms = nextIn(a);
+            if (ms === null) return;
+            const mins = Math.ceil(ms / 60000);
+            const d = Math.floor(mins / 1440), h = Math.floor(mins % 1440 / 60), m = mins % 60;
+            const txt = [d && d + ' d', h && h + ' h', m && m + ' min'].filter(Boolean).join(' ') || 'menos de 1 min';
+            parent.postMessage({ type: 'SHOW_TOAST', title: 'Alarme', message: 'Toca em ' + txt, icon: '⏰' }, '*');
+        }
+
+        // --- Folha de edição ---
+        function buildWheels() {
+            const mk = (id, n) => document.getElementById(id).innerHTML =
+                Array.from({ length: n }, (_, i) => `<div>${String(i).padStart(2, '0')}</div>`).join('');
+            mk('w-h', 24); mk('w-m', 60);
+            document.getElementById('days').innerHTML = DAYS.map((d, i) =>
+                `<button class="day" data-d="${i}" onclick="this.classList.toggle('on')">${d}</button>`).join('');
+        }
+
+        function openSheet(id) {
+            editingId = id || null;
+            const a = id ? alarms.find(x => x.id === id) : null;
+            const now = new Date();
+            document.getElementById('sh-title').textContent = a ? 'Editar Alarme' : 'Adicionar Alarme';
+            document.getElementById('al-label').value = a ? a.label : '';
+            document.getElementById('al-snooze').checked = a ? a.snooze !== false : true;
+            document.getElementById('al-del').style.display = a ? 'block' : 'none';
+            document.querySelectorAll('.day').forEach(b =>
+                b.classList.toggle('on', !!a && (a.repeat || []).includes(+b.dataset.d)));
+            document.getElementById('al-sheet').classList.add('open');
+            const h = a ? a.h : now.getHours(), m = a ? a.m : now.getMinutes();
+            requestAnimationFrame(() => {   // só dá pra posicionar a roda depois que a folha aparece
+                document.getElementById('w-h').scrollTop = h * 36;
+                document.getElementById('w-m').scrollTop = m * 36;
+            });
+        }
+        function closeSheet() { document.getElementById('al-sheet').classList.remove('open'); }
+
+        function saveAlarm() {
+            const h = Math.min(23, Math.round(document.getElementById('w-h').scrollTop / 36));
+            const m = Math.min(59, Math.round(document.getElementById('w-m').scrollTop / 36));
+            const data = {
+                h, m, on: true,
+                repeat: [...document.querySelectorAll('.day.on')].map(b => +b.dataset.d),
+                label: document.getElementById('al-label').value.trim(),
+                snooze: document.getElementById('al-snooze').checked
+            };
+            let a = editingId ? alarms.find(x => x.id === editingId) : null;
+            if (a) Object.assign(a, data);
+            else { a = { id: 'a' + Date.now(), ...data }; alarms.push(a); }
+            persist(); renderAlarms(); closeSheet(); toastNext(a);
+        }
+        function deleteFromSheet() { removeAlarm(editingId); closeSheet(); }
+
+        // Se o index desligar um alarme único depois que ele tocar, a lista acompanha
+        window.addEventListener('storage', e => {
+            if (e.key === 'ghost_alarms') { loadAlarms(); renderAlarms(); }
+        });
+
         let currentMode = 'clock';
         let lastMinute = "";
 
         // --- LÓGICA DE CACHE ---
         function loadSavedRegion() {
-            const saved = localStorage.getItem('ghost_clock_region');
-            if (saved) {
-                document.getElementById('region-select').value = saved;
-            }
+            const sel = document.getElementById('region-select');
+            // Sem nada salvo (ou valor inválido), usa Brasília, igual ao index
+            const saved = localStorage.getItem('ghost_clock_region') || 'pt-BR';
+            sel.value = saved;
+            if (sel.value !== saved) sel.value = 'pt-BR';
         }
 
         function saveAndRefresh() {
@@ -427,279 +596,284 @@
             updateClock();
         }
 
+        // --- FUSOS (fora do updateClock: não precisa ser recriado a cada segundo) ---
+        const timeZones = {
+            "pt-BR": "America/Sao_Paulo",
+            "ne-NE": "Africa/Niamey",
+            "hu-HU": "Europe/Budapest",
+            "ro-RO": "Europe/Bucharest",
+            "ru-KGD": "Europe/Kaliningrad",
+            "ml-ML": "Africa/Bamako",
+            "bf-BF": "Africa/Ouagadougou",
+            "tg-TG": "Africa/Lome",
+            "bj-BJ": "Africa/Porto-Novo",
+            "mr-MR": "Africa/Nouakchott",
+            "ss-SS": "Africa/Juba",
+
+            "bt-BT": "Asia/Thimphu",
+            "mv-MV": "Indian/Maldives",
+            "tj-TJ": "Asia/Dushanbe",
+            "tm-TM": "Asia/Ashgabat",
+            "kg-KG": "Asia/Bishkek",
+
+            "ki-KI": "Pacific/Tarawa",
+            "nr-NR": "Pacific/Nauru",
+            "tv-TV": "Pacific/Funafuti",
+            "fm-FM": "Pacific/Pohnpei",
+            "mh-MH": "Pacific/Majuro",
+            "pw-PW": "Pacific/Palau",
+            "al-AL": "Europe/Tirane",
+            "gi-GI": "Europe/Gibraltar",
+            "im-IM": "Europe/Isle_of_Man",
+            "je-JE": "Europe/Jersey",
+            "gg-GG": "Europe/Guernsey",
+            "cn-HK": "Asia/Hong_Kong",
+            "cn-MO": "Asia/Macau",
+            "sg-SG": "Asia/Singapore",
+            "my-MY": "Asia/Kuala_Lumpur",
+            "np-NP": "Asia/Kathmandu",
+            "lk-LK": "Asia/Colombo",
+            "kz-KZ": "Asia/Almaty",
+            "cm-CM": "Africa/Douala",
+            "ws-WS": "Pacific/Apia",
+            "to-TO": "Pacific/Tongatapu",
+            "sb-SB": "Pacific/Guadalcanal",
+            "vu-VU": "Pacific/Efate",
+            "ci-CI": "Africa/Abidjan",
+            "sn-SN": "Africa/Dakar",
+            "gl-GL": "America/Godthab", // ou America/Nuuk (mais moderno)
+            "ht-HT": "America/Port-au-Prince",
+            "gy-GY": "America/Guyana",
+            "sr-SR": "America/Paramaribo",
+            "ug-UG": "Africa/Kampala",
+            "tz-TZ": "Africa/Dar_es_Salaam",
+            "zw-ZW": "Africa/Harare",
+            "mz-MZ": "Africa/Maputo",
+            "sd-SD": "Africa/Khartoum",
+            "ly-LY": "Africa/Tripoli",
+            "uz-UZ": "Asia/Tashkent",
+            "qa-QA": "Asia/Qatar",
+            "kw-KW": "Asia/Kuwait",
+            "om-OM": "Asia/Muscat",
+            "ye-YE": "Asia/Aden",
+            "xk-XK": "Europe/Belgrade", // Kosovo usa esse padrão
+            "za-ZA": "Africa/Johannesburg",
+            "eg-EG": "Africa/Cairo",
+            "ma-MA": "Africa/Casablanca",
+            "ng-NG": "Africa/Lagos",
+            "ke-KE": "Africa/Nairobi",
+            "dz-DZ": "Africa/Algiers",
+            "tn-TN": "Africa/Tunis",
+            "gh-GH": "Africa/Accra",
+            "et-ET": "Africa/Addis_Ababa",
+            "ao-AO": "Africa/Luanda",
+
+            "ja-JP": "Asia/Tokyo",
+            "ko-KR": "Asia/Seoul",
+            "hi-IN": "Asia/Kolkata",
+            "th-TH": "Asia/Bangkok",
+            "vi-VN": "Asia/Ho_Chi_Minh",
+            "id-ID": "Asia/Jakarta",
+            "ph-PH": "Asia/Manila",
+            "ar-SA": "Asia/Riyadh",
+            "he-IL": "Asia/Jerusalem",
+            "fa-IR": "Asia/Tehran",
+            "ae-AE": "Asia/Dubai",
+            "pk-PK": "Asia/Karachi",
+            "bd-BD": "Asia/Dhaka",
+
+            "en-NZ": "Pacific/Auckland",
+            "en-FJ": "Pacific/Fiji",
+            "en-PG": "Pacific/Port_Moresby",
+            "ba-BA": "Europe/Sarajevo",
+            "me-ME": "Europe/Podgorica",
+            "mk-MK": "Europe/Skopje",
+            "md-MD": "Europe/Chisinau",
+            "by-BY": "Europe/Minsk",
+            "sk-SK": "Europe/Bratislava",
+
+            "ad-AD": "Europe/Andorra",
+            "mc-MC": "Europe/Monaco",
+            "sm-SM": "Europe/San_Marino",
+            "va-VA": "Europe/Vatican",
+            "li-LI": "Europe/Vaduz",
+            "lu-LU": "Europe/Luxembourg",
+            "mt-MT": "Europe/Malta",
+            "cy-CY": "Asia/Nicosia",
+
+            "fo-FO": "Atlantic/Faroe",
+            "aq-MC": "Antarctica/McMurdo",
+            "aq-SP": "Antarctica/South_Pole",
+            "aq-RO": "Antarctica/Rothera",
+            "aq-PA": "Antarctica/Palmer",
+            "aq-SY": "Antarctica/Syowa",
+            "aq-MA": "Antarctica/Mawson",
+            "aq-VO": "Antarctica/Vostok",
+            "aq-DA": "Antarctica/Davis",
+            "aq-CA": "Antarctica/Casey",
+            "aq-DU": "Antarctica/DumontDUrville",
+            "aq-TR": "Antarctica/Troll",
+            "aq-MQ": "Antarctica/Macquarie",
+            "es-AR": "America/Argentina/Buenos_Aires",
+            "es-CL": "America/Santiago",
+            "es-CO": "America/Bogota",
+            "es-PE": "America/Lima",
+            "es-VE": "America/Caracas",
+            "es-UY": "America/Montevideo",
+            "es-PY": "America/Asuncion",
+            "es-BO": "America/La_Paz",
+            "es-EC": "America/Guayaquil",
+            "es-PA": "America/Panama",
+            "es-CR": "America/Costa_Rica",
+            "es-GT": "America/Guatemala",
+            "es-SV": "America/El_Salvador",
+            "es-HN": "America/Tegucigalpa",
+            "es-NI": "America/Managua",
+            "es-BZ": "America/Belize",
+            "en-FK": "Atlantic/Stanley",
+            "fr-GF": "America/Cayenne",
+            "pt-BR-FN": "America/Noronha",
+            "es-EC-G": "Pacific/Galapagos",
+            "en-GS": "Atlantic/South_Georgia",
+            "en-SH": "Atlantic/St_Helena",
+            "en-BM": "Atlantic/Bermuda",
+            "fr-PM": "America/Miquelon",
+            "es-CU": "America/Havana",
+            "es-DO": "America/Santo_Domingo",
+            "es-PR": "America/Puerto_Rico",
+            "en-JM": "America/Jamaica",
+            "en-BS": "America/Nassau",
+            "en-BB": "America/Barbados",
+            "en-TT": "America/Port_of_Spain",
+            "en-LC": "America/St_Lucia",
+            "en-GD": "America/Grenada",
+            "en-VC": "America/St_Vincent",
+            "en-AG": "America/Antigua",
+            "en-KN": "America/St_Kitts",
+            "en-DM": "America/Dominica",
+            "nl-AW": "America/Aruba",
+            "nl-CW": "America/Curacao",
+            "en-KY": "America/Cayman",
+            "en-VG": "America/Virgin",
+            "en-VI": "America/St_Thomas",
+            "fr-GP": "America/Guadeloupe",
+            "fr-MQ": "America/Martinique",
+            "en-MS": "America/Montserrat",
+            "en-AI": "America/Anguilla",
+            "en-TC": "America/Grand_Turk",
+            "en-US-ET": "America/New_York",
+            "en-US-CT": "America/Chicago",
+            "en-US-MT": "America/Denver",
+            "en-US-AZ": "America/Phoenix",
+            "en-US-PT": "America/Los_Angeles",
+            "en-US-AK": "America/Anchorage",
+            "en-US-HI": "Pacific/Honolulu",
+            "en-CA-NF": "America/St_Johns",
+            "en-CA-AT": "America/Halifax",
+            "en-CA-ET": "America/Toronto",
+            "en-CA-CT": "America/Winnipeg",
+            "en-CA-MT": "America/Edmonton",
+            "en-CA-PT": "America/Vancouver",
+            "es-MX-CE": "America/Mexico_City",
+            "es-MX-NW": "America/Tijuana",
+            "es-MX-PA": "America/Mazatlan",
+            "es-MX-QR": "America/Cancun",
+            "en-US": "America/New_York",
+            "en-CA": "America/Toronto",
+            "es-MX": "America/Mexico_City",
+            "en-GB": "Europe/London",
+            "de-DE": "Europe/Berlin",
+            "es-ES": "Europe/Madrid",
+            "pt-PT": "Europe/Lisbon",
+            "it-IT": "Europe/Rome",
+            "nl-NL": "Europe/Amsterdam",
+            "be-BE": "Europe/Brussels",
+            "pl-PL": "Europe/Warsaw",
+            "cz-CZ": "Europe/Prague",
+            "at-AT": "Europe/Vienna",
+            "de-CH": "Europe/Zurich",
+            "sv-SE": "Europe/Stockholm",
+            "no-NO": "Europe/Oslo",
+            "fi-FI": "Europe/Helsinki",
+            "dk-DK": "Europe/Copenhagen",
+            "el-GR": "Europe/Athens",
+            "tr-TR": "Europe/Istanbul",
+            "ua-UA": "Europe/Kyiv",
+            "ru-RU": "Europe/Moscow",
+            "en-IE": "Europe/Dublin",
+            "bg-BG": "Europe/Sofia",
+            "hr-HR": "Europe/Zagreb",
+            "ee-EE": "Europe/Tallinn",
+            "is-IS": "Atlantic/Reykjavik",
+            "lv-LV": "Europe/Riga",
+            "lt-LT": "Europe/Vilnius",
+            "sr-RS": "Europe/Belgrade",
+            "sl-SI": "Europe/Ljubljana",
+            "bw-BW": "Africa/Gaborone",
+            "na-NA": "Africa/Windhoek",
+            "ls-LS": "Africa/Maseru",
+            "sz-SZ": "Africa/Mbabane",
+            "mw-MW": "Africa/Blantyre",
+            "mg-MG": "Indian/Antananarivo",
+            "gm-GM": "Africa/Banjul",
+            "lr-LR": "Africa/Monrovia",
+            "sl-SL": "Africa/Freetown",
+            "gn-GN": "Africa/Conakry",
+            "gw-GW": "Africa/Bissau",
+            "gq-GQ": "Africa/Malabo",
+            "cf-CF": "Africa/Bangui",
+            "td-TD": "Africa/Ndjamena",
+            "er-ER": "Africa/Asmara",
+            "dj-DJ": "Africa/Djibouti",
+            "so-SO": "Africa/Mogadishu",
+            "rw-RW": "Africa/Kigali",
+            "bi-BI": "Africa/Bujumbura",
+            "cg-CG": "Africa/Brazzaville",
+            "cd-CD": "Africa/Kinshasa",
+            "ga-GA": "Africa/Libreville",
+            "st-ST": "Africa/Sao_Tome",
+            "cv-CV": "Atlantic/Cape_Verde",
+            "km-KM": "Indian/Comoro",
+            "sc-SC": "Indian/Mahe",
+            "mu-MU": "Indian/Mauritius",
+
+            "en-BL": "America/St_Barthelemy",
+            "fr-BL": "America/St_Barthelemy",
+            "en-SX": "America/Lower_Princes",
+            "nl-SX": "America/Lower_Princes",
+
+            "mn-MN": "Asia/Ulaanbaatar",
+            "kh-KH": "Asia/Phnom_Penh",
+            "la-LA": "Asia/Vientiane",
+            "mm-MM": "Asia/Yangon",
+            "bn-BN": "Asia/Brunei",
+            "tl-TL": "Asia/Dili",
+            "af-AF": "Asia/Kabul",
+            "iq-IQ": "Asia/Baghdad",
+            "sy-SY": "Asia/Damascus",
+            "jo-JO": "Asia/Amman",
+            "lb-LB": "Asia/Beirut",
+            "am-AM": "Asia/Yerevan",
+            "az-AZ": "Asia/Baku",
+            "ge-GE": "Asia/Tbilisi",
+
+            "rs-RS": "Europe/Belgrade",
+
+            "zh-CN": "Asia/Shanghai",
+            "fr-FR": "Europe/Paris",
+            "en-AU": "Australia/Sydney",
+        };
+
         // --- RELÓGIO ---
         function updateClock() {
             if (currentMode !== 'clock') return;
 
             const region = document.getElementById('region-select').value;
-            const timeZones = {
-                "pt-BR": "America/Sao_Paulo",
-"ne-NE": "Africa/Niamey",
-"ml-ML": "Africa/Bamako",
-"bf-BF": "Africa/Ouagadougou",
-"tg-TG": "Africa/Lome",
-"bj-BJ": "Africa/Porto-Novo",
-"mr-MR": "Africa/Nouakchott",
-"ss-SS": "Africa/Juba",
-
-"bt-BT": "Asia/Thimphu",
-"mv-MV": "Indian/Maldives",
-"tj-TJ": "Asia/Dushanbe",
-"tm-TM": "Asia/Ashgabat",
-"kg-KG": "Asia/Bishkek",
-
-"ki-KI": "Pacific/Tarawa",
-"nr-NR": "Pacific/Nauru",
-"tv-TV": "Pacific/Funafuti",
-"fm-FM": "Pacific/Pohnpei",
-"mh-MH": "Pacific/Majuro",
-"pw-PW": "Pacific/Palau",
-"al-AL": "Europe/Tirane",
-"gi-GI": "Europe/Gibraltar",
-"im-IM": "Europe/Isle_of_Man",
-"je-JE": "Europe/Jersey",
-"gg-GG": "Europe/Guernsey",
-"cn-HK": "Asia/Hong_Kong",
-"cn-MO": "Asia/Macau",
-"sg-SG": "Asia/Singapore",
-"my-MY": "Asia/Kuala_Lumpur",
-"np-NP": "Asia/Kathmandu",
-"lk-LK": "Asia/Colombo",
-"kz-KZ": "Asia/Almaty",
-"cm-CM": "Africa/Douala",
-"ws-WS": "Pacific/Apia",
-"to-TO": "Pacific/Tongatapu",
-"sb-SB": "Pacific/Guadalcanal",
-"vu-VU": "Pacific/Efate",
-"ci-CI": "Africa/Abidjan",
-"sn-SN": "Africa/Dakar",
-"gl-GL": "America/Godthab", // ou America/Nuuk (mais moderno)
-"ht-HT": "America/Port-au-Prince",
-"gy-GY": "America/Guyana",
-"sr-SR": "America/Paramaribo",
-"ug-UG": "Africa/Kampala",
-"tz-TZ": "Africa/Dar_es_Salaam",
-"zw-ZW": "Africa/Harare",
-"mz-MZ": "Africa/Maputo",
-"sd-SD": "Africa/Khartoum",
-"ly-LY": "Africa/Tripoli",
-"uz-UZ": "Asia/Tashkent",
-"qa-QA": "Asia/Qatar",
-"kw-KW": "Asia/Kuwait",
-"om-OM": "Asia/Muscat",
-"ye-YE": "Asia/Aden",
-"xk-XK": "Europe/Belgrade", // Kosovo usa esse padrão
-"za-ZA": "Africa/Johannesburg",
-"eg-EG": "Africa/Cairo",
-"ma-MA": "Africa/Casablanca",
-"ng-NG": "Africa/Lagos",
-"ke-KE": "Africa/Nairobi",
-"dz-DZ": "Africa/Algiers",
-"tn-TN": "Africa/Tunis",
-"gh-GH": "Africa/Accra",
-"et-ET": "Africa/Addis_Ababa",
-"ao-AO": "Africa/Luanda",
-
-"ja-JP": "Asia/Tokyo",
-"ko-KR": "Asia/Seoul",
-"hi-IN": "Asia/Kolkata",
-"th-TH": "Asia/Bangkok",
-"vi-VN": "Asia/Ho_Chi_Minh",
-"id-ID": "Asia/Jakarta",
-"ph-PH": "Asia/Manila",
-"ar-SA": "Asia/Riyadh",
-"he-IL": "Asia/Jerusalem",
-"fa-IR": "Asia/Tehran",
-"ae-AE": "Asia/Dubai",
-"pk-PK": "Asia/Karachi",
-"bd-BD": "Asia/Dhaka",
-
-"en-NZ": "Pacific/Auckland",
-"en-FJ": "Pacific/Fiji",
-"en-PG": "Pacific/Port_Moresby",
-"ba-BA": "Europe/Sarajevo",
-"me-ME": "Europe/Podgorica",
-"mk-MK": "Europe/Skopje",
-"md-MD": "Europe/Chisinau",
-"by-BY": "Europe/Minsk",
-"sk-SK": "Europe/Bratislava",
-
-"ad-AD": "Europe/Andorra",
-"mc-MC": "Europe/Monaco",
-"sm-SM": "Europe/San_Marino",
-"va-VA": "Europe/Vatican",
-"li-LI": "Europe/Vaduz",
-"lu-LU": "Europe/Luxembourg",
-"mt-MT": "Europe/Malta",
-"cy-CY": "Asia/Nicosia",
-
-"fo-FO": "Atlantic/Faroe",
-"aq-MC": "Antarctica/McMurdo",
-"aq-SP": "Antarctica/South_Pole",
-"aq-RO": "Antarctica/Rothera",
-"aq-PA": "Antarctica/Palmer",
-"aq-SY": "Antarctica/Syowa",
-"aq-MA": "Antarctica/Mawson",
-"aq-VO": "Antarctica/Vostok",
-"aq-DA": "Antarctica/Davis",
-"aq-CA": "Antarctica/Casey",
-"aq-DU": "Antarctica/DumontDUrville",
-"aq-TR": "Antarctica/Troll",
-"aq-MQ": "Antarctica/Macquarie",
-    "es-AR": "America/Argentina/Buenos_Aires",
-    "es-CL": "America/Santiago",
-    "es-CO": "America/Bogota",
-    "es-PE": "America/Lima",
-    "es-VE": "America/Caracas",
-    "es-UY": "America/Montevideo",
-    "es-PY": "America/Asuncion",
-    "es-BO": "America/La_Paz",
-    "es-EC": "America/Guayaquil",
-"es-PA": "America/Panama",
-    "es-CR": "America/Costa_Rica",
-    "es-GT": "America/Guatemala",
-    "es-SV": "America/El_Salvador",
-    "es-HN": "America/Tegucigalpa",
-    "es-NI": "America/Managua",
-    "es-BZ": "America/Belize",
-"en-FK": "Atlantic/Stanley",
-"fr-GF": "America/Cayenne",
-"pt-BR-FN": "America/Noronha",
-"es-EC-G": "Pacific/Galapagos",
-"en-GS": "Atlantic/South_Georgia",
-"en-SH": "Atlantic/St_Helena",
-"en-BM": "Atlantic/Bermuda",
-"fr-PM": "America/Miquelon",
-"es-CU": "America/Havana",
-"es-DO": "America/Santo_Domingo",
-"es-PR": "America/Puerto_Rico",
-"en-JM": "America/Jamaica",
-"en-BS": "America/Nassau",
-"en-BB": "America/Barbados",
-"en-TT": "America/Port_of_Spain",
-"en-LC": "America/St_Lucia",
-"en-GD": "America/Grenada",
-"en-VC": "America/St_Vincent",
-"en-AG": "America/Antigua",
-"en-KN": "America/St_Kitts",
-"en-DM": "America/Dominica",
-"nl-AW": "America/Aruba",
-"nl-CW": "America/Curacao",
-"en-KY": "America/Cayman",
-"en-VG": "America/Virgin",
-"en-VI": "America/St_Thomas",
-"fr-GP": "America/Guadeloupe",
-"fr-MQ": "America/Martinique",
-"en-MS": "America/Montserrat",
-"en-AI": "America/Anguilla",
-"en-TC": "America/Grand_Turk",
-"en-US-ET": "America/New_York",
-"en-US-CT": "America/Chicago",
-"en-US-MT": "America/Denver",
-"en-US-AZ": "America/Phoenix",
-"en-US-PT": "America/Los_Angeles",
-"en-US-AK": "America/Anchorage",
-"en-US-HI": "Pacific/Honolulu",
-"en-CA-NF": "America/St_Johns",
-"en-CA-AT": "America/Halifax",
-"en-CA-ET": "America/Toronto",
-"en-CA-CT": "America/Winnipeg",
-"en-CA-MT": "America/Edmonton",
-"en-CA-PT": "America/Vancouver",
-"es-MX-CE": "America/Mexico_City",
-"es-MX-NW": "America/Tijuana",
-"es-MX-PA": "America/Mazatlan",
-"es-MX-QR": "America/Cancun",
-"en-US": "America/New_York",
-    "en-CA": "America/Toronto",
-    "es-MX": "America/Mexico_City",
-"en-GB": "Europe/London",
-"de-DE": "Europe/Berlin",
-"es-ES": "Europe/Madrid",
-"pt-PT": "Europe/Lisbon",
-"it-IT": "Europe/Rome",
-"nl-NL": "Europe/Amsterdam",
-"be-BE": "Europe/Brussels",
-"pl-PL": "Europe/Warsaw",
-"cz-CZ": "Europe/Prague",
-"at-AT": "Europe/Vienna",
-"de-CH": "Europe/Zurich",
-"sv-SE": "Europe/Stockholm",
-"no-NO": "Europe/Oslo",
-"fi-FI": "Europe/Helsinki",
-"dk-DK": "Europe/Copenhagen",
-"el-GR": "Europe/Athens",
-"tr-TR": "Europe/Istanbul",
-"ua-UA": "Europe/Kyiv",
-"ru-RU": "Europe/Moscow",
-"en-IE": "Europe/Dublin",
-"bg-BG": "Europe/Sofia",
-"hr-HR": "Europe/Zagreb",
-"ee-EE": "Europe/Tallinn",
-"is-IS": "Atlantic/Reykjavik",
-"lv-LV": "Europe/Riga",
-"lt-LT": "Europe/Vilnius",
-"sr-RS": "Europe/Belgrade",
-"sl-SI": "Europe/Ljubljana",
-"bw-BW": "Africa/Gaborone",
-"na-NA": "Africa/Windhoek",
-"ls-LS": "Africa/Maseru",
-"sz-SZ": "Africa/Mbabane",
-"mw-MW": "Africa/Blantyre",
-"mg-MG": "Indian/Antananarivo",
-"gm-GM": "Africa/Banjul",
-"lr-LR": "Africa/Monrovia",
-"sl-SL": "Africa/Freetown",
-"gn-GN": "Africa/Conakry",
-"gw-GW": "Africa/Bissau",
-"gq-GQ": "Africa/Malabo",
-"cf-CF": "Africa/Bangui",
-"td-TD": "Africa/Ndjamena",
-"er-ER": "Africa/Asmara",
-"dj-DJ": "Africa/Djibouti",
-"so-SO": "Africa/Mogadishu",
-"rw-RW": "Africa/Kigali",
-"bi-BI": "Africa/Bujumbura",
-"cg-CG": "Africa/Brazzaville",
-"cd-CD": "Africa/Kinshasa",
-"ga-GA": "Africa/Libreville",
-"st-ST": "Africa/Sao_Tome",
-"cv-CV": "Atlantic/Cape_Verde",
-"km-KM": "Indian/Comoro",
-"sc-SC": "Indian/Mahe",
-"mu-MU": "Indian/Mauritius",
-
-"en-VC": "America/St_Vincent",
-"en-BL": "America/St_Barthelemy",
-"fr-BL": "America/St_Barthelemy",
-"en-SX": "America/Lower_Princes",
-"nl-SX": "America/Lower_Princes",
-
-"mn-MN": "Asia/Ulaanbaatar",
-"kh-KH": "Asia/Phnom_Penh",
-"la-LA": "Asia/Vientiane",
-"mm-MM": "Asia/Yangon",
-"bn-BN": "Asia/Brunei",
-"tl-TL": "Asia/Dili",
-"af-AF": "Asia/Kabul",
-"iq-IQ": "Asia/Baghdad",
-"sy-SY": "Asia/Damascus",
-"jo-JO": "Asia/Amman",
-"lb-LB": "Asia/Beirut",
-"am-AM": "Asia/Yerevan",
-"az-AZ": "Asia/Baku",
-"ge-GE": "Asia/Tbilisi",
-
-"rs-RS": "Europe/Belgrade",
-
-                "zh-CN": "Asia/Shanghai",
-                "fr-FR": "Europe/Paris",
-                "en-AU": "Australia/Sydney",
-            };
-
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('pt-BR', { 
-                timeZone: timeZones[region], hour: '2-digit', minute: '2-digit' 
+            const tz = timeZones[region] || "America/Sao_Paulo";   // nunca cai no fuso do aparelho sem avisar
+
+            const timeStr = now.toLocaleTimeString('pt-BR', {
+                timeZone: tz, hour: '2-digit', minute: '2-digit'
             });
 
             if (timeStr !== lastMinute) {
@@ -708,8 +882,9 @@
 
                 setTimeout(() => {
                     el.innerText = timeStr;
-                    document.getElementById('txt-date').innerText = now.toLocaleDateString(region, { 
-                        weekday: 'long', day: 'numeric', month: 'short', timeZone: timeZones[region] 
+                    // 'pt-BR' fixo: o código do país não é um idioma (ml-ML = malaiala, ne-NE = nepalês...)
+                    document.getElementById('txt-date').innerText = now.toLocaleDateString('pt-BR', {
+                        weekday: 'long', day: 'numeric', month: 'short', timeZone: tz
                     }).toUpperCase();
                     el.classList.remove('fade-out');
                     lastMinute = timeStr;
@@ -724,36 +899,43 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('region-container').style.display = (mode === 'clock') ? 'block' : 'none';
 
-            if(mode === 'clock') {
-                document.getElementById('tab-clock').classList.add('active');
-                document.getElementById('screen-clock').classList.add('active');
-                updateClock();
-            } else {
-                document.getElementById('tab-sw').classList.add('active');
-                document.getElementById('screen-sw').classList.add('active');
-            }
+            document.getElementById({ clock: 'tab-clock', alarm: 'tab-alarm', sw: 'tab-sw' }[mode]).classList.add('active');
+            document.getElementById('screen-' + mode).classList.add('active');
+
+            if (mode === 'clock') updateClock();
+            if (mode === 'alarm') renderAlarms();
         }
 
-        // --- CRONÔMETRO ---
-        let swInterval, swTime = 0, isRunning = false;
+        // --- CRONÔMETRO (baseado no relógio real, não em contagem de ticks) ---
+        let swInterval, swStart = 0, swElapsed = 0, isRunning = false;
+        const pad = n => String(n).padStart(2, '0');
+
+        function swFormat(ms) {
+            const t = Math.floor(ms / 10);
+            return `${pad(Math.floor(t / 6000))}:${pad(Math.floor((t % 6000) / 100))}.${pad(t % 100)}`;
+        }
+
         function toggleSW() {
             const btn = document.getElementById('sw-toggle');
             if (!isRunning) {
                 isRunning = true;
+                swStart = performance.now() - swElapsed;   // continua de onde parou
                 btn.innerText = "PARAR"; btn.style.background = "#ff3b30";
                 swInterval = setInterval(() => {
-                    swTime++;
-                    let m = Math.floor(swTime / 6000), s = Math.floor((swTime % 6000) / 100), ms = swTime % 100;
-                    document.getElementById('sw-val').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(ms).padStart(2,'0')}`;
-                }, 10);
+                    swElapsed = performance.now() - swStart;
+                    document.getElementById('sw-val').innerText = swFormat(swElapsed);
+                }, 30);
             } else {
                 isRunning = false;
-                btn.innerText = "CONTINUAR"; btn.style.background = "#00ff9d";
                 clearInterval(swInterval);
+                swElapsed = performance.now() - swStart;
+                document.getElementById('sw-val').innerText = swFormat(swElapsed);
+                btn.innerText = "CONTINUAR"; btn.style.background = "#00ff9d";
             }
         }
+
         function resetSW() {
-            clearInterval(swInterval); isRunning = false; swTime = 0;
+            clearInterval(swInterval); isRunning = false; swElapsed = 0;
             document.getElementById('sw-val').innerText = "00:00.00";
             document.getElementById('sw-toggle').innerText = "INICIAR";
             document.getElementById('sw-toggle').style.background = "#00ff9d";
@@ -762,6 +944,8 @@
         // INICIALIZAÇÃO
         window.onload = () => {
             loadSavedRegion();
+            loadAlarms();
+            buildWheels();
             updateClock();
             setInterval(updateClock, 1000);
         };
