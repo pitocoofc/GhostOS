@@ -1,313 +1,1347 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Configurações de Wi-Fi</title>
-    <style>
-        body {
-            margin: 0; padding: 20px 20px 40px;
-            background-color: #ffffff;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: #000; overflow-x: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Wi-Fi</title>
 
-        header { margin-bottom: 30px; }
-        h1 { font-size: 32px; font-weight: 400; margin: 0; color: #333; }
+<style>
+/* ============ TOKENS ============ */
+:root {
+    --bg: #ffffff;
+    --bg-card: #f6f7f9;
+    --bg-elevated: #f0f1f4;
+    --bg-overlay: rgba(0,0,0,0.5);
+    --text: #1a1a1a;
+    --text-muted: #5a5a5a;
+    --text-faint: #999;
+    --border: #e4e6eb;
+    --border-strong: #d0d3d9;
+    --accent: #007aff;
+    --accent-hover: #0066d6;
+    --accent-grad: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+    --danger: #ff3b30;
+    --success: #34c759;
+    --warning: #ff9500;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --radius: 16px;
+    --radius-sm: 12px;
+}
 
+[data-theme="dark"] {
+    --bg: #000000;
+    --bg-card: #1c1c1e;
+    --bg-elevated: #2c2c2e;
+    --bg-overlay: rgba(0,0,0,0.75);
+    --text: #ffffff;
+    --text-muted: #a0a0a5;
+    --text-faint: #6e6e73;
+    --border: #2c2c2e;
+    --border-strong: #3a3a3c;
+    --accent: #0a84ff;
+    --accent-hover: #3395ff;
+}
 
-        .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; font-weight: 600; font-size: 18px; }
-        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 26px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #007aff; }
-        input:checked + .slider:before { transform: translateX(24px); }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+html, body { height: 100%; overscroll-behavior: none; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    padding: 20px 20px calc(40px + var(--safe-bottom));
+    overflow-x: hidden;
+    transition: background 0.3s, color 0.3s;
+    -webkit-font-smoothing: antialiased;
+    -webkit-user-select: none;
+    user-select: none;
+}
 
-        .active-network {
-            background-color: #007aff; color: white;
-            padding: 20px; border-radius: 20px;
-            display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
-            margin-bottom: 30px; transition: 0.3s;
-        }
-        .network-info { display: flex; align-items: center; gap: 15px; }
-        .wifi-icon { font-size: 24px; }
-        .network-name { font-size: 18px; font-weight: 600; }
-        .network-status { font-size: 13px; opacity: 0.8; display: block; }
-        .lock-icon { font-size: 16px; margin-right: 5px; opacity: 0.7; }
-        .arrow-right { font-size: 18px; background: rgba(255,255,255,0.2); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+/* Ícones base */
+.icon {
+    width: 1em; height: 1em;
+    display: inline-block;
+    vertical-align: middle;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+}
+.icon.fill { fill: currentColor; stroke: none; }
 
+/* ============ HEADER ============ */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+.header h1 {
+    font-size: 32px;
+    font-weight: 400;
+    margin: 0;
+    color: var(--text);
+    letter-spacing: -0.5px;
+}
+.header-actions { display: flex; gap: 4px; }
+.icon-btn {
+    width: 36px; height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+}
+.icon-btn .icon { width: 18px; height: 18px; }
+.icon-btn:hover, .icon-btn:focus-visible {
+    background: var(--bg-elevated);
+    outline: none;
+}
+.icon-btn:active { transform: scale(0.92); }
 
-        .section-title { color: #888; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        
-        #available-list {
-            display: flex; flex-direction: column; gap: 5px;
-            min-height: 50px; max-height: 250px; /* Alinhamento para até 5 redes */
-            overflow-y: auto;
-        }
+/* ============ TOGGLE ROW ============ */
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    font-weight: 600;
+    font-size: 18px;
+}
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px; height: 26px;
+    flex-shrink: 0;
+}
+.toggle-switch input {
+    opacity: 0;
+    width: 0; height: 0;
+    position: absolute;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: var(--border-strong);
+    transition: background 0.3s;
+    border-radius: 34px;
+}
+.slider::before {
+    content: "";
+    position: absolute;
+    height: 20px; width: 20px;
+    left: 3px; bottom: 3px;
+    background: #fff;
+    transition: transform 0.3s cubic-bezier(.2,.8,.2,1);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+input:checked + .slider { background-color: var(--accent); }
+input:checked + .slider::before { transform: translateX(24px); }
+input:focus-visible + .slider {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
 
-        .network-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 10px; border-radius: 12px;
-            cursor: pointer; transition: 0.2s;
-        }
-        .network-item:active { background-color: #f0f0f0; }
-        .network-item-name { font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 10px; }
-        .item-icons { display: flex; align-items: center; gap: 10px; color: #888; }
+/* ============ ACTIVE NETWORK CARD ============ */
+.active-network {
+    background: var(--accent-grad);
+    color: white;
+    padding: 18px 20px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 16px rgba(0,122,255,0.25);
+    margin-bottom: 30px;
+    transition: opacity 0.3s, background 0.3s, filter 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+.active-network::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+    pointer-events: none;
+}
+.active-network:active::after { transform: translateX(100%); }
+.active-network.connecting {
+    animation: cardPulse 1.2s ease-in-out infinite;
+}
+@keyframes cardPulse {
+    0%, 100% { box-shadow: 0 4px 16px rgba(0,122,255,0.25); }
+    50%      { box-shadow: 0 4px 24px rgba(0,122,255,0.5); }
+}
+.active-network.disabled {
+    background: var(--border-strong);
+    box-shadow: none;
+    cursor: default;
+}
+.active-network.disabled .network-status { opacity: 0.7; }
 
-        hr { border: 0; border-top: 1px solid #eee; margin: 25px 0; }
+.network-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    flex: 1;
+}
+.wifi-icon-wrap {
+    width: 34px; height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+}
+.wifi-icon-wrap .icon { width: 26px; height: 26px; }
+.wifi-icon-wrap .spinner {
+    position: absolute;
+    inset: 0;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: none;
+}
+.wifi-icon-wrap.loading .icon { opacity: 0.3; }
+.wifi-icon-wrap.loading .spinner { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
+.network-text { min-width: 0; flex: 1; }
+.network-name {
+    font-size: 17px;
+    font-weight: 600;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.network-status {
+    font-size: 12.5px;
+    opacity: 0.85;
+    display: block;
+    margin-top: 2px;
+}
+.network-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.lock-icon {
+    opacity: 0.7;
+    display: flex;
+}
+.lock-icon .icon { width: 16px; height: 16px; }
+.arrow-right {
+    font-size: 18px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    width: 30px; height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-weight: 300;
+    flex-shrink: 0;
+}
 
-        .additional-info { margin-top: 30px; font-size: 14px; line-height: 1.6; color: #000; }
-        .info-title { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;}
-        .info-grid { display: flex; justify-content: space-between; border-top: 1px solid #eee; padding-top: 20px; align-items: flex-start;}
-        .info-column { width: 55%; }
-        .info-column.right { width: 40%; text-align: right; font-weight: 600;}
-        .stat-value { font-weight: bold; color: #007aff; } 
+/* ============ SECTION TITLE ============ */
+.section-title {
+    color: var(--text-muted);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+}
+.section-title .refresh-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    transition: all 0.15s;
+}
+.section-title .refresh-btn .icon { width: 16px; height: 16px; transition: transform 0.5s; }
+.section-title .refresh-btn.scanning .icon { animation: spin 1s linear infinite; }
+.section-title .refresh-btn:hover { color: var(--accent); background: var(--bg-elevated); }
 
+/* ============ NETWORK LIST ============ */
+.list-wrap {
+    transition: opacity 0.3s;
+    position: relative;
+}
+.list-wrap.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+#available-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 60px;
+}
+.list-empty {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--text-faint);
+    font-size: 0.85rem;
+}
+.list-empty .icon {
+    width: 32px; height: 32px;
+    display: block;
+    margin: 0 auto 10px;
+    opacity: 0.4;
+}
 
-        .vertical-line { width: 1px; background: #000; height: 160px; margin: 0 15px; align-self: center;}
+.network-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    animation: itemIn 0.3s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes itemIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.network-item:hover { background: var(--bg-card); }
+.network-item:active { background: var(--bg-elevated); transform: scale(0.99); }
+.network-item.connecting { background: var(--accent-soft, rgba(0,122,255,0.08)); }
 
-    </style>
+.network-item-name {
+    font-size: 15.5px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+}
+.network-item-name .wifi-signal {
+    display: flex;
+    align-items: center;
+    color: var(--text);
+    flex-shrink: 0;
+}
+.network-item-name .wifi-signal .icon { width: 18px; height: 18px; }
+.network-item-name .name-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.network-item-name .tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: white;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+}
+.network-item-name .tag.open { background: var(--success); }
+.network-item-name .tag.saved { background: var(--text-faint); }
+
+.item-icons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+}
+.item-icons .lock-icon { color: var(--text-muted); }
+.item-icons .chevron {
+    font-size: 16px;
+    color: var(--text-faint);
+    line-height: 1;
+}
+
+/* ============ DIVIDER ============ */
+.divider {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin: 25px 0;
+}
+.more-label {
+    color: var(--text-faint);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+/* ============ INFO GRID ============ */
+.info-title {
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-muted);
+    margin: 20px 0;
+}
+.info-grid {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+    gap: 12px;
+}
+.info-column {
+    flex: 1;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--text-muted);
+}
+.info-column strong { color: var(--text); font-weight: 600; }
+.info-column .stat-value {
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+}
+.info-column.right {
+    text-align: right;
+    color: var(--text);
+    font-weight: 600;
+}
+.info-label { color: var(--text-faint); }
+
+/* ============ MODAL ============ */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-overlay);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 0.2s;
+}
+.overlay.show { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.sheet {
+    background: var(--bg);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 500px;
+    padding: 8px 20px calc(24px + var(--safe-bottom));
+    animation: sheetUp 0.28s cubic-bezier(.2,.8,.2,1);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+@keyframes sheetUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+}
+.sheet-handle {
+    width: 36px; height: 4px;
+    background: var(--border-strong);
+    border-radius: 2px;
+    margin: 8px auto 16px;
+}
+.sheet-icon {
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    background: var(--accent-soft, rgba(0,122,255,0.12));
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+}
+.sheet-icon .icon { width: 26px; height: 26px; }
+.sheet-icon.danger {
+    background: rgba(255,59,48,0.12);
+    color: var(--danger);
+}
+.sheet h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 6px;
+    text-align: center;
+}
+.sheet p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin: 0 0 20px;
+    line-height: 1.5;
+}
+.sheet-input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: 16px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 12px;
+    -webkit-user-select: text; user-select: text;
+}
+.sheet-input:focus { border-color: var(--accent); }
+.sheet-input::placeholder { color: var(--text-faint); }
+
+.sheet-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+.sheet-btn {
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.sheet-btn .icon { width: 16px; height: 16px; }
+.sheet-btn.primary {
+    background: var(--accent);
+    color: white;
+}
+.sheet-btn.primary:hover { background: var(--accent-hover); }
+.sheet-btn.primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.sheet-btn.secondary {
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+.sheet-btn.secondary:hover { background: var(--bg-elevated); }
+.sheet-btn.destructive {
+    background: rgba(255,59,48,0.1);
+    color: var(--danger);
+}
+.sheet-btn.destructive:hover { background: rgba(255,59,48,0.15); }
+.sheet-btn:active:not(:disabled) { transform: scale(0.98); }
+
+.sheet-details {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+}
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    gap: 12px;
+}
+.detail-row + .detail-row { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
+.detail-label { color: var(--text-muted); }
+.detail-value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    font-family: ui-monospace, 'SF Mono', monospace;
+    color: var(--text);
+    text-align: right;
+    word-break: break-all;
+}
+
+/* ============ TOAST ============ */
+.toast {
+    position: fixed;
+    bottom: calc(24px + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--bg-elevated);
+    color: var(--text);
+    padding: 12px 20px;
+    border-radius: 24px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    border: 1px solid var(--border);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(.2,.8,.2,1);
+    z-index: 300;
+    pointer-events: none;
+    white-space: nowrap;
+    max-width: 90vw;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+[data-theme="dark"] .toast { box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+.toast .icon { width: 14px; height: 14px; flex-shrink: 0; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success .icon { color: var(--success); }
+.toast.error .icon { color: var(--danger); }
+.toast.info .icon { color: var(--accent); }
+
+/* ============ WIFI TOGGLE ANIMATION ============ */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</style>
 </head>
 <body>
 
-    <header>
-        <h1>Wi-Fi</h1>
-    </header>
-
-    <div class="setting-row">
-        <span>Wi-Fi</span>
-        <label class="toggle-switch">
-            <input type="checkbox" checked id="wifi-toggle" onchange="toggleWifiList(this.checked)">
-            <span class="slider"></span>
-        </label>
+<!-- HEADER -->
+<header class="header">
+    <h1>Wi-Fi</h1>
+    <div class="header-actions">
+        <button class="icon-btn" id="btnTheme" title="Alternar tema" aria-label="Alternar tema">
+            <!-- preenchido por JS -->
+        </button>
     </div>
+</header>
 
-    <div class="active-network" id="active-net-card">
-        <div class="network-info">
-            <div class="wifi-icon">📶</div>
-            <div>
-                <span class="network-name" id="active-net-name">GhostPhone 5G</span>
-                <span class="network-status">Conectado</span>
-            </div>
+<!-- TOGGLE -->
+<div class="setting-row">
+    <span>Wi-Fi</span>
+    <label class="toggle-switch">
+        <input type="checkbox" id="wifi-toggle" checked aria-label="Ativar Wi-Fi">
+        <span class="slider"></span>
+    </label>
+</div>
+
+<!-- ACTIVE NETWORK -->
+<div class="active-network" id="active-net-card" role="button" tabindex="0" aria-label="Rede conectada">
+    <div class="network-info">
+        <div class="wifi-icon-wrap" id="active-icon-wrap">
+            <!-- preenchido por JS -->
+            <div class="spinner"></div>
         </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span class="lock-icon">🔒</span>
-            <div class="arrow-right">›</div>
-        </div>
-    </div>
-
-    <div id="wifi-list-area">
-        <div class="section-title">
-            <span>Redes disponíveis</span>
-            <span style="cursor: pointer;" onclick="location.reload()">🔄</span>
-        </div>
-        
-        <div id="available-list">
-            <div class="network-item" onclick="connectToNetwork('SkillForge_2.4G', '192.168.1.105')">
-                <div class="network-item-name">📶 SkillForge_2.4G</div>
-                <div class="item-icons">🔒 <span>›</span></div>
-            </div>
-            
-            <div class="network-item" onclick="connectToNetwork('Meu_Vizinho_E_Corno', '192.168.1.107')">
-                <div class="network-item-name">📶 Meu_Vizinho_E_Corno_5G</div>
-                <div class="item-icons">🔒 <span>›</span></div>
-            </div>
-
-           <div class="network-item" onclick="connectToNetwork('FabioGigaSky', '192.162.1.107')">
-                <div class="network-item-name">📶 FabioGigaSky</div>
-                <div class="item-icons">🔒 <span>›</span></div>
-            </div>
-
-            <div class="network-item">
-                <div class="network-item-name">📶 Linksys_0042</div>
-                <div class="item-icons">🔒 <span>›</span></div>
-            </div>
+        <div class="network-text">
+            <span class="network-name" id="active-net-name">—</span>
+            <span class="network-status" id="active-net-status">—</span>
         </div>
     </div>
+    <div class="network-actions">
+        <div class="lock-icon" id="active-lock">
+            <!-- preenchido por JS -->
+        </div>
+        <div class="arrow-right" aria-hidden="true">›</div>
+    </div>
+</div>
 
-    <hr>
-    <div style="color: #aaa; font-size: 12px; text-transform: uppercase;">Mais definições</div>
+<!-- LIST -->
+<div class="list-wrap" id="wifi-list-area">
+    <div class="section-title">
+        <span>Redes disponíveis</span>
+        <button class="refresh-btn" id="btnRefresh" title="Escanear novamente" aria-label="Escanear novamente">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
+                <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
+            </svg>
+        </button>
+    </div>
+    <div id="available-list"></div>
+</div>
 
-    <div class="additional-info">
-        <div class="info-title">adicionais</div>
-        
-        <div class="info-grid">
-            <div class="info-column">
-                IP: <span id="stat-ip">192.168.0.1</span><br>
-                Segurança: WPA2-PSK<br>
-                Tipo de Rede: Movel<br>
-                Upload: <span class="stat-value" id="stat-upload">--</span> MB/s<br>
-                Download: <span class="stat-value" id="stat-download">--</span> MB/s<br>
-                Usuários: 01<br>
-                Frequência: 2.4/5G<br>
-                Limite/Gasto: <span id="stat-gasto">25</span>/75GB
-            </div>
-            
-            <div class="vertical-line"></div>
+<!-- DIVIDER -->
+<hr class="divider">
+<div class="more-label">Mais definições</div>
 
-            <div class="info-column right">
-                Operadora:<br>GhostNet
-            </div>
+<!-- INFO -->
+<div style="margin-top: 20px;">
+    <div class="info-title">adicionais</div>
+    <div class="info-grid">
+        <div class="info-column">
+            <span class="info-label">IP:</span> <strong id="stat-ip">—</strong><br>
+            <span class="info-label">Segurança:</span> <strong id="stat-security">WPA2-PSK</strong><br>
+            <span class="info-label">Tipo:</span> <strong id="stat-type">Móvel</strong><br>
+            <span class="info-label">Upload:</span> <span class="stat-value" id="stat-upload">--</span> MB/s<br>
+            <span class="info-label">Download:</span> <span class="stat-value" id="stat-download">--</span> MB/s<br>
+            <span class="info-label">Usuários:</span> <strong id="stat-users">01</strong><br>
+            <span class="info-label">Freq:</span> <strong id="stat-freq">2.4/5G</strong><br>
+            <span class="info-label">Limite:</span> <strong id="stat-gasto">0.00</strong>/75GB
+        </div>
+        <div class="info-column right">
+            <span class="info-label" style="font-weight: 500; font-size: 12.5px;">Operadora:</span><br>
+            <span id="stat-operadora" style="font-weight: 700;">GhostNet</span>
         </div>
     </div>
+</div>
 
-    <script>
-        
-window.parent.postMessage({ type: 'IFRAME_LOADED' }, '*');
+<!-- MODAL: Senha -->
+<div class="overlay" id="passwordModal">
+    <div class="sheet" role="dialog" aria-labelledby="pwdTitle">
+        <div class="sheet-handle"></div>
+        <div class="sheet-icon">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+        </div>
+        <h3 id="pwdTitle">Rede protegida</h3>
+        <p id="pwdSubtitle">Digite a senha para conectar a <strong id="pwdNetName">—</strong></p>
+        <input type="password" class="sheet-input" id="pwdInput" placeholder="Senha" autocomplete="off" inputmode="text">
+        <div class="sheet-actions">
+            <button class="sheet-btn primary" id="pwdConnect" disabled>
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                    <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                    <line x1="12" y1="20" x2="12.01" y2="20"/>
+                </svg>
+                Conectar
+            </button>
+            <button class="sheet-btn secondary" data-close="passwordModal">Cancelar</button>
+        </div>
+    </div>
+</div>
 
-        
-window.addEventListener('message', (event) => {
-    if (event.data.type === 'ACTIVATE_RUNET') {
-        aplicarMascaraRussa();
-    }
-});
-        
-        const CORRECT_PASSWORD = "1234"; 
-        let currentGasto = 25;
+<!-- MODAL: Detalhes -->
+<div class="overlay" id="detailsModal">
+    <div class="sheet" role="dialog">
+        <div class="sheet-handle"></div>
+        <div class="sheet-icon">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+        </div>
+        <h3 id="detailsTitle">Detalhes da rede</h3>
+        <div class="sheet-details" id="detailsContent"></div>
+        <div class="sheet-actions">
+            <button class="sheet-btn destructive" id="btnForget">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+                Esquecer rede
+            </button>
+            <button class="sheet-btn secondary" data-close="detailsModal">Fechar</button>
+        </div>
+    </div>
+</div>
 
-        
-        function connectToNetwork(newName, newIp) {
-            
-            if (newName === document.getElementById('active-net-name').innerText) return;
+<!-- TOAST -->
+<div class="toast" id="toast" role="status"></div>
 
-            const password = prompt(`Insira a senha para "${newName}":`);
+<script>
+(() => {
+'use strict';
 
-            if (password === CORRECT_PASSWORD) {
-                alert("Conectando...");
-                
-                
-                const oldName = document.getElementById('active-net-name').innerText;
+// ============= CONSTANTS =============
+const STORAGE_KEY = 'ghost_wifi_state';
+const THEME_KEY = 'ghost_wifi_theme';
+const CORRECT_PASSWORD = '1234';
+const SCAN_DURATION = 1800;
+const MAX_DATA_GB = 75;
+const SPEED_UPDATE_MS = 1000;
 
-                
-                const card = document.getElementById('active-net-card');
-                card.style.opacity = '0.5';
-                
-                setTimeout(() => {
-                    document.getElementById('active-net-name').innerText = newName;
-                    document.getElementById('stat-ip').innerText = newIp;
-                    
-                    
-                    currentGasto = 0;
-                    document.getElementById('stat-gasto').innerText = currentGasto;
+// ============= STATE =============
+let state = {
+    enabled: true,
+    activeNet: null,          // { name, ip, security, freq, locked }
+    knownNets: [],            // redes salvas
+    networks: [],             // todas as redes conhecidas
+    gasUsed: 0,               // GB
+    theme: 'light'
+};
 
-                    
-                    addNetworkToList(oldName);
+let speedState = {
+    up: 0,
+    down: 0,
+    targetUp: 0,
+    targetDown: 0,
+    lastUpdate: 0,
+    jitterTimer: 0
+};
 
-                    
-                    removeNetworkFromList(newName);
+// ============= SVG ICONS =============
+const ICONS = {
+    // Wi-Fi com intensidade 1-4
+    wifi1: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`,
+    wifi2: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><path d="M5 12.55a11 11 0 0 1 14.08 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`,
+    wifi3: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`,
+    wifi4: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`,
 
-                    card.style.opacity = '1';
-                }, 1000);
+    lock: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+    lockOpen: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`,
+    sun: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/></svg>`,
+    moon: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+    check: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`,
+    error: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+    info: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`,
+    wifiOff: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`
+};
 
-            } else if (password !== null) {
-                alert("Senha incorreta. Tente novamente.");
-            }
-        }
+// ============= DOM =============
+const $ = id => document.getElementById(id);
+const listEl = $('available-list');
+const activeCard = $('active-net-card');
+const activeName = $('active-net-name');
+const activeStatus = $('active-net-status');
+const activeIconWrap = $('active-icon-wrap');
+const activeLock = $('active-lock');
+const toastEl = $('toast');
 
-        
-        function addNetworkToList(name) {
-            const list = document.getElementById('available-list');
-            
-            
-            const item = document.createElement('div');
-            item.className = 'network-item';
-            
-            item.onclick = () => connectToNetwork(name, '192.168.0.1');
-            item.innerHTML = `
-                <div class="network-item-name">📶 ${name}</div>
-                <div class="item-icons">🔒 <span>›</span></div>
-            `;
-            
-            list.appendChild(item);
-        }
-
-        function removeNetworkFromList(name) {
-            const list = document.getElementById('available-list');
-            const items = list.getElementsByClassName('network-item');
-            
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].innerText.includes(name)) {
-                    list.removeChild(items[i]);
-                    break;
-                }
-            }
-        }
-
-
-        function updateSpeeds() {
-            
-            const up = Math.floor(Math.random() * (125 - 50 + 1)) + 50;
-            const down = Math.floor(Math.random() * (125 - 50 + 1)) + 50;
-
-            document.getElementById('stat-upload').innerText = up;
-            document.getElementById('stat-download').innerText = down;
-
-            
-            if (currentGasto < 75) {
-                currentGasto += (up + down) / 20000; 
-                document.getElementById('stat-gasto').innerText = currentGasto.toFixed(2);
-            }
-        }
-        
-        setInterval(updateSpeeds, 1000);
-        updateSpeeds(); 
-        
-        function toggleWifiList(enabled) {
-            const listArea = document.getElementById('wifi-list-area');
-            const activeCard = document.getElementById('active-net-card');
-            
-            if (enabled) {
-                listArea.style.opacity = '1';
-                listArea.style.pointerEvents = 'auto';
-                activeCard.style.opacity = '1';
-                activeCard.style.background = '#007aff';
-                document.getElementById('active-net-name').innerText = "GhostPhone 5G";
-            } else {
-                listArea.style.opacity = '0.3';
-                listArea.style.pointerEvents = 'none';
-                activeCard.style.background = '#ccc'; 
-                activeCard.style.opacity = '0.8';
-                document.getElementById('active-net-name').innerText = "Desativado";
-            }
-        }
-        
-window.addEventListener('message', (event) => {
-    if (event.data.type === 'ACTIVATE_RUNET') {
-        aplicarMascaraRussa();
-    }
-});
-
-function aplicarMascaraRussa() {
-    const nameElem = document.getElementById('active-net-name');
-    const ipElem = document.getElementById('stat-ip');
-    const card = document.getElementById('active-net-card');
-    
-    
-    card.style.filter = 'hue-rotate(180deg) brightness(1.2)';
-    
-    setTimeout(() => {
-        nameElem.innerText = "Рунет (Protected)";
-        ipElem.innerText = "95.161.226.13"; 
-        ipElem.style.color = "#ff4444";
-        
-        
-        console.log("MÁSCARA DE IP ATIVA: Origem RU-VNET");
-        card.style.filter = 'none';
-    }, 500);
+// ============= UTILS =============
+let toastTimer = null;
+function toast(msg, type = 'info', ms = 2200) {
+    toastEl.className = 'toast ' + type;
+    toastEl.innerHTML = (ICONS[type === 'success' ? 'check' : type === 'error' ? 'error' : 'info']) + `<span>${escapeHtml(msg)}</span>`;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
+}
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+}
+function vibrate(ms) {
+    try { navigator.vibrate?.(ms); } catch {}
+}
+function ipFor(name) {
+    // IP determinístico baseado no nome
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+    const last = Math.abs(h % 253) + 1;
+    const second = Math.abs((h >> 8) % 253) + 1;
+    return `192.168.${second}.${last}`;
+}
+function signalBarsFor(name) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 17 + name.charCodeAt(i)) | 0;
+    return 1 + (Math.abs(h) % 4);
+}
+function wifiIconFor(bars) {
+    return ICONS['wifi' + Math.max(1, Math.min(4, bars))];
 }
 
-       
-const originalConnect = connectToNetwork;
-connectToNetwork = function(newName, newIp) {
-    
-    document.getElementById('stat-ip').style.color = ""; 
-    originalConnect(newName, newIp);
-};
-        
-    </script>
+// ============= PERSISTENCE =============
+function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+function loadState() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) Object.assign(state, JSON.parse(raw));
+    } catch {}
+    try {
+        const t = localStorage.getItem(THEME_KEY);
+        if (t) state.theme = t;
+    } catch {}
+}
+
+// ============= NETWORKS =============
+function defaultNetworks() {
+    return [
+        { name: 'GhostPhone 5G',  ip: ipFor('GhostPhone 5G'),  locked: true,  freq: '5G',   saved: true,  signal: 4 },
+        { name: 'SkillForge_2.4G', ip: ipFor('SkillForge'),   locked: true,  freq: '2.4G', saved: true,  signal: 3 },
+        { name: 'FabioGigaSky',    ip: ipFor('FabioGigaSky'), locked: true,  freq: '5G',   saved: false, signal: 2 },
+        { name: 'Linksys_0042',    ip: ipFor('Linksys_0042'), locked: true,  freq: '2.4G', saved: false, signal: 2 },
+        { name: 'Cafe_Guest',      ip: ipFor('Cafe_Guest'),   locked: false, freq: '2.4G', saved: false, signal: 1 }
+    ];
+}
+
+// ============= THEME =============
+function applyTheme(t) {
+    state.theme = t;
+    document.documentElement.dataset.theme = t;
+    document.querySelector('meta[name="theme-color"]')
+        ?.setAttribute('content', t === 'dark' ? '#000000' : '#ffffff');
+    try { localStorage.setItem(THEME_KEY, t); } catch {}
+    $('btnTheme').innerHTML = t === 'dark' ? ICONS.sun : ICONS.moon;
+}
+$('btnTheme').addEventListener('click', () => {
+    applyTheme(state.theme === 'dark' ? 'light' : 'dark');
+});
+
+// ============= RENDER =============
+function renderActive() {
+    if (!state.enabled) {
+        activeCard.classList.add('disabled');
+        activeCard.classList.remove('connecting');
+        activeName.textContent = 'Desativado';
+        activeStatus.textContent = 'Wi-Fi desligado';
+        activeIconWrap.innerHTML = ICONS.wifiOff + '<div class="spinner"></div>';
+        activeLock.innerHTML = '';
+        return;
+    }
+    if (!state.activeNet) {
+        activeCard.classList.add('disabled');
+        activeName.textContent = 'Não conectado';
+        activeStatus.textContent = 'Selecione uma rede';
+        activeIconWrap.innerHTML = ICONS.wifiOff + '<div class="spinner"></div>';
+        activeLock.innerHTML = '';
+        return;
+    }
+    activeCard.classList.remove('disabled');
+    activeName.textContent = state.activeNet.name;
+    activeStatus.textContent = state.activeNet.connecting ? 'Conectando…' : 'Conectado';
+    activeIconWrap.innerHTML = wifiIconFor(state.activeNet.signal || 4) + '<div class="spinner"></div>';
+    activeLock.innerHTML = state.activeNet.locked ? ICONS.lock : ICONS.lockOpen;
+
+    if (state.activeNet.connecting) {
+        activeCard.classList.add('connecting');
+        activeIconWrap.classList.add('loading');
+    } else {
+        activeCard.classList.remove('connecting');
+        activeIconWrap.classList.remove('loading');
+    }
+
+    $('stat-ip').textContent = state.activeNet.ip || '—';
+    $('stat-security').textContent = state.activeNet.locked ? 'WPA2-PSK' : 'Aberta';
+    $('stat-freq').textContent = state.activeNet.freq || '2.4/5G';
+}
+
+function renderList() {
+    listEl.innerHTML = '';
+    if (!state.enabled) {
+        listEl.innerHTML = `
+            <div class="list-empty">
+                ${ICONS.wifiOff}
+                <div>Wi-Fi desligado</div>
+            </div>
+        `;
+        return;
+    }
+
+    const activeName = state.activeNet?.name;
+    const visible = state.networks
+        .filter(n => n.name !== activeName)
+        .sort((a, b) => (b.signal || 0) - (a.signal || 0));
+
+    if (visible.length === 0) {
+        listEl.innerHTML = `
+            <div class="list-empty">
+                ${ICONS.wifiOff}
+                <div>Nenhuma rede encontrada</div>
+            </div>
+        `;
+        return;
+    }
+
+    const frag = document.createDocumentFragment();
+    visible.forEach(net => {
+        frag.appendChild(makeNetworkItem(net));
+    });
+    listEl.appendChild(frag);
+}
+
+function makeNetworkItem(net) {
+    const item = document.createElement('div');
+    item.className = 'network-item';
+    item.dataset.name = net.name;
+    item.setAttribute('role', 'button');
+    item.setAttribute('tabindex', '0');
+
+    const nameWrap = document.createElement('div');
+    nameWrap.className = 'network-item-name';
+
+    const signal = document.createElement('span');
+    signal.className = 'wifi-signal';
+    signal.innerHTML = wifiIconFor(net.signal || 2);
+
+    const nameText = document.createElement('span');
+    nameText.className = 'name-text';
+    nameText.textContent = net.name;
+
+    nameWrap.appendChild(signal);
+    nameWrap.appendChild(nameText);
+
+    if (net.saved) {
+        const tag = document.createElement('span');
+        tag.className = 'tag saved';
+        tag.textContent = 'Salva';
+        nameWrap.appendChild(tag);
+    } else if (!net.locked) {
+        const tag = document.createElement('span');
+        tag.className = 'tag open';
+        tag.textContent = 'Aberta';
+        nameWrap.appendChild(tag);
+    }
+
+    const icons = document.createElement('div');
+    icons.className = 'item-icons';
+    const lock = document.createElement('span');
+    lock.className = 'lock-icon';
+    lock.innerHTML = net.locked ? ICONS.lock : ICONS.lockOpen;
+    const chev = document.createElement('span');
+    chev.className = 'chevron';
+    chev.textContent = '›';
+    icons.appendChild(lock);
+    icons.appendChild(chev);
+
+    item.appendChild(nameWrap);
+    item.appendChild(icons);
+
+    const activate = () => tryConnect(net);
+    item.addEventListener('click', activate);
+    item.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
+    });
+
+    return item;
+}
+
+function renderStats() {
+    $('stat-gasto').textContent = state.gasUsed.toFixed(2);
+    $('stat-upload').textContent = speedState.up.toFixed(1);
+    $('stat-download').textContent = speedState.down.toFixed(1);
+}
+
+function renderAll() {
+    renderActive();
+    renderList();
+    renderStats();
+}
+
+// ============= SPEED SIMULATION =============
+function tickSpeed(now) {
+    if (!state.enabled || !state.activeNet || state.activeNet.connecting) {
+        speedState.targetUp = 0;
+        speedState.targetDown = 0;
+    } else if (now - speedState.jitterTimer > 3000) {
+        // Novo alvo a cada 3s
+        speedState.jitterTimer = now;
+        const isIdle = Math.random() < 0.15;
+        const base = isIdle ? 5 : 60;
+        speedState.targetUp = base + Math.random() * 55;
+        speedState.targetDown = base + Math.random() * 55;
+    }
+
+    // Interpolação suave em direção ao alvo
+    const ease = 0.08;
+    speedState.up += (speedState.targetUp - speedState.up) * ease;
+    speedState.down += (speedState.targetDown - speedState.down) * ease;
+
+    // Consumo de dados
+    if (state.activeNet && !state.activeNet.connecting) {
+        state.gasUsed += (speedState.up + speedState.down) / 20000;
+        if (state.gasUsed > MAX_DATA_GB) state.gasUsed = MAX_DATA_GB;
+    }
+
+    renderStats();
+}
+
+// ============= CONNECTION =============
+function tryConnect(net) {
+    if (!state.enabled) {
+        toast('Ative o Wi-Fi primeiro', 'error');
+        return;
+    }
+    if (state.activeNet?.name === net.name) {
+        toast('Já conectado a esta rede', 'info');
+        return;
+    }
+    if (net.locked && !net.saved) {
+        openPasswordModal(net);
+    } else {
+        connectTo(net);
+    }
+}
+
+async function connectTo(net) {
+    // Marca visualmente
+    document.querySelectorAll('.network-item').forEach(el => el.classList.remove('connecting'));
+    const item = document.querySelector(`.network-item[data-name="${CSS.escape(net.name)}"]`);
+    if (item) item.classList.add('connecting');
+
+    state.activeNet = {
+        ...net,
+        connecting: true
+    };
+    renderActive();
+    vibrate(10);
+
+    // Simula handshake
+    await sleep(1400);
+
+    state.activeNet = {
+        ...net,
+        connecting: false,
+        ip: net.ip || ipFor(net.name)
+    };
+    if (!state.knownNets.includes(net.name)) {
+        state.knownNets.push(net.name);
+    }
+    // salva como conhecida
+    const idx = state.networks.findIndex(n => n.name === net.name);
+    if (idx >= 0) state.networks[idx].saved = true;
+
+    saveState();
+    renderActive();
+    renderList();
+    vibrate(25);
+    toast(`Conectado a ${net.name}`, 'success');
+}
+
+function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+}
+
+// ============= PASSWORD MODAL =============
+let pendingNet = null;
+
+function openPasswordModal(net) {
+    pendingNet = net;
+    $('pwdNetName').textContent = net.name;
+    $('pwdInput').value = '';
+    $('pwdConnect').disabled = true;
+    $('passwordModal').classList.add('show');
+    setTimeout(() => $('pwdInput').focus(), 250);
+}
+
+$('pwdInput').addEventListener('input', e => {
+    $('pwdConnect').disabled = !e.target.value;
+});
+$('pwdInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !$('pwdConnect').disabled) {
+        e.preventDefault();
+        submitPassword();
+    }
+});
+$('pwdConnect').addEventListener('click', submitPassword);
+
+async function submitPassword() {
+    const pwd = $('pwdInput').value;
+    if (!pwd || !pendingNet) return;
+    $('pwdConnect').disabled = true;
+    if (pwd !== CORRECT_PASSWORD) {
+        vibrate(80);
+        $('passwordModal').classList.remove('show');
+        toast('Senha incorreta', 'error');
+        pendingNet = null;
+        return;
+    }
+    const net = pendingNet;
+    pendingNet = null;
+    $('passwordModal').classList.remove('show');
+    // salva como conhecida antes de conectar
+    const idx = state.networks.findIndex(n => n.name === net.name);
+    if (idx >= 0) state.networks[idx].saved = true;
+    saveState();
+    connectTo(net);
+}
+
+// ============= DETAILS MODAL =============
+function openDetails() {
+    if (!state.activeNet || state.activeNet.connecting) return;
+    const net = state.activeNet;
+    $('detailsTitle').textContent = net.name;
+    $('detailsContent').innerHTML = `
+        <div class="detail-row">
+            <span class="detail-label">Endereço IP</span>
+            <span class="detail-value">${escapeHtml(net.ip || '—')}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Gateway</span>
+            <span class="detail-value">192.168.${net.ip?.split('.')[2] || '1'}.1</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Máscara</span>
+            <span class="detail-value">255.255.255.0</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">DNS</span>
+            <span class="detail-value">8.8.8.8, 8.8.4.4</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Segurança</span>
+            <span class="detail-value">${net.locked ? 'WPA2-PSK' : 'Aberta'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Banda</span>
+            <span class="detail-value">${escapeHtml(net.freq || '2.4/5G')}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Sinal</span>
+            <span class="detail-value">${net.signal || 4}/4</span>
+        </div>
+    `;
+    $('detailsModal').classList.add('show');
+}
+
+$('btnForget').addEventListener('click', async () => {
+    if (!state.activeNet) return;
+    const name = state.activeNet.name;
+    state.activeNet = null;
+    const idx = state.networks.findIndex(n => n.name === name);
+    if (idx >= 0) state.networks[idx].saved = false;
+    saveState();
+    $('detailsModal').classList.remove('show');
+    renderAll();
+    toast(`Rede "${name}" esquecida`, 'info');
+});
+
+// ============= TOGGLE =============
+$('wifi-toggle').addEventListener('change', e => {
+    state.enabled = e.target.checked;
+    if (!state.enabled) {
+        state.activeNet = null;
+    } else if (!state.activeNet) {
+        // Tenta reconectar à última rede salva
+        const last = state.networks.find(n => n.saved);
+        if (last) {
+            // reconecta silenciosamente (sem senha se já salva)
+            connectTo(last);
+            return;
+        }
+    }
+    saveState();
+    renderAll();
+    vibrate(12);
+});
+
+// ============= SCAN =============
+$('btnRefresh').addEventListener('click', async () => {
+    if (!state.enabled) {
+        toast('Ative o Wi-Fi primeiro', 'error');
+        return;
+    }
+    const btn = $('btnRefresh');
+    btn.classList.add('scanning');
+    // Simula variação de sinal
+    state.networks.forEach(n => {
+        n.signal = Math.max(1, Math.min(4, (n.signal || 2) + (Math.random() < 0.5 ? -1 : 1)));
+    });
+    await sleep(SCAN_DURATION);
+    btn.classList.remove('scanning');
+    renderList();
+    toast('Redes atualizadas', 'info', 1500);
+    vibrate(8);
+});
+
+// ============= MODAL CLOSE =============
+document.querySelectorAll('[data-close]').forEach(el => {
+    el.addEventListener('click', () => $(el.dataset.close).classList.remove('show'));
+});
+document.querySelectorAll('.overlay').forEach(ov => {
+    ov.addEventListener('click', e => {
+        if (e.target === ov) ov.classList.remove('show');
+    });
+});
+
+// ============= CARD CLICK =============
+activeCard.addEventListener('click', () => {
+    if (state.activeNet && !state.activeNet.connecting) openDetails();
+});
+activeCard.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && state.activeNet) {
+        e.preventDefault();
+        openDetails();
+    }
+});
+
+// ============= MESSAGES (integração com parent) =============
+window.addEventListener('message', (event) => {
+    const data = event.data || {};
+    if (data.type === 'ACTIVATE_RUNET') {
+        activateRunet();
+    } else if (data.type === 'RESET_NET') {
+        resetNetwork();
+    }
+});
+
+function activateRunet() {
+    if (!state.activeNet) return;
+    const net = state.activeNet;
+    net.name = 'Рунет (Protected)';
+    net.ip = '95.161.226.13';
+    net.secure = true;
+    state.activeNet = net;
+    saveState();
+    renderAll();
+    activeCard.style.filter = 'hue-rotate(180deg) brightness(1.15)';
+    setTimeout(() => { activeCard.style.filter = ''; }, 800);
+    toast('Rede alterada para Рунет', 'info', 2500);
+}
+
+function resetNetwork() {
+    state.activeNet = null;
+    state.gasUsed = 0;
+    saveState();
+    renderAll();
+    toast('Rede resetada', 'info');
+}
+
+// ============= VISIBILITY =============
+document.addEventListener('visibilitychange', () => {
+    // Pausa o loop de velocidade em background
+    if (document.hidden) {
+        clearInterval(speedLoop);
+    } else {
+        speedLoop = setInterval(() => tickSpeed(performance.now()), SPEED_UPDATE_MS);
+    }
+});
+
+// ============= INIT =============
+loadState();
+applyTheme(state.theme);
+// Se não tem redes ainda, cria as padrão
+if (!state.networks || state.networks.length === 0) {
+    state.networks = defaultNetworks();
+}
+// Se tem activeNet salvo, reconecta
+if (state.enabled && state.activeNet && !state.activeNet.connecting) {
+    // mantém
+} else if (state.enabled) {
+    // auto-connect à última salva ou GhostPhone
+    const last = state.networks.find(n => n.name === state.knownNets?.[state.knownNets.length - 1]);
+    if (last) state.activeNet = { ...last, ip: last.ip || ipFor(last.name), connecting: false };
+}
+if (state.activeNet && !state.activeNet.ip) {
+    state.activeNet.ip = ipFor(state.activeNet.name);
+}
+
+$('wifi-toggle').checked = state.enabled;
+renderAll();
+
+// Loop de velocidade
+let speedLoop = setInterval(() => tickSpeed(performance.now()), SPEED_UPDATE_MS);
+tickSpeed(performance.now());
+
+// Anima entrada
+requestAnimationFrame(() => {
+    document.body.style.opacity = '1';
+});
+
+// Avisa o parent que carregou
+try { window.parent.postMessage({ type: 'IFRAME_LOADED', module: 'wifi' }, '*'); } catch {}
+
+})();
+</script>
 </body>
 </html>
