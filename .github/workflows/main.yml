@@ -5,27 +5,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+
 
       - name: Instalar e Construir
         run: |
           # 1. Instala dependências e a ferramenta de assets
           npm install
           npm install @capacitor/assets --save-dev
-          
+
           # 2. Adiciona plataforma
           npx cap add android || true
-          
+
           # 3. GERAR ÍCONES (Procura por icon.png na raiz)
           # Se não houver icon.png, ele usa o padrão do Capacitor
           if [ -f "icon.png" ]; then
@@ -33,20 +34,27 @@ jobs:
           fi
 
           # 4. ATIVAR MOTOR E PERMISSÕES (AndroidManifest)
-          npx cap update
           MANIFEST="android/app/src/main/AndroidManifest.xml"
-          
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET" />' $MANIFEST
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />' $MANIFEST
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />' $MANIFEST
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.WAKE_LOCK" />' $MANIFEST
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />' $MANIFEST
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />' $MANIFEST
-          sed -i '/<application/i \    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />' $MANIFEST
-          
+
+          add_perm() {
+            if ! grep -q "$1" "$MANIFEST"; then
+              sed -i "/<application/i\\    <uses-permission android:name=\"$1\" />" "$MANIFEST"
+            fi
+          }
+
+          add_perm "android.permission.INTERNET"
+          add_perm "android.permission.ACCESS_NETWORK_STATE"
+          add_perm "android.permission.POST_NOTIFICATIONS"
+          add_perm "android.permission.WAKE_LOCK"
+          add_perm "android.permission.FOREGROUND_SERVICE"
+          add_perm "android.permission.CAMERA"
+          add_perm "android.permission.READ_MEDIA_IMAGES"
+          add_perm "android.permission.READ_MEDIA_VIDEO"
+          add_perm "android.permission.READ_EXTERNAL_STORAGE"
+
           # 5. Sincroniza arquivos
           npx cap sync
-          
+
           # 6. Build do APK final
           cd android && chmod +x gradlew && ./gradlew assembleDebug
 
@@ -55,3 +63,4 @@ jobs:
         with:
           name: ghost-os-apk
           path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
