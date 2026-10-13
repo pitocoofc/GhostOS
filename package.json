@@ -1,18 +1,34 @@
 {
   "name": "ghost-os",
   "version": "7.5.0",
+  "description": "Ghost OS — bot Discord + app mobile Capacitor",
   "dependencies": {
     "discord.js": "^14.11.0",
-    "@capacitor/camera": "^5.0.0",
-    "@capacitor/preferences": "^5.0.0",
-    "@capacitor/filesystem": "^5.0.0",
-    "@capacitor/android": "^5.0.0",
-    "@capacitor/core": "^5.0.0",
-    "@capacitor/assets": "^3.0.0",
-    "@capacitor/local-notifications": "^5.0.0",
-    "@capacitor/app": "^5.0.0"
+
+    "@capacitor/core": "^5.7.0",
+    "@capacitor/android": "^5.7.0",
+    "@capacitor/camera": "^5.0.9",
+    "@capacitor/filesystem": "^5.2.1",
+    "@capacitor/share": "^5.0.7",
+    "@capacitor/preferences": "^5.0.7",
+    "@capacitor/app": "^5.0.7",
+    "@capacitor/local-notifications": "^5.0.7",
+    "@capacitor/status-bar": "^5.0.7",
+    "@capacitor/splash-screen": "^5.0.7",
+    "@capacitor/haptics": "^5.0.7"
   },
   "devDependencies": {
-    "@capacitor/cli": "^5.0.0"
+    "@capacitor/cli": "^5.7.0",
+    "@capacitor/assets": "^3.0.5"
+  },
+  "scripts": {
+    "cap:sync": "cap sync",
+    "cap:open": "cap open android",
+    "cap:run": "cap run android",
+    "cap:build": "cap build android",
+    "assets": "capacitor-assets generate --android"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
