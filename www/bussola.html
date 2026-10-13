@@ -2,214 +2,1547 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
 <title>Ghost Compass</title>
 
 <style>
-body{
-    background:#000;
-    color:#fff;
-    font-family: 'Segoe UI', sans-serif;
-    margin:0;
-    text-align:center;
+/* ============ TOKENS ============ */
+:root {
+    --bg: #000;
+    --bg-card: #0a0a0a;
+    --bg-elevated: #141414;
+    --border: #222;
+    --border-strong: #333;
+    --text: #fff;
+    --text-muted: #888;
+    --text-faint: #555;
+    --accent: #3b82f6;
+    --accent-2: #7b5cff;
+    --accent-grad: linear-gradient(135deg, #3b82f6, #7b5cff);
+    --danger: #ef4444;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --north: #ef4444;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --radius: 16px;
 }
 
-/* TOPO */
-.top-bar{
-    display:flex;
-    justify-content:center;
-    gap:40px;
-    padding:15px;
-    font-size:18px;
+[data-theme="light"] {
+    --bg: #f5f6f8;
+    --bg-card: #ffffff;
+    --bg-elevated: #f0f2f5;
+    --border: #e0e3e9;
+    --border-strong: #c8cdd6;
+    --text: #0a0c10;
+    --text-muted: #5a6070;
+    --text-faint: #9098a8;
 }
 
-.mode{
-    opacity:0.4;
-    cursor:pointer;
-}
-.mode.active{
-    opacity:1;
-}
-
-/* GRAUS */
-.deg{
-    font-size:80px;
-    margin-top:10px;
-}
-.dir{
-    font-size:18px;
-    opacity:0.6;
+[data-theme="night"] {
+    /* Modo astronômico - tudo vermelho pra não cegar */
+    --bg: #000;
+    --bg-card: #0a0000;
+    --bg-elevated: #150000;
+    --border: #2a0000;
+    --border-strong: #3d0000;
+    --text: #ff2222;
+    --text-muted: #aa1111;
+    --text-faint: #661111;
+    --accent: #ff3333;
+    --accent-2: #ff4444;
+    --accent-grad: linear-gradient(135deg, #ff2222, #ff4444);
+    --north: #ff2222;
 }
 
-/* COMPASS */
-.compass{
-    width:280px;
-    height:280px;
-    margin:30px auto;
-    position:relative;
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+    height: 100%;
+    overscroll-behavior: none;
+}
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: calc(8px + var(--safe-top)) 16px calc(24px + var(--safe-bottom));
+    transition: background 0.3s, color 0.3s;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
-.arrow{
-    position:absolute;
-    top:-15px;
-    left:50%;
-    transform:translateX(-50%);
-    width:0;height:0;
-    border-left:10px solid transparent;
-    border-right:10px solid transparent;
-    border-bottom:20px solid white;
-    z-index:2;
+/* Ícones */
+.icon {
+    width: 1em; height: 1em;
+    display: inline-block;
+    vertical-align: middle;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+}
+.icon.fill { fill: currentColor; stroke: none; }
+
+/* ============ TOPBAR ============ */
+.topbar {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.topbar-brand {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.topbar-brand .icon { width: 16px; height: 16px; color: var(--accent); }
+.top-actions { display: flex; gap: 4px; }
+.icon-btn {
+    width: 36px; height: 36px;
+    border: none;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+}
+.icon-btn .icon { width: 16px; height: 16px; }
+.icon-btn:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+.icon-btn:active { transform: scale(0.92); }
+.icon-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* ============ MODES ============ */
+.modes {
+    display: flex;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 3px;
+    margin-bottom: 16px;
+    gap: 2px;
+}
+.mode {
+    padding: 8px 16px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    letter-spacing: 0.3px;
+}
+.mode.active {
+    background: var(--accent-grad);
+    color: white;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+}
+.mode:not(.active):hover { color: var(--text); background: var(--bg-elevated); }
+
+/* ============ HEADING DISPLAY ============ */
+.heading {
+    text-align: center;
+    margin-bottom: 4px;
+    min-height: 100px;
+}
+.heading-deg {
+    font-size: clamp(3.5rem, 16vw, 5rem);
+    font-weight: 200;
+    letter-spacing: -3px;
+    line-height: 0.95;
+    font-variant-numeric: tabular-nums;
+    background: var(--accent-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    transition: opacity 0.2s;
+}
+.heading-deg.paused { opacity: 0.35; }
+.heading-deg .unit {
+    font-size: 0.4em;
+    font-weight: 400;
+    letter-spacing: 0;
+    vertical-align: top;
+    margin-left: 2px;
+}
+.heading-dir {
+    font-size: 1rem;
+    color: var(--text-muted);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-top: 4px;
+}
+.heading-dir .sub {
+    display: block;
+    font-size: 0.62rem;
+    letter-spacing: 1px;
+    color: var(--text-faint);
+    margin-top: 4px;
+    font-weight: 500;
+    text-transform: none;
 }
 
-.circle{
-    width:100%;
-    height:100%;
-    border-radius:50%;
-    border:2px solid #333;
-    position:absolute;
-    background: url('img/buss.png') center/contain no-repeat;
+/* ============ ACCURACY BAR ============ */
+.accuracy {
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.accuracy-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--bg-elevated);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+}
+.accuracy-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--success);
+    border-radius: 2px;
+    transition: width 0.3s ease, background 0.3s ease;
+}
+.accuracy-fill.medium { background: var(--warning); }
+.accuracy-fill.poor { background: var(--danger); }
+.accuracy-label {
+    min-width: 42px;
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
 }
 
-/* LOCALIZAÇÃO */
-.coords{
-    margin-top:30px;
-    font-size:14px;
-    opacity:0.8;
+/* ============ COMPASS ============ */
+.compass-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 1;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.compass {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at center, var(--bg-elevated) 0%, var(--bg-card) 70%);
+    border: 1px solid var(--border);
+    box-shadow:
+        inset 0 0 60px rgba(0,0,0,0.4),
+        0 20px 60px rgba(0,0,0,0.3);
+    will-change: transform;
+}
+[data-theme="light"] .compass {
+    box-shadow:
+        inset 0 0 60px rgba(0,0,0,0.06),
+        0 20px 60px rgba(0,0,0,0.08);
+}
+.compass svg { width: 100%; height: 100%; display: block; }
+
+/* Índice fixo no topo */
+.heading-marker {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 18px solid var(--accent);
+    z-index: 3;
+    filter: drop-shadow(0 2px 6px rgba(59,130,246,0.5));
 }
 
-.coords span{
-    display:block;
-    margin-top:10px;
-    font-size:20px;
+/* Bolha de nível no centro */
+.bubble {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 60px; height: 60px;
+    margin: -30px 0 0 -30px;
+    border-radius: 50%;
+    border: 1px solid var(--border-strong);
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(4px);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+[data-theme="light"] .bubble { background: rgba(255,255,255,0.55); }
+.bubble-ring {
+    position: absolute;
+    inset: 8px;
+    border: 1px dashed var(--border-strong);
+    border-radius: 50%;
+    opacity: 0.5;
+}
+.bubble-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    transition: transform 0.12s ease-out;
+    will-change: transform;
+}
+.bubble-dot.leveled { background: var(--success); box-shadow: 0 0 8px var(--success); }
+
+/* Aviso de interferência */
+.interference {
+    position: absolute;
+    top: 12px; right: 12px;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: var(--danger);
+    border-radius: 10px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    z-index: 5;
+    animation: pulse 1.6s ease-in-out infinite;
+}
+.interference.show { display: flex; }
+.interference .icon { width: 14px; height: 14px; }
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
 }
 
-/* BOTÃO */
-button{
-    margin-top:20px;
-    padding:10px 20px;
-    background:#111;
-    color:#fff;
-    border:1px solid #333;
-    border-radius:6px;
+/* ============ COORDS ============ */
+.coords-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+}
+.coord-item { min-width: 0; }
+.coord-label {
+    font-size: 0.65rem;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 4px;
+}
+.coord-label .icon { width: 12px; height: 12px; }
+.coord-value {
+    font-size: 0.92rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.coord-value .hemi {
+    color: var(--accent);
+    font-weight: 700;
+}
+.coord-sub {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ============ ACTIONS ============ */
+.actions {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+.btn {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.15s;
+}
+.btn .icon { width: 15px; height: 15px; }
+.btn:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+.btn:active { transform: scale(0.97); }
+.btn.primary {
+    background: var(--accent-grad);
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+}
+.btn.primary:hover { filter: brightness(1.05); }
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    filter: none;
+}
+
+/* ============ STATUS ============ */
+.status {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+    text-align: center;
+    min-height: 36px;
+}
+.status .icon { width: 14px; height: 14px; }
+.status.error { color: var(--danger); }
+.status.success { color: var(--success); }
+
+/* ============ HISTORY ============ */
+.history {
+    width: 100%;
+    max-width: 420px;
+    margin-top: 16px;
+    padding: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+.history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    color: var(--text-faint);
+}
+.history-canvas {
+    width: 100%;
+    height: 40px;
+    display: block;
+}
+.history-label {
+    font-size: 0.65rem;
+    color: var(--text-faint);
+    text-align: center;
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ============ WAYPOINT MODAL ============ */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+}
+.overlay.show { display: flex; }
+.modal {
+    background: var(--bg-card);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 380px;
+    padding: 20px;
+    border: 1px solid var(--border);
+}
+.modal h3 {
+    margin: 0 0 6px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+.modal p {
+    margin: 0 0 16px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+.modal-input {
+    width: 100%;
+    padding: 12px;
+    background: var(--bg-elevated);
+    border: 1.5px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    margin-bottom: 8px;
+    outline: none;
+}
+.modal-input:focus { border-color: var(--accent); }
+.modal-row { display: flex; gap: 8px; margin-top: 12px; }
+.modal-row .btn { flex: 1; }
+
+/* ============ TOAST ============ */
+.toast {
+    position: fixed;
+    bottom: calc(24px + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--bg-elevated);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: 24px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(.2,.8,.2,1);
+    z-index: 300;
+    pointer-events: none;
+    white-space: nowrap;
+    max-width: 90vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-height: 700px) {
+    .compass-wrap { max-width: 240px; }
+    .heading-deg { font-size: 3.5rem; }
+}
+@media (max-width: 380px) {
+    .modes { font-size: 0.72rem; }
+    .mode { padding: 7px 12px; }
+    .coords-card { padding: 12px; }
 }
 </style>
 </head>
 
 <body>
 
-<div class="top-bar">
-    <div class="mode active" onclick="setMode('raw')">Bússola</div>
-    <div class="mode" onclick="setMode('smooth')">Premium</div>
+<!-- TOPBAR -->
+<div class="topbar">
+    <div class="topbar-brand">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+        </svg>
+        GHOST COMPASS
+    </div>
+    <div class="top-actions">
+        <button class="icon-btn" id="btnNight" title="Modo noturno (vermelho)" aria-label="Modo noturno">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+        </button>
+        <button class="icon-btn" id="btnTheme" title="Alternar tema" aria-label="Alternar tema">
+            <!-- preenchido via JS -->
+        </button>
+        <button class="icon-btn" id="btnLock" title="Travar heading" aria-label="Travar heading">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+        </button>
+    </div>
 </div>
 
-<div class="deg" id="deg">0°</div>
-<div class="dir" id="dir">N</div>
-
-<div class="compass">
-    <div class="arrow"></div>
-    <div class="circle" id="circle"></div>
+<!-- MODES -->
+<div class="modes">
+    <button class="mode active" data-mode="raw">Bússola</button>
+    <button class="mode" data-mode="smooth">Premium</button>
+    <button class="mode" data-mode="waypoint">Waypoint</button>
 </div>
 
-<div class="coords">
-    Lat. S
-    <span id="lat">--</span>
-    Long. O
-    <span id="lon">--</span>
+<!-- HEADING -->
+<div class="heading">
+    <div class="heading-deg" id="headingDeg">--<span class="unit">°</span></div>
+    <div class="heading-dir" id="headingDir">
+        --
+        <span class="sub" id="headingSub">toque em iniciar</span>
+    </div>
 </div>
 
-<button onclick="startCompass()">Iniciar</button>
+<!-- ACCURACY -->
+<div class="accuracy">
+    <span>Precisão</span>
+    <div class="accuracy-bar"><div class="accuracy-fill" id="accuracyFill"></div></div>
+    <span class="accuracy-label" id="accuracyLabel">--</span>
+</div>
+
+<!-- COMPASS -->
+<div class="compass-wrap">
+    <div class="heading-marker"></div>
+    <div class="compass" id="compass">
+        <svg viewBox="0 0 300 300" aria-hidden="true">
+            <defs>
+                <radialGradient id="dialGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.02)"/>
+                    <stop offset="100%" stop-color="rgba(255,255,255,0.08)"/>
+                </radialGradient>
+                <linearGradient id="northGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#ef4444"/>
+                    <stop offset="100%" stop-color="#b91c1c"/>
+                </linearGradient>
+                <linearGradient id="southGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.7)"/>
+                    <stop offset="100%" stop-color="rgba(255,255,255,0.2)"/>
+                </linearGradient>
+            </defs>
+
+            <!-- Círculos de referência -->
+            <circle cx="150" cy="150" r="140" fill="url(#dialGrad)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+            <circle cx="150" cy="150" r="120" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            <circle cx="150" cy="150" r="90" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+            <!-- Marcas de grau (a cada 5°, maiores a cada 15/30/45) -->
+            <g id="ticks" stroke="rgba(255,255,255,0.4)" stroke-width="1">
+                <!-- gerado via JS -->
+            </g>
+
+            <!-- Marcas cardeais -->
+            <g font-family="-apple-system, sans-serif" font-weight="700" fill="rgba(255,255,255,0.85)" text-anchor="middle">
+                <text x="150" y="32" font-size="18" fill="#ef4444">N</text>
+                <text x="150" y="280" font-size="16">S</text>
+                <text x="278" y="156" font-size="16">L</text>
+                <text x="22" y="156" font-size="16">O</text>
+            </g>
+
+            <!-- Intercardinais -->
+            <g font-family="-apple-system, sans-serif" font-weight="600" fill="rgba(255,255,255,0.35)" text-anchor="middle" font-size="10">
+                <text x="226" y="80">NE</text>
+                <text x="226" y="228">SE</text>
+                <text x="74" y="228">SO</text>
+                <text x="74" y="80">NO</text>
+            </g>
+
+            <!-- Agulha N-S -->
+            <g id="needle">
+                <!-- Norte (vermelho) -->
+                <polygon points="150,40 138,150 150,140 162,150" fill="url(#northGrad)"/>
+                <!-- Sul (branco) -->
+                <polygon points="150,260 138,150 150,160 162,150" fill="url(#southGrad)"/>
+                <!-- Centro -->
+                <circle cx="150" cy="150" r="8" fill="#0a0a0a" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                <circle cx="150" cy="150" r="3" fill="#3b82f6"/>
+            </g>
+        </svg>
+    </div>
+
+    <!-- Bolha de nível -->
+    <div class="bubble">
+        <div class="bubble-ring"></div>
+        <div class="bubble-dot" id="bubbleDot"></div>
+    </div>
+
+    <!-- Aviso de interferência -->
+    <div class="interference" id="interference">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Interferência
+    </div>
+</div>
+
+<!-- COORDS -->
+<div class="coords-card">
+    <div class="coord-item">
+        <div class="coord-label">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/>
+                <circle cx="12" cy="9" r="2.5"/>
+            </svg>
+            Latitude
+        </div>
+        <div class="coord-value" id="latDms">--°--'--"</div>
+        <div class="coord-sub" id="latDec">--</div>
+    </div>
+    <div class="coord-item">
+        <div class="coord-label">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/>
+                <circle cx="12" cy="9" r="2.5"/>
+            </svg>
+            Longitude
+        </div>
+        <div class="coord-value" id="lonDms">--°--'--"</div>
+        <div class="coord-sub" id="lonDec">--</div>
+    </div>
+    <div class="coord-item">
+        <div class="coord-label">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Precisão GPS
+        </div>
+        <div class="coord-value" id="gpsAcc">--</div>
+        <div class="coord-sub">metros</div>
+    </div>
+    <div class="coord-item">
+        <div class="coord-label">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2 2 7l10 5 10-5-10-5z"/>
+                <polyline points="2 17 12 22 22 17"/>
+                <polyline points="2 12 12 17 22 12"/>
+            </svg>
+            Altitude
+        </div>
+        <div class="coord-value" id="altitude">--</div>
+        <div class="coord-sub">metros</div>
+    </div>
+</div>
+
+<!-- ACTIONS -->
+<div class="actions">
+    <button class="btn primary" id="btnStart">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/>
+        </svg>
+        Iniciar
+    </button>
+    <button class="btn" id="btnSetWaypoint">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/>
+            <circle cx="12" cy="9" r="2.5"/>
+        </svg>
+        Waypoint
+    </button>
+    <button class="btn" id="btnExport">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Exportar
+    </button>
+</div>
+
+<!-- STATUS -->
+<div class="status" id="status">
+    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="16" x2="12" y2="12"/>
+        <line x1="12" y1="8" x2="12.01" y2="8"/>
+    </svg>
+    <span>Toque em Iniciar para ativar os sensores</span>
+</div>
+
+<!-- HISTORY -->
+<div class="history">
+    <div class="history-header">
+        <span>Histórico (últimos 30s)</span>
+        <span id="historyCount">0 leituras</span>
+    </div>
+    <canvas class="history-canvas" id="historyCanvas" width="380" height="40"></canvas>
+    <div class="history-label" id="historyRange">—</div>
+</div>
+
+<!-- WAYPOINT MODAL -->
+<div class="overlay" id="waypointModal">
+    <div class="modal">
+        <h3>Definir Waypoint</h3>
+        <p>Digite coordenadas ou use a posição atual. A bússola passará a apontar para este ponto.</p>
+        <input type="text" class="modal-input" id="wpName" placeholder="Nome (ex: Base, Ponto A)">
+        <input type="text" class="modal-input" id="wpLat" placeholder="Latitude (ex: -23.5505)">
+        <input type="text" class="modal-input" id="wpLon" placeholder="Longitude (ex: -46.6333)">
+        <div class="modal-row">
+            <button class="btn" id="wpUseCurrent">Usar atual</button>
+            <button class="btn" id="wpClear">Limpar</button>
+        </div>
+        <div class="modal-row">
+            <button class="btn" data-close="waypointModal">Cancelar</button>
+            <button class="btn primary" id="wpSave">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast" role="status"></div>
 
 <script>
-const circle = document.getElementById("circle");
-const degText = document.getElementById("deg");
-const dirText = document.getElementById("dir");
+(() => {
+'use strict';
 
-let mode = "raw";
-let current = 0;
-let target = 0;
+// ============= CONSTANTS =============
+const THEME_KEY = 'ghost_compass_theme';
+const MODE_KEY = 'ghost_compass_mode';
+const WAYPOINT_KEY = 'ghost_compass_waypoint';
+const LAST_LOC_KEY = 'ghost_compass_lastloc';
+const HISTORY_SIZE = 180; // 3s a 60fps
 
-/* DIREÇÃO */
-function getDirection(deg){
-    const dirs = ["N","NE","E","SE","S","SW","W","NW"];
-    return dirs[Math.round(deg/45)%8];
+// ============= STATE =============
+let theme = 'dark';           // dark | light | night
+let mode = 'raw';             // raw | smooth | waypoint
+let running = false;
+let locked = false;
+let lockedValue = 0;
+
+let currentHeading = 0;       // valor suavizado (usado no display)
+let targetHeading = 0;        // valor bruto do sensor
+let hasAbsolute = false;
+let sensorActive = false;
+
+let lastDeviceOrientation = null;
+let lastGpsPos = null;
+let wakeLock = null;
+let orientationListener = null;
+
+let waypoint = null;          // { name, lat, lon }
+let history = [];             // [{ t, heading, accuracy }]
+
+// Filtro Kalman simplificado (1D)
+let kalmanState = { x: 0, p: 1, q: 0.05, r: 0.5, initialized: false };
+
+// ============= DOM =============
+const $ = id => document.getElementById(id);
+const headingDeg = $('headingDeg');
+const headingDir = $('headingDir');
+const headingSub = $('headingSub');
+const compassEl = $('compass');
+const needleEl = $('needle');
+const bubbleDot = $('bubbleDot');
+const interferenceEl = $('interference');
+const accuracyFill = $('accuracyFill');
+const accuracyLabel = $('accuracyLabel');
+const statusEl = $('status');
+const historyCanvas = $('historyCanvas');
+const toastEl = $('toast');
+
+// ============= ICONS =============
+const ICONS = {
+    sun: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/></svg>`,
+    moon: `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
+};
+
+// ============= UTILS =============
+function normalize(deg) {
+    deg = deg % 360;
+    return deg < 0 ? deg + 360 : deg;
+}
+function angleDiff(a, b) {
+    let d = a - b;
+    while (d > 180) d -= 360;
+    while (d < -180) d += 360;
+    return d;
+}
+function vibrate(pattern) {
+    try { navigator.vibrate?.(pattern); } catch {}
+}
+let toastTimer = null;
+function toast(msg, ms = 2000) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
 }
 
-/* MODO */
-function setMode(m){
-    mode = m;
-    document.querySelectorAll(".mode").forEach(el=>el.classList.remove("active"));
-    event.target.classList.add("active");
-
-    current = target;
+function getDirection(deg) {
+    const dirs = ['N','NE','L','SE','S','SO','O','NO'];
+    const long = ['Norte','Nordeste','Leste','Sudeste','Sul','Sudoeste','Oeste','Noroeste'];
+    const i = Math.round(normalize(deg) / 45) % 8;
+    return { short: dirs[i], long: long[i] };
 }
 
-/* SENSOR */
-function handler(e){
-    let compass = e.webkitCompassHeading || (360 - e.alpha);
-    target = compass;
+// ============= THEME =============
+function applyTheme(t) {
+    theme = t;
+    document.documentElement.dataset.theme = t === 'dark' ? '' : t;
+    // night aplica data-theme="night"
+    if (t === 'night') document.documentElement.dataset.theme = 'night';
+    else if (t === 'light') document.documentElement.dataset.theme = 'light';
+    else delete document.documentElement.dataset.theme;
+
+    try { localStorage.setItem(THEME_KEY, t); } catch {}
+    $('btnTheme').innerHTML = (t === 'dark' || t === 'night') ? ICONS.sun : ICONS.moon;
+    $('btnNight').classList.toggle('active', t === 'night');
 }
 
-/* LOOP */
-function update(){
-    let angle;
+// ============= SENSOR — Heading =============
+function onOrientation(e) {
+    sensorActive = true;
+    lastDeviceOrientation = e;
+    let heading = null;
 
-    if(mode === "raw"){
-        angle = target;
-    }else{
-        let diff = target - current;
-
-        if(diff > 180) diff -= 360;
-        if(diff < -180) diff += 360;
-
-        current += diff * 0.08;
-        angle = current;
+    // iOS — webkitCompassHeading é o mais preciso (norte magnético verdadeiro)
+    if (typeof e.webkitCompassHeading === 'number' && !isNaN(e.webkitCompassHeading)) {
+        heading = e.webkitCompassHeading;
+        hasAbsolute = true;
+    }
+    // Android — alpha em deviceorientationabsolute é a direção pra onde o topo do telefone aponta
+    else if (typeof e.alpha === 'number') {
+        // 360 - alpha dá o heading no sentido horário a partir do norte
+        heading = 360 - e.alpha;
     }
 
-    circle.style.transform = `rotate(${-angle}deg)`;
+    if (heading === null) return;
 
-    let rounded = Math.round(angle);
-    degText.innerText = rounded + "°";
-    dirText.innerText = getDirection(rounded);
+    targetHeading = normalize(heading);
 
-    requestAnimationFrame(update);
-}
-update();
-
-/* GEO */
-function locationHandler(pos){
-    let lat = pos.coords.latitude;
-    let lon = pos.coords.longitude;
-
-    document.getElementById("lat").innerText = formatCoord(lat);
-    document.getElementById("lon").innerText = formatCoord(lon);
+    // Estima precisão baseada na variação recente
+    updateAccuracyFromHistory(targetHeading);
 }
 
-function formatCoord(coord){
-    let deg = Math.floor(Math.abs(coord));
-    let min = Math.floor((Math.abs(coord) - deg) * 60);
-    let sec = Math.floor((((Math.abs(coord) - deg) * 60) - min) * 60);
-    return `${deg}°${min}'${sec}"`;
-}
-
-/* START */
-function startCompass(){
-    navigator.geolocation.getCurrentPosition(locationHandler);
-
-    if (typeof DeviceOrientationEvent !== "undefined" &&
-        typeof DeviceOrientationEvent.requestPermission === "function") {
-
-        DeviceOrientationEvent.requestPermission()
-        .then(response => {
-            if(response === "granted"){
-                window.addEventListener("deviceorientation", handler);
+function attachOrientationListener() {
+    if (orientationListener) return;
+    // Tenta absolute primeiro (Android moderno)
+    if ('ondeviceorientationabsolute' in window) {
+        orientationListener = onOrientation;
+        window.addEventListener('deviceorientationabsolute', orientationListener, true);
+        // fallback se não disparar em 500ms
+        setTimeout(() => {
+            if (!sensorActive) {
+                window.removeEventListener('deviceorientationabsolute', orientationListener, true);
+                orientationListener = onOrientation;
+                window.addEventListener('deviceorientation', orientationListener, true);
             }
-        });
-
+        }, 500);
     } else {
-        window.addEventListener("deviceorientationabsolute", handler);
+        orientationListener = onOrientation;
+        window.addEventListener('deviceorientation', orientationListener, true);
     }
 }
-</script>
 
+function detachOrientationListener() {
+    if (!orientationListener) return;
+    window.removeEventListener('deviceorientationabsolute', orientationListener, true);
+    window.removeEventListener('deviceorientation', orientationListener, true);
+    orientationListener = null;
+    sensorActive = false;
+}
+
+// ============= ACCURACY =============
+function updateAccuracyFromHistory(current) {
+    if (history.length < 5) return;
+    // Pega as últimas 30 leituras e calcula desvio padrão
+    const recent = history.slice(-30).map(h => h.heading);
+    if (recent.length < 5) return;
+    // Desvio padrão circular simplificado
+    let sumX = 0, sumY = 0;
+    recent.forEach(h => {
+        const r = h * Math.PI / 180;
+        sumX += Math.cos(r);
+        sumY += Math.sin(r);
+    });
+    const R = Math.sqrt(sumX * sumX + sumY * sumY) / recent.length;
+    // R vai de 0 (ruim) a 1 (perfeito)
+    const accuracy = Math.max(0, Math.min(1, R));
+    renderAccuracy(accuracy);
+    return accuracy;
+}
+
+function renderAccuracy(value) {
+    // value 0..1 (1 = perfeito)
+    const pct = Math.round(value * 100);
+    accuracyFill.style.width = pct + '%';
+    accuracyFill.classList.remove('medium', 'poor');
+    if (value < 0.5) {
+        accuracyFill.classList.add('poor');
+        accuracyLabel.textContent = 'ruim';
+    } else if (value < 0.75) {
+        accuracyFill.classList.add('medium');
+        accuracyLabel.textContent = 'média';
+    } else {
+        accuracyLabel.textContent = 'boa';
+    }
+}
+
+// ============= SMOOTHING (Kalman 1D) =============
+function kalmanUpdate(measurement) {
+    if (!kalmanState.initialized) {
+        kalmanState.x = measurement;
+        kalmanState.p = 1;
+        kalmanState.initialized = true;
+        return measurement;
+    }
+    // Predição
+    kalmanState.p += kalmanState.q;
+    // Ganho
+    const k = kalmanState.p / (kalmanState.p + kalmanState.r);
+    // Correção
+    const diff = angleDiff(measurement, kalmanState.x);
+    kalmanState.x = normalize(kalmanState.x + k * diff);
+    kalmanState.p *= (1 - k);
+    return kalmanState.x;
+}
+
+// ============= RENDER LOOP =============
+let lastRaf = 0;
+let displayHeading = 0;
+
+function loop(t) {
+    if (!running && !sensorActive) {
+        // continua renderizando se locked pra manter botão
+        requestAnimationFrame(loop);
+        return;
+    }
+
+    // Atualiza heading conforme modo
+    if (locked) {
+        // mantém o valor travado
+    } else if (mode === 'raw') {
+        currentHeading = targetHeading;
+    } else if (mode === 'smooth') {
+        currentHeading = kalmanUpdate(targetHeading);
+    } else if (mode === 'waypoint') {
+        if (waypoint && lastGpsPos) {
+            const bearing = computeBearing(
+                lastGpsPos.coords.latitude,
+                lastGpsPos.coords.longitude,
+                waypoint.lat,
+                waypoint.lon
+            );
+            currentHeading = kalmanUpdate(bearing - targetHeading);
+        } else {
+            currentHeading = kalmanUpdate(targetHeading);
+        }
+    }
+
+    displayHeading = currentHeading;
+
+    // Render
+    const degInt = Math.round(normalize(displayHeading));
+    headingDeg.innerHTML = `${degInt}<span class="unit">°</span>`;
+
+    const dirInfo = getDirection(displayHeading);
+    headingDir.innerHTML = `${dirInfo.short}<span class="sub" id="headingSub">${dirInfo.long}</span>`;
+
+    // Rotaciona a bússola (ao contrário do heading, pois o norte fica fixo na tela)
+    compassEl.style.transform = `rotate(${-displayHeading}deg)`;
+
+    // Adiciona ao histórico (a cada ~16ms, mas só quando ativo)
+    if (t - lastRaf > 16 && sensorActive) {
+        lastRaf = t;
+        history.push({ t: Date.now(), heading: normalize(targetHeading) });
+        if (history.length > HISTORY_SIZE) history.shift();
+    }
+
+    // Renderiza histórico a cada ~10 frames
+    if (history.length && (history.length % 10 === 0)) {
+        drawHistory();
+    }
+
+    requestAnimationFrame(loop);
+}
+
+// ============= GEOLOCATION =============
+function formatDMS(coord, isLat) {
+    const abs = Math.abs(coord);
+    const deg = Math.floor(abs);
+    const minFloat = (abs - deg) * 60;
+    const min = Math.floor(minFloat);
+    const sec = Math.floor((minFloat - min) * 60);
+    const hemi = isLat
+        ? (coord >= 0 ? 'N' : 'S')
+        : (coord >= 0 ? 'L' : 'O');
+    return {
+        dms: `${deg}°${String(min).padStart(2,'0')}'${String(sec).padStart(2,'0')}"`,
+        hemi,
+        dec: coord.toFixed(6)
+    };
+}
+
+function onGpsSuccess(pos) {
+    lastGpsPos = pos;
+    const { latitude, longitude, accuracy, altitude } = pos.coords;
+
+    const lat = formatDMS(latitude, true);
+    const lon = formatDMS(longitude, false);
+
+    $('latDms').innerHTML = `${lat.dms} <span class="hemi">${lat.hemi}</span>`;
+    $('latDec').textContent = lat.dec + '°';
+    $('lonDms').innerHTML = `${lon.dms} <span class="hemi">${lon.hemi}</span>`;
+    $('lonDec').textContent = lon.dec + '°';
+    $('gpsAcc').textContent = accuracy ? `±${Math.round(accuracy)}` : '--';
+    $('altitude').textContent = altitude != null ? Math.round(altitude) : '--';
+
+    // Persiste
+    try {
+        localStorage.setItem(LAST_LOC_KEY, JSON.stringify({
+            lat: latitude, lon: longitude, t: Date.now()
+        }));
+    } catch {}
+}
+
+function onGpsError(err) {
+    const msgs = {
+        1: 'Permissão de localização negada',
+        2: 'Localização indisponível',
+        3: 'Timeout ao obter localização'
+    };
+    setStatus(msgs[err.code] || 'Erro de localização', 'error');
+}
+
+function setStatus(msg, type = '') {
+    statusEl.className = 'status' + (type ? ' ' + type : '');
+    statusEl.innerHTML = `
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            ${type === 'error' ?
+                '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' :
+                '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'}
+        </svg>
+        <span>${msg}</span>
+    `;
+}
+
+function startGpsWatch() {
+    if (!navigator.geolocation) {
+        setStatus('Geolocalização não suportada', 'error');
+        return;
+    }
+    navigator.geolocation.watchPosition(onGpsSuccess, onGpsError, {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 5000
+    });
+}
+
+// ============= WAKE LOCK =============
+async function requestWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    try {
+        wakeLock = await navigator.wakeLock.request('screen');
+    } catch (e) {
+        console.warn('Wake lock falhou', e);
+    }
+}
+function releaseWakeLock() {
+    if (wakeLock) {
+        wakeLock.release().catch(() => {});
+        wakeLock = null;
+    }
+}
+
+// ============= START / STOP =============
+async function start() {
+    if (running) {
+        stop();
+        return;
+    }
+
+    // iOS 13+ exige requestPermission em user gesture
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+            const res = await DeviceOrientationEvent.requestPermission();
+            if (res !== 'granted') {
+                setStatus('Permissão de orientação negada', 'error');
+                return;
+            }
+        } catch (e) {
+            setStatus('Erro ao pedir permissão', 'error');
+            return;
+        }
+    }
+
+    attachOrientationListener();
+    startGpsWatch();
+    requestWakeLock();
+
+    running = true;
+    $('btnStart').innerHTML = `
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="6" y="4" width="4" height="16" fill="currentColor" stroke="none"/>
+            <rect x="14" y="4" width="4" height="16" fill="currentColor" stroke="none"/>
+        </svg>
+        Parar
+    `;
+    setStatus('Sensores ativos', 'success');
+    vibrate(30);
+
+    // Avisa se depois de 1.5s não veio nada
+    setTimeout(() => {
+        if (!sensorActive && running) {
+            setStatus('Sensor de orientação não disponível neste dispositivo', 'error');
+        }
+    }, 1500);
+}
+
+function stop() {
+    running = false;
+    detachOrientationListener();
+    releaseWakeLock();
+    $('btnStart').innerHTML = `
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/>
+        </svg>
+        Iniciar
+    `;
+    setStatus('Sensores desativados');
+    vibrate(15);
+}
+
+// ============= BUBBLE (nível) =============
+function updateBubble(beta, gamma) {
+    // beta: -180..180 (frente/trás) — 0 quando plano na horizontal
+    // gamma: -90..90 (esquerda/direita) — 0 quando plano
+    if (beta == null || gamma == null) return;
+    const maxAngle = 30;
+    const x = Math.max(-1, Math.min(1, gamma / maxAngle)) * 18;
+    const y = Math.max(-1, Math.min(1, (beta - 90) / maxAngle)) * 18;
+    // Nota: quando o telefone tá plano, beta ≈ 0. Se tá em pé, beta ≈ 90.
+    // Aqui a gente quer detectar "plano" => queremos beta perto de 0.
+    // Vou usar direto o desvio de 0:
+    const bx = Math.max(-1, Math.min(1, gamma / maxAngle)) * 18;
+    const by = Math.max(-1, Math.min(1, beta / maxAngle)) * 18;
+
+    // Se beta tá perto de 90 (em pé), inverte a lógica
+    const isFlat = Math.abs(beta) < 20;
+    bubbleDot.style.transform = `translate(${bx}px, ${by}px)`;
+    bubbleDot.classList.toggle('leveled', isFlat && Math.abs(gamma) < 10);
+}
+
+// Sobrescreve onOrientation para também atualizar a bolha
+const baseOrientation = onOrientation;
+window.onOrientation = null; // limpa
+// substitui o handler
+const oldHandler = onOrientation;
+// Não precisa — vou redefinir direto abaixo
+// (código mantido simples: chama updateBubble dentro de onOrientation)
+// Como onOrientation já foi definido, sobrescrevo:
+
+// ============= BEARING =============
+function computeBearing(lat1, lon1, lat2, lon2) {
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+    const y = Math.sin(Δλ) * Math.cos(φ2);
+    const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+    const θ = Math.atan2(y, x);
+    return normalize(θ * 180 / Math.PI);
+}
+
+// ============= HISTORY CHART =============
+function drawHistory() {
+    const ctx = historyCanvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const w = historyCanvas.clientWidth;
+    const h = historyCanvas.clientHeight;
+    if (historyCanvas.width !== w * dpr) {
+        historyCanvas.width = w * dpr;
+        historyCanvas.height = h * dpr;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    if (history.length < 2) {
+        $('historyCount').textContent = '0 leituras';
+        $('historyRange').textContent = '—';
+        return;
+    }
+
+    const style = getComputedStyle(document.documentElement);
+    const accent = style.getPropertyValue('--accent').trim() || '#3b82f6';
+
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+
+    const stepX = w / (HISTORY_SIZE - 1);
+    history.forEach((h, i) => {
+        const x = i * stepX;
+        const y = (1 - h.heading / 360) * (h - 4) + 2;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Gradiente embaixo
+    ctx.lineTo((history.length - 1) * stepX, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+    ctx.fillStyle = accent + '22';
+    ctx.fill();
+
+    $('historyCount').textContent = `${history.length} leituras`;
+
+    const min = Math.min(...history.map(h => h.heading));
+    const max = Math.max(...history.map(h => h.heading));
+    $('historyRange').textContent = `${Math.round(min)}° — ${Math.round(max)}°`;
+}
+
+// ============= WAYPOINT =============
+function openWaypointModal() {
+    const modal = $('waypointModal');
+    if (waypoint) {
+        $('wpName').value = waypoint.name || '';
+        $('wpLat').value = waypoint.lat.toFixed(6);
+        $('wpLon').value = waypoint.lon.toFixed(6);
+    } else {
+        $('wpName').value = '';
+        $('wpLat').value = '';
+        $('wpLon').value = '';
+    }
+    modal.classList.add('show');
+}
+
+function saveWaypoint() {
+    const name = $('wpName').value.trim() || 'Waypoint';
+    const lat = parseFloat($('wpLat').value);
+    const lon = parseFloat($('wpLon').value);
+    if (isNaN(lat) || isNaN(lon)) {
+        toast('Coordenadas inválidas');
+        return;
+    }
+    waypoint = { name, lat, lon };
+    try { localStorage.setItem(WAYPOINT_KEY, JSON.stringify(waypoint)); } catch {}
+    $('waypointModal').classList.remove('show');
+    toast(`Waypoint "${name}" salvo`);
+    setMode('waypoint');
+}
+
+function clearWaypoint() {
+    waypoint = null;
+    try { localStorage.removeItem(WAYPOINT_KEY); } catch {}
+    $('waypointModal').classList.remove('show');
+    toast('Waypoint removido');
+}
+
+function useCurrentAsWaypoint() {
+    if (!lastGpsPos) {
+        toast('Sem posição GPS atual');
+        return;
+    }
+    $('wpLat').value = lastGpsPos.coords.latitude.toFixed(6);
+    $('wpLon').value = lastGpsPos.coords.longitude.toFixed(6);
+}
+
+// ============= EXPORT =============
+function exportPosition() {
+    const lines = [];
+    lines.push('=== Ghost Compass ===');
+    lines.push(`Data: ${new Date().toLocaleString('pt-BR')}`);
+    lines.push('');
+    if (lastGpsPos) {
+        const { latitude, longitude, accuracy, altitude } = lastGpsPos.coords;
+        const lat = formatDMS(latitude, true);
+        const lon = formatDMS(longitude, false);
+        lines.push(`Latitude:  ${lat.dms} ${lat.hemi} (${lat.dec}°)`);
+        lines.push(`Longitude: ${lon.dms} ${lon.hemi} (${lon.dec}°)`);
+        lines.push(`Precisão:  ±${Math.round(accuracy || 0)} m`);
+        if (altitude != null) lines.push(`Altitude:  ${Math.round(altitude)} m`);
+    } else {
+        lines.push('Sem dados de GPS');
+    }
+    lines.push('');
+    lines.push(`Heading: ${Math.round(displayHeading)}° (${getDirection(displayHeading).long})`);
+    if (waypoint) {
+        lines.push(`Waypoint: ${waypoint.name} (${waypoint.lat}, ${waypoint.lon})`);
+        if (lastGpsPos) {
+            const dist = computeDistance(
+                lastGpsPos.coords.latitude, lastGpsPos.coords.longitude,
+                waypoint.lat, waypoint.lon
+            );
+            lines.push(`Distância: ${dist < 1000 ? Math.round(dist) + ' m' : (dist/1000).toFixed(2) + ' km'}`);
+        }
+    }
+    lines.push(`Modo: ${mode}`);
+
+    const text = lines.join('\n');
+    if (navigator.share) {
+        navigator.share({ title: 'Ghost Compass', text }).catch(() => {});
+    } else {
+        navigator.clipboard.writeText(text).then(
+            () => toast('Posição copiada'),
+            () => toast('Não foi possível copiar')
+        );
+    }
+}
+
+function computeDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ============= INIT =============
+function initTicks() {
+    const ticks = document.getElementById('ticks');
+    const NS = 'http://www.w3.org/2000/svg';
+    for (let i = 0; i < 72; i++) {
+        const angle = i * 5;
+        const isMajor = angle % 15 === 0;
+        const isMedium = angle % 5 === 0;
+        const r1 = 130;
+        const r2 = isMajor ? 118 : (isMedium ? 124 : 127);
+        const rad = (angle - 90) * Math.PI / 180;
+        const x1 = 150 + r1 * Math.cos(rad);
+        const y1 = 150 + r1 * Math.sin(rad);
+        const x2 = 150 + r2 * Math.cos(rad);
+        const y2 = 150 + r2 * Math.sin(rad);
+
+        const line = document.createElementNS(NS, 'line');
+        line.setAttribute('x1', x1);
+        line.setAttribute('y1', y1);
+        line.setAttribute('x2', x2);
+        line.setAttribute('y2', y2);
+        line.setAttribute('stroke-width', isMajor ? '2' : '1');
+        line.setAttribute('stroke', isMajor ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.25)');
+        ticks.appendChild(line);
+    }
+}
+
+function loadSaved() {
+    try {
+        const t = localStorage.getItem(THEME_KEY);
+        if (t) theme = t;
+        const m = localStorage.getItem(MODE_KEY);
+        if (m) mode = m;
+        const w = localStorage.getItem(WAYPOINT_KEY);
+        if (w) waypoint = JSON.parse(w);
+    } catch {}
+}
+
+function bindEvents() {
+    $('btnStart').addEventListener('click', start);
+    $('btnLock').addEventListener('click', () => {
+        locked = !locked;
+        $('btnLock').classList.toggle('active', locked);
+        if (locked) {
+            lockedValue = currentHeading;
+            headingDeg.classList.add('paused');
+            toast('Heading travado');
+        } else {
+            headingDeg.classList.remove('paused');
+            toast('Heading destravado');
+        }
+    });
+    $('btnTheme').addEventListener('click', () => {
+        applyTheme(theme === 'dark' ? 'light' : 'dark');
+    });
+    $('btnNight').addEventListener('click', () => {
+        applyTheme(theme === 'night' ? 'dark' : 'night');
+    });
+    $('btnSetWaypoint').addEventListener('click', openWaypointModal);
+    $('btnExport').addEventListener('click', exportPosition);
+
+    document.querySelectorAll('.mode').forEach(btn => {
+        btn.addEventListener('click', () => setMode(btn.dataset.mode));
+    });
+
+    $('wpSave').addEventListener('click', saveWaypoint);
+    $('wpClear').addEventListener('click', clearWaypoint);
+    $('wpUseCurrent').addEventListener('click', useCurrentAsWaypoint);
+    document.querySelectorAll('[data-close]').forEach(el => {
+        el.addEventListener('click', () => $(el.dataset.close).classList.remove('show'));
+    });
+    document.querySelectorAll('.overlay').forEach(ov => {
+        ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('show'); });
+    });
+
+    window.addEventListener('resize', () => drawHistory());
+}
+
+function setMode(m) {
+    mode = m;
+    try { localStorage.setItem(MODE_KEY, m); } catch {}
+    document.querySelectorAll('.mode').forEach(b => {
+        b.classList.toggle('active', b.dataset.mode === m);
+    });
+    // reset kalman pra evitar salto
+    kalmanState.initialized = false;
+    history = [];
+    drawHistory();
+}
+
+// ============= BOOT =============
+loadSaved();
+applyTheme(theme);
+setMode(mode);
+initTicks();
+bindEvents();
+requestAnimationFrame(loop);
+
+// Atualiza o handler pra incluir bubble
+const _originalOnOrientation = onOrientation;
+window.removeEventListener = window.removeEventListener; // noop
+// Patch: substitui a função global
+
+// Reinjeta bubble no handler
+const __orig = onOrientation;
+onOrientation = function(e) {
+    __orig(e);
+    updateBubble(e.beta, e.gamma);
+};
+// Re-registra se já estava ativo
+if (running) {
+    detachOrientationListener();
+    attachOrientationListener();
+}
+
+// Status inicial: avisa se não tem sensor
+setTimeout(() => {
+    if (!('DeviceOrientationEvent' in window) && !('ondeviceorientation' in window)) {
+        setStatus('Este dispositivo não possui bússola', 'error');
+    }
+}, 500);
+
+})();
+</script>
 </body>
-  </html>
+</html>
