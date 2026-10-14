@@ -2,324 +2,780 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f0f">
+<title>Idioma do Sistema</title>
 
 <style>
+:root {
+    --bg-1: #0f0f0f;
+    --bg-2: #1a1a1a;
+    --card: rgba(255,255,255,0.05);
+    --card-hover: rgba(255,255,255,0.1);
+    --card-active: rgba(59,130,246,0.15);
+    --border: rgba(255,255,255,0.1);
+    --border-strong: rgba(255,255,255,0.2);
+    --text: #ffffff;
+    --text-muted: #a0a0a0;
+    --text-dim: #666;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
 body {
-    background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
-    color: #fff;
-    font-family: 'Segoe UI', sans-serif;
-    padding: 20px;
+    margin: 0;
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    color: var(--text);
+    padding: 20px 16px calc(24px + var(--safe-bottom));
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    transition: direction 0.2s;
 }
 
-/* Título */
-h2 {
-    margin-bottom: 20px;
-    font-weight: 500;
-}
-
-/* Container */
-.lang-container {
+header {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 12px;
+}
+header h2 {
+    margin: 0;
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.header-actions { display: flex; gap: 6px; }
+.icon-btn {
+    width: 38px; height: 38px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: all 0.15s;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.icon-btn:hover { background: var(--card-hover); border-color: var(--border-strong); }
+.icon-btn:active { transform: scale(0.92); }
+
+/* Busca */
+.search-wrap { position: relative; margin-bottom: 14px; }
+.search-input {
+    width: 100%;
+    padding: 12px 14px 12px 40px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--text-dim); }
+.search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    pointer-events: none;
+    font-size: 15px;
 }
 
-/* Botões */
-button {
+/* Stats */
+.stats-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 15px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #fff;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: 0.25s;
-    backdrop-filter: blur(10px);
-}
-
-button:hover {
-    background: rgba(255,255,255,0.1);
-    transform: scale(1.02);
-}
-
-/* Badge idioma */
-.lang-tag {
+    margin-bottom: 12px;
     font-size: 12px;
-    opacity: 0.6;
+    color: var(--text-muted);
+    padding: 0 4px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.stats-bar .stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.stats-bar .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+}
+.stats-bar .dot.warn { background: var(--warning); }
+.stats-bar .dot.bad { background: var(--danger); }
+
+/* Lista */
+.lang-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lang-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-family: inherit;
+    color: var(--text);
+    text-align: inherit;
+    width: 100%;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+.lang-item:hover {
+    background: var(--card-hover);
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
+}
+.lang-item:active { transform: translateY(0) scale(0.99); }
+.lang-item.active {
+    background: var(--card-active);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 4px 16px rgba(59,130,246,0.15);
+}
+.lang-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+}
+[dir="rtl"] .lang-item.active::before {
+    left: auto;
+    right: 0;
+}
+
+.lang-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+.flag {
+    width: 28px;
+    height: 20px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #333;
+    font-size: 16px;
+}
+.flag svg { width: 100%; height: 100%; display: block; }
+
+.lang-info { min-width: 0; flex: 1; }
+.lang-name {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.lang-native {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lang-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* Progress badge */
+.coverage {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    min-width: 50px;
+}
+.coverage-pct {
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--success);
+}
+.coverage-pct.warn { color: var(--warning); }
+.coverage-pct.bad { color: var(--danger); }
+.coverage-bar {
+    width: 42px;
+    height: 3px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.coverage-fill {
+    height: 100%;
+    background: var(--success);
+    border-radius: 2px;
+    transition: width 0.3s;
+}
+.coverage-fill.warn { background: var(--warning); }
+.coverage-fill.bad { background: var(--danger); }
+
+/* Check */
+.check-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+.lang-item.active .check-icon { display: flex; }
+
+/* Beta tag */
+.beta-tag {
+    font-size: 9px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: rgba(245,158,11,0.15);
+    color: var(--warning);
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+/* Preview */
+.preview-section {
+    margin-top: 20px;
+    padding: 14px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.preview-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 10px;
+}
+.preview-app {
+    text-align: center;
+}
+.preview-app .preview-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin: 0 auto 4px;
+}
+.preview-app .preview-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Empty state */
+.empty {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--text-dim);
+    font-size: 13px;
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: calc(24px + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #222;
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    padding: 12px 20px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(.2,.8,.2,1);
+    z-index: 999;
+    pointer-events: none;
+    max-width: 90vw;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: rgba(34,197,94,0.4); }
+.toast.error { border-color: rgba(239,68,68,0.4); }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 </style>
 </head>
-
 <body>
 
-<h2>🌐 Idioma do Sistema</h2>
+<header>
+    <h2>🌐 <span data-i18n="TITLE">Idioma do Sistema</span></h2>
+    <div class="header-actions">
+        <button class="icon-btn" id="btnRefresh" title="Recarregar" aria-label="Recarregar">🔄</button>
+    </div>
+</header>
 
-<div class="lang-container">
-
-<button onclick="setLang('pt')">
-    🇧🇷 Português (BR)
-    <span class="lang-tag">PT-BR 100%</span>
-</button>
-
-<button onclick="setLang('en')">
-    🇺🇸 English
-    <span class="lang-tag">EN-US 100%</span>
-</button>
-
-<button onclick="setLang('es')">
-    🇪🇸 Español
-    <span class="lang-tag">ES 82%</span>
-</button>
-
-<button onclick="setLang('fr')">
-    🇫🇷 Français
-    <span class="lang-tag">FR 84%</span>
-</button>
-
-<button onclick="setLang('de')">
-    🇩🇪 Deutsch
-    <span class="lang-tag">DE 54%</span>
-</button>
-
-<button onclick="setLang('ru')">
-    🇷🇺 Русский (Russo)
-    <span class="lang-tag">RU 67%</span>
-</button>
-
-<button onclick="setLang('zh')">
-    🇨🇳 🇨🇳 简体中文 (Mandarim)
-    <span class="lang-tag">ZH-CN 41%</span>
-</button>
-
-<button onclick="setLang('hi')">
-    🇮🇳 हिन्दी (Hindi)
-    <span class="lang-tag">HI 29%</span>
-</button>
-
-<button onclick="setLang('ko')">
-    🇰🇷 한국어 (Coreano)
-    <span class="lang-tag">KO 48%</span>
-</button>
-
-<button onclick="setLang('jp')">
-    🇯🇵 日本語
-    <span class="lang-tag">JP 35%</span>
-</button>
-
-<button onclick="setLang('ar')">
-    🇸🇦 العربية (Árabe)
-    <span class="lang-tag">AR 12%</span>
-</button>
-
-<button onclick="setLang('it')">
-    🇮🇹 Italiano
-    <span class="lang-tag">IT 76%</span>
-</button>
-
+<div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-input" id="searchInput" placeholder="Buscar idioma..." autocomplete="off">
 </div>
 
+<div class="stats-bar">
+    <div class="stat">
+        <span class="dot"></span>
+        <span id="statCurrent">—</span>
+    </div>
+    <div class="stat" id="statCoverage">—</div>
+</div>
+
+<div class="lang-container" id="langList"></div>
+
+<div class="preview-section">
+    <div class="preview-title">Preview ao vivo</div>
+    <div class="preview-grid" id="previewGrid"></div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
 
 <script>
+(() => {
+'use strict';
 
-/* 🌍 DICIONÁRIO GLOBAL (ESCALÁVEL) */
-const LANGS = {
-
-pt: {
-    AJUSTES: "Ajustes", 
-MAPA: "Maps", 
-ANIME: "Animes", 
-GHOSTNET: "GhostNet",
-    ARQUIVOS: "Arquivos", 
-CALCULADORA: "Calculadora", 
-TRADUTOR: "Tradutor",
-    GALERIA: "Galeria", 
-BUSSOLA: "Bússola", 
-    STOAT: "Doninha",
-RELOGIO: "Relógio",
-    RADIO: "Rádio"
-},
-
-en: {
-    AJUSTES: "Settings", 
-MAPA: "Map", 
-ANIME: "Animes", 
-    STOAT: "Stoat",
-GHOSTNET: "Browser",
-    ARQUIVOS: "Files", 
-CALCULADORA: "Calculator", 
-TRADUTOR: "Translator",
-    GALERIA: "Gallery", 
-BUSSOLA: "Compass", 
-RELOGIO: "Clock",
-    RADIO: "Radio"
-},
-
-es: {
-    AJUSTES: "Ajustes", 
-MAPA: "Mapa", 
-    STOAT: "Armiño",
-ANIME: "Animes", 
-GHOSTNET: "Navegador",
-    ARQUIVOS: "Archivos", 
-CALCULADORA: "Calculadora", 
-TRADUTOR: "Traductor",
-    GALERIA: "Galería", 
-BUSSOLA: "Brújula", 
-RELOGIO: "Reloj",
-    RADIO: "Radio"
-},
-
-fr: {
-    AJUSTES: "Paramètres", 
-MAPA: "Carte", 
-ANIME: "Animes", 
-    STOAT: "Hermine",
-GHOSTNET: "Navigateur",
-    ARQUIVOS: "Fichiers", 
-CALCULADORA: "Calculatrice", 
-TRADUTOR: "Traducteur",
-    GALERIA: "Galerie", 
-BUSSOLA: "Boussole", 
-RELOGIO: "Horloge",
-    RADIO: "Radio"
-},
-
-de: {
-    AJUSTES: "Einstellungen", 
-MAPA: "Karte", 
-ANIME: "Animes", 
-    STOAT: "Hermelin",
-GHOSTNET: "Browser",
-    ARQUIVOS: "Dateien", 
-CALCULADORA: "Rechner", 
-TRADUTOR: "Übersetzer",
-    GALERIA: "Galerie", 
-BUSSOLA: "Kompass", 
-RELOGIO: "Uhr",
-    RADIO: "Radio"
-},
-
-ru: {
- // Russian_Cyrillic
-    AJUSTES: "Настройки", 
-MAPA: "Карты", 
-ANIME: "Аниме", 
-    STOAT: "Горностай",
-GHOSTNET: "Браузер",
-    ARQUIVOS: "Файлы", 
-CALCULADORA: "Калькулятор", 
-TRADUTOR: "Переводчик",
-    GALERIA: "Галерея", 
-BUSSOLA: "Компас", 
-RELOGIO: "Часы",
-    RADIO: "Радио"
-},
-
-zh: {
- // Mandarim Simplificado
-    AJUSTES: "设置", 
-MAPA: "地图", 
-ANIME: "动漫", 
-GHOSTNET: "浏览器",
-    STOAT: "鼪",
-    ARQUIVOS: "文件", 
-CALCULADORA: "计算器", 
-TRADUTOR: "翻译",
-    GALERIA: "图库", 
-BUSSOLA: "指南针", 
-RELOGIO: "时钟"
-},
-
-hi: {
- // Hindi
-    AJUSTES: "सेटिंग्स", 
-MAPA: "नक्शा", 
-ANIME: "एनिमे", 
-    STOAT: "चालक आदमी",
-GHOSTNET: "ब्राउज़र",
-    ARQUIVOS: "फाइलें", 
-CALCULADORA: "कैलकुलेटर", 
-TRADUTOR: "अनुवादक",
-    GALERIA: "गैलरी", 
-BUSSOLA: "कम्पास", 
-RELOGIO: "घड़ी"
-},
-
-ko: {
- // Coreano
-    AJUSTES: "설정", 
-MAPA: "지도", 
-ANIME: "애니", 
-GHOSTNET: "브라우저",
-    ARQUIVOS: "파일", 
-CALCULADORA: "계산기", 
-TRADUTOR: "번역기",
-    GALERIA: "갤러리", 
-BUSSOLA: "나침반", 
-RELOGIO: "시계"
-},
-
-jp: {
-    AJUSTES: "設定", 
-MAPA: "地図", 
-ANIME: "アニメ", 
-GHOSTNET: "ブラウザ",
-    ARQUIVOS: "ファイル", 
-CALCULADORA: "電卓", 
-TRADUTOR: "翻訳",
-    GALERIA: "ギャラリー", 
-BUSSOLA: "コンパス", 
-RELOGIO: "時計"
-},
-
-ar: {
-    AJUSTES: "الإعدادات", 
-MAPA: "الخرائط", 
-ANIME: "أنمي", 
-GHOSTNET: "المتصفح",
-    ARQUIVOS: "الملفات", 
-CALCULADORA: "الحاسبة", 
-TRADUTOR: "المترجم",
-    GALERIA: "المعرض", 
-BUSSOLA: "البوصلة", 
-RELOGIO: "الساعة"
-},
-
-it: {
-    AJUSTES: "Impostazioni", 
-MAPA: "Mappe", 
-ANIME: "Anime", 
-GHOSTNET: "Browser",
-    ARQUIVOS: "File",
- CALCULADORA: "Calcolatrice", 
-TRADUTOR: "Traduttore",
-    GALERIA: "Galleria", 
-BUSSOLA: "Bussola", 
-RELOGIO: "Orologio"
-}
+// ============================================
+// BANDEIRAS SVG (inline, não depende de emoji)
+// ============================================
+const FLAGS = {
+    pt: `<svg viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><rect width="28" height="20" fill="#009c3b"/><path d="M14 2 L26 10 L14 18 L2 10 Z" fill="#ffdf00"/><circle cx="14" cy="10" r="3.5" fill="#002776"/></svg>`,
+    en: `<svg viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><rect width="28" height="20" fill="#b22234"/><g fill="#fff"><rect y="1.54" width="28" height="1.54"/><rect y="4.62" width="28" height="1.54"/><rect y="7.69" width="28" height="1.54"/><rect y="10.77" width="28" height="1.54"/><rect y="13.85" width="28" height="1.54"/><rect y="16.92" width="28" height="1.54"/></g><rect width="12" height="10.77" fill="#3c3b6e"/></svg>`,
+    es: `<svg viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><rect width="28" height="20" fill="#aa151b"/><rect y="5" width="28" height="10" fill="#f1bf00"/></svg>`,
+    fr: `<svg viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><rect width="9.33" height="20" fill="#002395"/><rect x="9.33" width="9.33" height="20" fill="#fff"/><rect x="18.66" width="9.33" height="20" fill="#ed2939"/></svg>`,
+    de: `<svg viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><rect width="28" height="6.67" fill="#000"/><rect y="6.67" width="28" height="6.67" fill="#dd0000"/><rect y="13.33" width="28" height="6.67" fill="#ffce00"/></svg>`,
+    ru: `<svg viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><rect width="28" height="6.67" fill="#fff"/><rect y="6.67" width="28" height="6.67" fill="#0039a6"/><rect y="13.33" width="28" height="6.67" fill="#d52b1e"/></svg>`,
+    zh: `<svg viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><rect width="28" height="20" fill="#de2910"/><g fill="#ffde00"><polygon points="5,3 6.18,6.53 3.18,4.4 6.82,4.4 3.82,6.53"/><circle cx="10" cy="3" r="0.7"/><circle cx="11.5" cy="5" r="0.7"/><circle cx="11.5" cy="7.5" r="0.7"/><circle cx="10" cy="9.5" r="0.7"/></g></svg>`,
+    hi: `<svg viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><rect width="28" height="6.67" fill="#ff9933"/><rect y="6.67" width="28" height="6.67" fill="#fff"/><rect y="13.33" width="28" height="6.67" fill="#138808"/><circle cx="14" cy="10" r="2.5" fill="none" stroke="#000080" stroke-width="0.5"/></svg>`,
+    ko: `<svg viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><rect width="28" height="20" fill="#fff"/><circle cx="14" cy="10" r="4" fill="#cd2e3a"/><path d="M 10 10 A 4 4 0 0 1 18 10 A 2 2 0 0 1 14 10 A 2 2 0 0 0 10 10 Z" fill="#0047a0"/></svg>`,
+    ja: `<svg viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><rect width="28" height="20" fill="#fff"/><circle cx="14" cy="10" r="5" fill="#bc002d"/></svg>`,
+    ar: `<svg viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><rect width="28" height="20" fill="#006c35"/><rect x="4" y="6" width="20" height="1" fill="#fff"/><rect x="4" y="13" width="20" height="1" fill="#fff"/></svg>`,
+    it: `<svg viewBox="0 0 28 20" xmlns="http://www.w3.org/2000/svg"><rect width="9.33" height="20" fill="#009246"/><rect x="9.33" width="9.33" height="20" fill="#fff"/><rect x="18.66" width="9.33" height="20" fill="#ce2b37"/></svg>`
 };
 
-/* 🚀 FUNÇÃO PRINCIPAL */
-function setLang(lang) {
+// ============================================
+// IDIOMAS SUPORTADOS
+// ============================================
+const SUPPORTED_LANGS = [
+    { code: 'pt', name: 'Português (BR)', native: 'Português', region: 'América' },
+    { code: 'en', name: 'English',        native: 'English',   region: 'Global' },
+    { code: 'es', name: 'Español',        native: 'Español',   region: 'América' },
+    { code: 'fr', name: 'Français',       native: 'Français',  region: 'Europa' },
+    { code: 'it', name: 'Italiano',       native: 'Italiano',  region: 'Europa' },
+    { code: 'de', name: 'Deutsch',        native: 'Deutsch',   region: 'Europa' },
+    { code: 'ru', name: 'Русский',        native: 'Русский',   region: 'Europa' },
+    { code: 'ar', name: 'العربية',        native: 'العربية',   region: 'Oriente Médio', rtl: true },
+    { code: 'hi', name: 'हिन्दी',           native: 'हिन्दी',      region: 'Ásia' },
+    { code: 'zh', name: '简体中文',        native: '简体中文',   region: 'Ásia' },
+    { code: 'ko', name: '한국어',          native: '한국어',     region: 'Ásia' },
+    { code: 'ja', name: '日本語',          native: '日本語',     region: 'Ásia' }
+];
 
-    const dict = LANGS[lang];
+// ============================================
+// DICIONÁRIO — todas as chaves em todos os idiomas
+// ============================================
+const DICT = {
+    pt: {
+        TITLE: 'Idioma do Sistema',
+        AJUSTES: 'Ajustes', MAPA: 'Mapa', ANIME: 'Animes', GHOSTNET: 'Navegador',
+        ARQUIVOS: 'Arquivos', CALCULADORA: 'Calculadora', TRADUTOR: 'Tradutor',
+        GALERIA: 'Galeria', BUSSOLA: 'Bússola', STOAT: 'Doninha',
+        RELOGIO: 'Relógio', RADIO: 'Rádio'
+    },
+    en: {
+        TITLE: 'System Language',
+        AJUSTES: 'Settings', MAPA: 'Map', ANIME: 'Animes', GHOSTNET: 'Browser',
+        ARQUIVOS: 'Files', CALCULADORA: 'Calculator', TRADUTOR: 'Translator',
+        GALERIA: 'Gallery', BUSSOLA: 'Compass', STOAT: 'Stoat',
+        RELOGIO: 'Clock', RADIO: 'Radio'
+    },
+    es: {
+        TITLE: 'Idioma del Sistema',
+        AJUSTES: 'Ajustes', MAPA: 'Mapa', ANIME: 'Animes', GHOSTNET: 'Navegador',
+        ARQUIVOS: 'Archivos', CALCULADORA: 'Calculadora', TRADUTOR: 'Traductor',
+        GALERIA: 'Galería', BUSSOLA: 'Brújula', STOAT: 'Armiño',
+        RELOGIO: 'Reloj', RADIO: 'Radio'
+    },
+    fr: {
+        TITLE: 'Langue du Système',
+        AJUSTES: 'Paramètres', MAPA: 'Carte', ANIME: 'Animes', GHOSTNET: 'Navigateur',
+        ARQUIVOS: 'Fichiers', CALCULADORA: 'Calculatrice', TRADUTOR: 'Traducteur',
+        GALERIA: 'Galerie', BUSSOLA: 'Boussole', STOAT: 'Hermine',
+        RELOGIO: 'Horloge', RADIO: 'Radio'
+    },
+    it: {
+        TITLE: 'Lingua del Sistema',
+        AJUSTES: 'Impostazioni', MAPA: 'Mappe', ANIME: 'Anime', GHOSTNET: 'Browser',
+        ARQUIVOS: 'File', CALCULADORA: 'Calcolatrice', TRADUTOR: 'Traduttore',
+        GALERIA: 'Galleria', BUSSOLA: 'Bussola', STOAT: 'Ermellino',
+        RELOGIO: 'Orologio', RADIO: 'Radio'
+    },
+    de: {
+        TITLE: 'Systemsprache',
+        AJUSTES: 'Einstellungen', MAPA: 'Karte', ANIME: 'Animes', GHOSTNET: 'Browser',
+        ARQUIVOS: 'Dateien', CALCULADORA: 'Rechner', TRADUTOR: 'Übersetzer',
+        GALERIA: 'Galerie', BUSSOLA: 'Kompass', STOAT: 'Hermelin',
+        RELOGIO: 'Uhr', RADIO: 'Radio'
+    },
+    ru: {
+        TITLE: 'Системный язык',
+        AJUSTES: 'Настройки', MAPA: 'Карты', ANIME: 'Аниме', GHOSTNET: 'Браузер',
+        ARQUIVOS: 'Файлы', CALCULADORA: 'Калькулятор', TRADUTOR: 'Переводчик',
+        GALERIA: 'Галерея', BUSSOLA: 'Компас', STOAT: 'Горностай',
+        RELOGIO: 'Часы', RADIO: 'Радио'
+    },
+    ar: {
+        TITLE: 'لغة النظام',
+        AJUSTES: 'الإعدادات', MAPA: 'الخرائط', ANIME: 'أنمي', GHOSTNET: 'المتصفح',
+        ARQUIVOS: 'الملفات', CALCULADORA: 'الحاسبة', TRADUTOR: 'المترجم',
+        GALERIA: 'المعرض', BUSSOLA: 'البوصلة', STOAT: 'القاقم',
+        RELOGIO: 'الساعة', RADIO: 'الراديو'
+    },
+    hi: {
+        TITLE: 'सिस्टम भाषा',
+        AJUSTES: 'सेटिंग्स', MAPA: 'नक्शा', ANIME: 'एनिमे', GHOSTNET: 'ब्राउज़र',
+        ARQUIVOS: 'फाइलें', CALCULADORA: 'कैलकुलेटर', TRADUTOR: 'अनुवादक',
+        GALERIA: 'गैलरी', BUSSOLA: 'कम्पास', STOAT: 'स्टोट',
+        RELOGIO: 'घड़ी', RADIO: 'रेडियो'
+    },
+    zh: {
+        TITLE: '系统语言',
+        AJUSTES: '设置', MAPA: '地图', ANIME: '动漫', GHOSTNET: '浏览器',
+        ARQUIVOS: '文件', CALCULADORA: '计算器', TRADUTOR: '翻译',
+        GALERIA: '图库', BUSSOLA: '指南针', STOAT: '白鼬',
+        RELOGIO: '时钟', RADIO: '收音机'
+    },
+    ko: {
+        TITLE: '시스템 언어',
+        AJUSTES: '설정', MAPA: '지도', ANIME: '애니', GHOSTNET: '브라우저',
+        ARQUIVOS: '파일', CALCULADORA: '계산기', TRADUTOR: '번역기',
+        GALERIA: '갤러리', BUSSOLA: '나침반', STOAT: '족제비',
+        RELOGIO: '시계', RADIO: '라디오'
+    },
+    ja: {
+        TITLE: 'システム言語',
+        AJUSTES: '設定', MAPA: '地図', ANIME: 'アニメ', GHOSTNET: 'ブラウザ',
+        ARQUIVOS: 'ファイル', CALCULADORA: '電卓', TRADUTOR: '翻訳',
+        GALERIA: 'ギャラリー', BUSSOLA: 'コンパス', STOAT: 'オコジョ',
+        RELOGIO: '時計', RADIO: 'ラジオ'
+    }
+};
 
-    // salva idioma (pra usar no sistema inteiro)
-    localStorage.setItem("ghost_lang", lang);
+// Apps pra preview (subset dos principais)
+const PREVIEW_APPS = ['AJUSTES', 'MAPA', 'TRADUTOR', 'ARQUIVOS', 'RELOGIO', 'GALERIA'];
 
-    for (let id in dict) {
-        window.parent.postMessage({
-            type: 'rename_app',
-            id: id,
-            newName: dict[id]
-        }, '*');
+const ICONS_PREVIEW = {
+    AJUSTES: '⚙️', MAPA: '🗺️', TRADUTOR: '🌐', ARQUIVOS: '📁',
+    RELOGIO: '🕐', GALERIA: '🖼️'
+};
+
+// ============================================
+// HELPERS
+// ============================================
+const $ = id => document.getElementById(id);
+
+function tryPostMessage(payload) {
+    try {
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage(payload, '*');
+        }
+    } catch (e) {
+        console.warn('postMessage falhou:', e);
     }
 }
 
-</script>
+function tryStorageSet(key, val) {
+    try { localStorage.setItem(key, val); return true; }
+    catch (e) { console.warn('localStorage.setItem falhou:', e); return false; }
+}
 
+function tryStorageGet(key) {
+    try { return localStorage.getItem(key); }
+    catch { return null; }
+}
+
+let toastTimer = null;
+function toast(msg, type = 'success', ms = 1800) {
+    const el = $('toast');
+    el.textContent = msg;
+    el.className = 'toast ' + type;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function vibrate(ms) { try { navigator.vibrate?.(ms); } catch {} }
+
+// ============================================
+// COVERAGE — % real de chaves traduzidas
+// ============================================
+function calculateCoverage(langCode) {
+    const dict = DICT[langCode];
+    if (!dict) return 0;
+    const total = Object.keys(DICT.pt).length; // PT é a referência
+    const translated = Object.keys(dict).filter(k => {
+        const v = dict[k];
+        return v && typeof v === 'string' && v.trim().length > 0;
+    }).length;
+    return Math.round((translated / total) * 100);
+}
+
+// ============================================
+// TRANSLATE — busca com fallback em cascata
+// ============================================
+function t(key, lang) {
+    // 1. Tenta o idioma pedido
+    if (DICT[lang] && DICT[lang][key]) return DICT[lang][key];
+    // 2. Fallback pra inglês
+    if (DICT.en && DICT.en[key]) return DICT.en[key];
+    // 3. Fallback pra português
+    if (DICT.pt && DICT.pt[key]) return DICT.pt[key];
+    // 4. Retorna a chave crua (indica chave faltante)
+    return key;
+}
+
+// ============================================
+// STATE
+// ============================================
+let currentLang = tryStorageGet('ghost_lang') || 'pt';
+
+// ============================================
+// RENDER
+// ============================================
+function renderStats() {
+    const langObj = SUPPORTED_LANGS.find(l => l.code === currentLang);
+    $('statCurrent').textContent = langObj ? `${langObj.name} (${currentLang})` : currentLang;
+    const coverage = calculateCoverage(currentLang);
+    const statCov = $('statCoverage');
+    statCov.innerHTML = `<span class="dot ${coverage >= 90 ? '' : coverage >= 60 ? 'warn' : 'bad'}"></span>${coverage}% traduzido`;
+}
+
+function renderList(filter = '') {
+    const list = $('langList');
+    const q = filter.trim().toLowerCase();
+    const filtered = q
+        ? SUPPORTED_LANGS.filter(l =>
+            l.name.toLowerCase().includes(q) ||
+            l.native.toLowerCase().includes(q) ||
+            l.code.toLowerCase().includes(q))
+        : SUPPORTED_LANGS;
+
+    if (!filtered.length) {
+        list.innerHTML = `<div class="empty">Nenhum idioma encontrado</div>`;
+        return;
+    }
+
+    list.innerHTML = filtered.map(lang => {
+        const coverage = calculateCoverage(lang.code);
+        const pctClass = coverage >= 90 ? '' : coverage >= 60 ? 'warn' : 'bad';
+        const isActive = lang.code === currentLang;
+        const isBeta = coverage < 80;
+        return `
+            <button type="button" class="lang-item ${isActive ? 'active' : ''}" data-lang="${lang.code}" aria-pressed="${isActive}">
+                <div class="lang-left">
+                    <div class="flag">${FLAGS[lang.code] || '🏳️'}</div>
+                    <div class="lang-info">
+                        <div class="lang-name">${lang.name}</div>
+                        <div class="lang-native">${lang.native} · ${lang.code.toUpperCase()}</div>
+                    </div>
+                </div>
+                <div class="lang-right">
+                    ${isBeta ? '<span class="beta-tag">beta</span>' : ''}
+                    <div class="coverage">
+                        <span class="coverage-pct ${pctClass}">${coverage}%</span>
+                        <div class="coverage-bar"><div class="coverage-fill ${pctClass}" style="width:${coverage}%"></div></div>
+                    </div>
+                    <div class="check-icon">✓</div>
+                </div>
+            </button>
+        `;
+    }).join('');
+
+    // Bind clicks
+    list.querySelectorAll('.lang-item').forEach(el => {
+        el.addEventListener('click', () => setLang(el.dataset.lang));
+    });
+}
+
+function renderPreview() {
+    const grid = $('previewGrid');
+    grid.innerHTML = PREVIEW_APPS.map(appId => `
+        <div class="preview-app">
+            <div class="preview-icon">${ICONS_PREVIEW[appId] || '📱'}</div>
+            <div class="preview-label" title="${t(appId, currentLang)}">${t(appId, currentLang)}</div>
+        </div>
+    `).join('');
+}
+
+function renderTitle() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        el.textContent = t(key, currentLang);
+    });
+}
+
+function renderAll() {
+    renderTitle();
+    renderStats();
+    renderList($('searchInput')?.value || '');
+    renderPreview();
+}
+
+// ============================================
+// APPLY LANGUAGE
+// ============================================
+function setLang(langCode) {
+    if (!DICT[langCode]) {
+        toast('Idioma não suportado', 'error');
+        return;
+    }
+
+    currentLang = langCode;
+    tryStorageSet('ghost_lang', langCode);
+
+    // Aplica RTL se necessário
+    const langObj = SUPPORTED_LANGS.find(l => l.code === langCode);
+    document.documentElement.dir = langObj?.rtl ? 'rtl' : 'ltr';
+    document.documentElement.lang = langCode;
+
+    // Envia tradução pro parent (cada chave)
+    const dict = DICT[langCode];
+    let sent = 0;
+    for (const id in dict) {
+        if (id === 'TITLE') continue; // TITLE é só pra essa tela
+        tryPostMessage({
+            type: 'rename_app',
+            id: id,
+            newName: dict[id]
+        });
+        sent++;
+    }
+
+    // Notifica troca global
+    tryPostMessage({
+        type: 'SET_SYSTEM_LANG',
+        value: langCode,
+        rtl: !!langObj?.rtl,
+        totalRenamed: sent
+    });
+
+    // Re-renderiza tudo
+    renderAll();
+
+    const langName = langObj?.name || langCode;
+    toast(`${langName} aplicado · ${sent} apps traduzidos`);
+    vibrate(15);
+}
+
+// ============================================
+// EVENTS
+// ============================================
+$('searchInput').addEventListener('input', e => {
+    renderList(e.target.value);
+});
+
+$('btnRefresh').addEventListener('click', () => {
+    renderAll();
+    toast('Lista atualizada');
+});
+
+// ============================================
+// INIT
+// ============================================
+function init() {
+    // Aplica dir/lang do idioma atual
+    const langObj = SUPPORTED_LANGS.find(l => l.code === currentLang);
+    document.documentElement.dir = langObj?.rtl ? 'rtl' : 'ltr';
+    document.documentElement.lang = currentLang;
+
+    renderAll();
+
+    // Avisa o parent que a tela carregou
+    tryPostMessage({ type: 'IFRAME_LOADED', module: 'language', currentLang });
+}
+
+init();
+
+})();
+</script>
 </body>
 </html>
