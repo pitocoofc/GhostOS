@@ -1,3 +1,7 @@
+# Update 7.5.0 (31)
+"What's New?"
+- optimization 
+
 # Update 7.5.0 (30)
 "What's New?"
 - New WiFi app
