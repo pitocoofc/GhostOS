@@ -1,489 +1,1000 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexo Kernel Manager</title>
     <script src="sys_config.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Consolas', monospace; }
-        body { background: #0a0a0a; color: #0f0; overflow: hidden; padding: 20px; }
-        
-        h2 { border-bottom: 1px solid #0f0; padding-bottom: 10px; margin-bottom: 20px; font-weight: 300; letter-spacing: 2px; }
-
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
-        
-        .nexo-btn {
-            background: #001100; border: 1px solid #0f0; color: #0f0;
-            padding: 20px; cursor: pointer; text-align: center;
-            transition: 0.2s; font-size: 13px; text-transform: uppercase;
+        :root {
+            --green: #00ff66;
+            --green-dim: #0a5;
+            --green-glow: rgba(0, 255, 102, 0.35);
+            --bg: #050705;
+            --panel: #0a0f0a;
+            --border: #13301a;
+            --red: #ff3344;
+            --red-dim: #611;
+            --yellow: #ffcc00;
+            --cyan: #33ddff;
+            --text-dim: #5a8a68;
         }
-.nexo-bt2n {
-            background: #001100; border: 1px solid #0f0; color: #0f0;
-            padding: 20px; cursor: pointer; text-align: center;
-            transition: 0.2s; font-size: 13px; text-transform: uppercase;
-        }
-        .nexo-btn:active { background: #0f0; color: #000; }
-.nexo-bt2n:active { background: #0f0; color: #000; }
 
-        /* TERMINAL DE VERIFICAÇÃO */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            background:
+                radial-gradient(ellipse at top, #0a1a0f 0%, var(--bg) 60%),
+                var(--bg);
+            color: var(--green);
+            font-family: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+            padding: 24px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 255, 102, 0.03) 0px,
+                rgba(0, 255, 102, 0.03) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ---------- Cabeçalho ---------- */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 14px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 0;
+            width: 60px; height: 1px;
+            background: var(--green);
+            box-shadow: 0 0 8px var(--green-glow);
+        }
+        .title-block { display: flex; align-items: center; gap: 12px; }
+        .title-block h1 {
+            font-size: 15px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px var(--green-glow);
+        }
+        .title-block h1 .version {
+            color: var(--text-dim);
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-left: 6px;
+        }
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--green-dim);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 2px;
+        }
+        .status-dot {
+            width: 6px; height: 6px;
+            background: var(--green);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--green);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .status-pill.busy .status-dot {
+            background: var(--yellow);
+            box-shadow: 0 0 6px var(--yellow);
+            animation-duration: 0.8s;
+        }
+        .status-pill.busy { color: var(--yellow); }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0.3; }
+        }
+
+        /* ---------- Terminal ---------- */
+        .terminal {
+            background: #000;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .terminal-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #0d120d;
+            border-bottom: 1px solid var(--border);
+            padding: 6px 10px;
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+        }
+        .terminal-bar .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--border);
+        }
+        .terminal-bar .dot.red    { background: var(--red-dim); }
+        .terminal-bar .dot.yellow { background: #665a11; }
+        .terminal-bar .dot.green  { background: var(--green-dim); }
+        .terminal-bar .label { margin-left: auto; }
+
         #term-box {
-          background: #000; border: 1px solid #333; height: 150px;
-            padding: 10px; font-size: 11px; overflow-y: auto; margin-bottom: 20px;
-            color: #0c0; line-height: 1.5;
+            height: 190px;
+            padding: 12px 14px;
+            font-size: 12px;
+            line-height: 1.55;
+            overflow-y: auto;
+            color: var(--green);
+            white-space: pre-wrap;
+            word-break: break-word;
+            scrollbar-width: thin;
+            scrollbar-color: var(--green-dim) transparent;
+        }
+        #term-box::-webkit-scrollbar { width: 6px; }
+        #term-box::-webkit-scrollbar-thumb {
+            background: var(--green-dim);
+            border-radius: 3px;
+        }
+        #term-box .line { display: block; }
+        #term-box .line .tag { color: var(--text-dim); margin-right: 6px; }
+        #term-box .line.ok    .tag { color: var(--green); }
+        #term-box .line.warn  .tag { color: var(--yellow); }
+        #term-box .line.fail  .tag { color: var(--red); }
+        #term-box .line.info  .tag { color: var(--cyan); }
+        #term-box .line.ok    { color: #b6ffcb; }
+        #term-box .line.warn  { color: #ffe08a; }
+        #term-box .line.fail  { color: #ff8a95; }
+        #term-box .line.info  { color: #9ce8ff; }
+
+        #term-box .cursor {
+            display: inline-block;
+            width: 7px; height: 13px;
+            background: var(--green);
+            vertical-align: text-bottom;
+            margin-left: 2px;
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Spinner ASCII animado */
+        .spinner-inline {
+            display: inline-block;
+            width: 1ch;
+            color: var(--green);
         }
 
+        /* ---------- Barra de progresso ---------- */
+        .progress-wrap {
+            padding: 10px 14px;
+            border-top: 1px solid var(--border);
+            background: #0a0f0a;
+            display: none;
+        }
+        .progress-wrap.active { display: block; }
+        .progress-head {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+        .progress-head .step { color: var(--green); }
+        .progress-track {
+            height: 8px;
+            background: #000;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--green-dim), var(--green));
+            box-shadow: 0 0 10px var(--green-glow);
+            transition: width 0.25s ease;
+            position: relative;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(0,0,0,0.25) 0 4px,
+                transparent 4px 8px
+            );
+            animation: slide 1s linear infinite;
+        }
+        @keyframes slide {
+            from { background-position: 0 0; }
+            to   { background-position: 16px 0; }
+        }
 
+        /* ---------- Grid de botões ---------- */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+            counter-reset: btn;
+        }
+        .btn-grid .nexo-btn[data-action="return-os"] { grid-column: 1 / -1; }
+
+        .nexo-btn {
+            position: relative;
+            background: linear-gradient(180deg, #0b140b 0%, #060a06 100%);
+            border: 1px solid var(--border);
+            color: var(--green);
+            padding: 18px 16px 18px 46px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.18s ease;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-family: inherit;
+            overflow: hidden;
+        }
+        .nexo-btn::before {
+            counter-increment: btn;
+            content: "[" counter(btn) "]";
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+            font-size: 11px;
+            letter-spacing: 0;
+        }
+        .nexo-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(0, 255, 102, 0.08) 50%,
+                transparent 100%);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+            pointer-events: none;
+        }
+        .nexo-btn:hover:not(:disabled) {
+            border-color: var(--green);
+            color: #b6ffcb;
+            box-shadow:
+                0 0 0 1px rgba(0, 255, 102, 0.15),
+                0 0 18px rgba(0, 255, 102, 0.1);
+        }
+        .nexo-btn:hover:not(:disabled)::after { transform: translateX(100%); }
+        .nexo-btn:active:not(:disabled) {
+            background: var(--green);
+            color: #000;
+        }
+        .nexo-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            filter: grayscale(0.5);
+        }
+        .nexo-btn.danger {
+            border-color: #3a0c0c;
+            color: var(--red);
+        }
+        .nexo-btn.danger::before { color: #802228; }
+        .nexo-btn.danger:hover:not(:disabled) {
+            border-color: var(--red);
+            color: #ff7a85;
+            box-shadow:
+                0 0 0 1px rgba(255, 51, 68, 0.15),
+                0 0 18px rgba(255, 51, 68, 0.1);
+        }
+        .nexo-btn.danger:active:not(:disabled) {
+            background: var(--red);
+            color: #000;
+        }
+
+        /* ---------- Modal ---------- */
         #options-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            display: none; flex-direction: column; padding: 30px; z-index: 100;
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 5, 3, 0.92);
+            backdrop-filter: blur(3px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 100;
         }
-        .opt-row { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 15px 0; border-bottom: 1px solid #222; 
+        #options-modal.open { display: flex; }
+        .modal-panel {
+            background: linear-gradient(180deg, #0b140b 0%, #060a06 100%);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 520px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 40px rgba(0, 255, 102, 0.08);
         }
-        .switch { width: 25px; height: 25px; border: 1px solid #0f0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 {
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--green);
+        }
+        .modal-header .tag {
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+        }
+        .modal-body { padding: 8px 20px; overflow-y: auto; }
+        .opt-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px dashed #122518;
+            gap: 16px;
+        }
+        .opt-row:last-child { border-bottom: none; }
+        .opt-row span {
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: #9dd4ab;
+        }
+        .switch {
+            flex-shrink: 0;
+            width: 34px;
+            height: 18px;
+            border: 1px solid var(--border);
+            background: #000;
+            cursor: pointer;
+            position: relative;
+            transition: 0.2s;
+            border-radius: 2px;
+        }
+        .switch::after {
+            content: '';
+            position: absolute;
+            top: 2px; left: 2px;
+            width: 12px; height: 12px;
+            background: var(--text-dim);
+            transition: 0.2s;
+        }
+        .switch:hover { border-color: var(--green-dim); }
+        .switch[aria-checked="true"] {
+            border-color: var(--green);
+            background: rgba(0, 255, 102, 0.08);
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.2) inset;
+        }
+        .switch[aria-checked="true"]::after {
+            left: calc(100% - 14px);
+            background: var(--green);
+            box-shadow: 0 0 6px var(--green);
+        }
+        .switch:focus-visible {
+            outline: 1px solid var(--green);
+            outline-offset: 2px;
+        }
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+        }
+        .back-btn {
+            padding: 12px;
+            border: 1px solid var(--border);
+            color: var(--green);
+            text-align: center;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 2px;
+            transition: 0.18s;
+            background: transparent;
+            font-family: inherit;
+            width: 100%;
+        }
+        .back-btn:hover {
+            border-color: var(--green);
+            background: rgba(0, 255, 102, 0.08);
+        }
+        .back-btn:active {
+            background: var(--green);
+            color: #000;
+        }
 
-        .back-btn { margin-top: auto; padding: 15px; border: 1px solid #f00; color: #f00; text-align: center; cursor: pointer; }
+        @media (max-width: 560px) {
+            body { padding: 14px; }
+            .btn-grid { grid-template-columns: 1fr; }
+            .btn-grid .nexo-btn[data-action="return-os"] { grid-column: auto; }
+            .title-block h1 { font-size: 12px; letter-spacing: 2px; }
+        }
     </style>
 </head>
 <body>
 
-    <h2>NEXO_KERNEL_UTILITY v3.0</h2>
+    <header class="header">
+        <div class="title-block">
+            <h1>Nexo_Kernel_Utility <span class="version">v3.0</span></h1>
+        </div>
+        <div class="status-pill" id="status-pill">
+            <span class="status-dot"></span>
+            <span id="status-text">ONLINE</span>
+        </div>
+    </header>
 
-    <div id="term-box" id="log-output">
-        > SYSTEM READY...<br>
-        > WAITING FOR COMMAND_
+    <div class="terminal">
+        <div class="terminal-bar">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+            <span class="label">~ /sys/kernel/manager</span>
+        </div>
+        <div id="term-box" role="log" aria-live="polite" aria-label="System output terminal"></div>
+        <div class="progress-wrap" id="progress-wrap">
+            <div class="progress-head">
+                <span class="step" id="progress-step">STEP 0/0</span>
+                <span id="progress-pct">0%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
     </div>
 
     <div class="btn-grid">
-        <button class="nexo-btn" onclick="verifySoftware()">Update verify</button>
-        <button class="nexo-btn" onclick="openOptions()">System Options</button>
-        <button class="nexo-btn" onclick="fullReset()" style="border-color: #f00; color: #f00;">Hard Reset (Cache)</button>
-<button class="nexo-bt2n" onclick="verifyLocal()">Verificação de Arquivos</button>
-        <button class="nexo-btn" onclick="window.location.href='os.html'">Return to OS</button>
+        <button class="nexo-btn" data-action="verify-software">Update verify</button>
+        <button class="nexo-btn" data-action="open-options">System Options</button>
+        <button class="nexo-btn danger" data-action="hard-reset">Hard Reset (Cache)</button>
+        <button class="nexo-btn" data-action="verify-local">Verificação de Arquivos</button>
+        <button class="nexo-btn" data-action="return-os">Return to OS</button>
     </div>
 
-    <div id="options-modal">
-        <h2 style="color: #0f0;">ADVANCED_SETTINGS</h2>
-        
-        <div class="opt-row">
-            <span>Download unknown sources</span>
-            <div class="switch" id="sw-unknown" onclick="toggleOption('unknown_sources')"></div>
+    <div id="options-modal" role="dialog" aria-modal="true" aria-labelledby="options-title">
+        <div class="modal-panel">
+            <div class="modal-header">
+                <h2 id="options-title">Advanced_Settings</h2>
+                <span class="tag">KERNEL/CFG</span>
+            </div>
+            <div class="modal-body">
+                <div class="opt-row">
+                    <span id="lbl-unknown">Download unknown sources</span>
+                    <div class="switch" id="sw-unknown" role="switch" aria-checked="false"
+                         aria-labelledby="lbl-unknown" data-key="unknown_sources" tabindex="0"></div>
+                </div>
+                <div class="opt-row">
+                    <span id="lbl-rapid">Rapid Optimization</span>
+                    <div class="switch" id="sw-rapid" role="switch" aria-checked="false"
+                         aria-labelledby="lbl-rapid" data-key="rapid_opt" tabindex="0"></div>
+                </div>
+                <div class="opt-row">
+                    <span id="lbl-graphics">Advanced Graphics (Animations)</span>
+                    <div class="switch" id="sw-graphics" role="switch" aria-checked="false"
+                         aria-labelledby="lbl-graphics" data-key="adv_graphics" tabindex="0"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="back-btn" id="close-options" type="button">Fechar e Salvar</button>
+            </div>
         </div>
-
-        <div class="opt-row">
-            <span>Rapid Optimization</span>
-            <div class="switch" onclick="log('Optimizing...')"></div>
-        </div>
-
-        <div class="opt-row">
-            <span>Advanced Graphics (Animations)</span>
-            <div class="switch" id="sw-graphics" onclick="toggleOption('adv_graphics')"></div>
-        </div>
-
-        <div class="back-btn" onclick="closeOptions()">FECHAR E SALVAR</div>
     </div>
 
     <script>
-        const output = document.getElementById('term-box');
-        
-        function log(msg) {
-            output.innerHTML += `<br>> ${msg}`;
+    (() => {
+        'use strict';
+
+        /* ================================================================== */
+        /* Terminal                                                            */
+        /* ================================================================== */
+        const output       = document.getElementById('term-box');
+        const MAX_LINES    = 250;
+        const cursorEl     = document.createElement('span');
+        cursorEl.className = 'cursor';
+        output.appendChild(cursorEl);
+
+        const TAGS = {
+            ok:    '[ OK ]',
+            warn:  '[WARN]',
+            fail:  '[FAIL]',
+            info:  '[INFO]',
+            step:  '[STEP]',
+        };
+
+        function log(msg, kind = 'info') {
+            const line = document.createElement('span');
+            line.className = `line ${kind}`;
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.textContent = TAGS[kind] || TAGS.info;
+            line.appendChild(tag);
+            line.appendChild(document.createTextNode(msg));
+
+            output.insertBefore(line, cursorEl);
+
+            while (output.querySelectorAll('.line').length > MAX_LINES) {
+                const first = output.querySelector('.line');
+                if (first) first.remove();
+            }
             output.scrollTop = output.scrollHeight;
         }
 
+        function clearTerminal() {
+            output.querySelectorAll('.line').forEach((el) => el.remove());
+        }
 
-        function fullReset() {
-            if(confirm("LIMPAR TODO O CACHE DO SISTEMA?")) {
-                localStorage.clear();
-                log("CACHE PURGED. SYSTEM RESET.");
-                setTimeout(() => window.top.location.href='login.html', 1500);
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+        /* ================================================================== */
+        /* Barra de progresso                                                  */
+        /* ================================================================== */
+        const progressWrap = document.getElementById('progress-wrap');
+        const progressFill = document.getElementById('progress-fill');
+        const progressStep = document.getElementById('progress-step');
+        const progressPct  = document.getElementById('progress-pct');
+
+        function setProgress(current, total, label) {
+            if (total <= 0) {
+                progressWrap.classList.remove('active');
+                return;
+            }
+            progressWrap.classList.add('active');
+            const pct = Math.round((current / total) * 100);
+            progressFill.style.width = `${pct}%`;
+            progressPct.textContent = `${pct}%`;
+            if (label) progressStep.textContent = label;
+            else progressStep.textContent = `STEP ${current}/${total}`;
+        }
+
+        function hideProgress() {
+            progressWrap.classList.remove('active');
+            progressFill.style.width = '0%';
+            progressPct.textContent = '0%';
+            progressStep.textContent = 'STEP 0/0';
+        }
+
+        /* ================================================================== */
+        /* Status pill / busy                                                  */
+        /* ================================================================== */
+        const statusPill = document.getElementById('status-pill');
+        const statusText = document.getElementById('status-text');
+
+        function setStatus(text, busy = false) {
+            statusText.textContent = text;
+            statusPill.classList.toggle('busy', busy);
+        }
+
+        /* ================================================================== */
+        /* Cancelamento                                                        */
+        /* ================================================================== */
+        let currentCancelToken = null;
+
+        function makeCancelToken() {
+            const token = { cancelled: false };
+            currentCancelToken = token;
+            return token;
+        }
+
+        function throwIfCancelled(token) {
+            if (token && token.cancelled) {
+                const err = new Error('CANCELLED');
+                err.name = 'CancelledError';
+                throw err;
             }
         }
 
+        /* ================================================================== */
+        /* Bloqueio global de UI                                               */
+        /* ================================================================== */
+        const allButtons = () => document.querySelectorAll('.nexo-btn');
 
-        async function verifySoftware() {
-
-    const url = 'https://raw.githubusercontent.com/pitocoofc/Vonnect/main/check.json';
-    
-    log("Connecting to the integrity server...");
-    
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Connection failed. ");
-        
-        const data = await response.json();
-        
-        log(`Server status: ${data.status.toUpperCase()}`);
-        log(`Checking binary version  ${data.version}:`);
-        
-        for (let app of data.binaries) {
-            await new Promise(r => setTimeout(r, 400)); 
-            log(`[${app.status}] -> ${app.name}`);
+        function setBusy(busy, statusLabel) {
+            allButtons().forEach((b) => { b.disabled = busy; });
+            setStatus(statusLabel || (busy ? 'BUSY' : 'ONLINE'), busy);
         }
-        
-        log("Sincronização concluída com sucesso.");
-    } catch (error) {
-        log("ERROR: UNABLE TO CONTACT THE SERVER");
-        log(`DETAILS ${error.message}`);
-    }
-}
-async function verifyLocal() {
-    const wait = (ms) => new Promise(r => setTimeout(r, ms));
-const btn1 = document.querySelector('.nexo-btn');
-const btn2 = document.querySelector('.nexo-bt2n');
 
-btn1.disabled = true;
-btn1.style.opacity = "0.5";
-
-btn2.disabled = true;
-btn2.style.opacity = "0.5";
-
-
-    log("Initializing local file verification...");
-    await wait(300);
-
-    log("Scanning system sectors...");
-    await wait(400);
-
-    log("OS Verification...")
-     await wait(2000);
-log("OS Verification (10%)")
-     await wait(2000);
-log("OS Verification (25%)")
-     await wait(2000);
-log("OS Verification (50%)")
-     await wait(4000);
-log("OS Verification (75%)")
-     await wait(3000);
-log("OS Verification (99%)")
-     await wait(5000);
-
-log("Verify Drivers")
-     await wait(100);
-
-log("Verify Drivers.")
-     await wait(100);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(50);
-
-log("Verify Drivers.")
-     await wait(50);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(500);
-
-log("Verify Drivers.")
-     await wait(100);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(50);
-
-log("Verify Drivers.")
-     await wait(50);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(500);
-
-log("Verify Drivers.")
-     await wait(100);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(50);
-
-log("Verify Drivers.")
-     await wait(50);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(500);
-
-log("Verify Drivers.")
-     await wait(100);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(50);
-
-log("Verify Drivers.")
-     await wait(50);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(500);
-
-log("Verify Drivers.")
-     await wait(100);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(50);
-
-log("Verify Drivers.")
-     await wait(50);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(500);
-
-log("Verify Drivers.")
-     await wait(100);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(50);
-
-log("Verify Drivers.")
-     await wait(50);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(500);
-
-log("Verify Drivers.")
-     await wait(100);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(50);
-
-log("Verify Drivers.")
-     await wait(50);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(500);
-
-log("Verify Drivers.")
-     await wait(100);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(50);
-
-log("Verify Drivers.")
-     await wait(50);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(500);
-
-log("Verify Drivers.")
-     await wait(100);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(50);
-
-log("Verify Drivers.")
-     await wait(50);
-
-log("Verify Drivers..")
-     await wait(50);
-
-log("Verify Drivers...")
-     await wait(50);
-
-log("Verify Drivers....")
-     await wait(50);
-
-log("Verify Drivers.....")
-     await wait(500);
-
-log("Apps Verify")
-     await wait(3000);
-
-
-log("Finalizando...")
-     await wait(1500);
-
-
-
-
-
-    if (Math.random() < 0.2) {
-        log("WARNING: Minor inconsistency detected...");
-        await wait(700);
-        log("Auto-correction applied.");
-    }
-
-    log("Finalizing verification...");
-    await wait(400);
-
-    log("SYSTEM STATUS: STABLE");
-btn1.disabled = false;
-btn1.style.opacity = "1";
-
-btn2.disabled = false;
-btn2.style.opacity = "1";
-}
-
-
+        /* ================================================================== */
+        /* Spinner (substitui os "Verify Drivers..." repetidos)                */
+        /* ================================================================== */
+        async function spinner(label, cycles, token) {
+            const frames = ['/', '-', '\\', '|'];
+            // Cria uma linha mutável no terminal
+            const line = document.createElement('span');
+            line.className = 'line info';
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.textContent = TAGS.info;
+            const body = document.createElement('span');
+            line.appendChild(tag);
+            line.appendChild(body);
+            output.insertBefore(line, cursorEl);
+
+            for (let i = 0; i < cycles; i++) {
+                throwIfCancelled(token);
+                const frame = frames[i % frames.length];
+                body.textContent = `${label} ${frame}`;
+                output.scrollTop = output.scrollHeight;
+                await wait(60 + (i % 5) * 15);
+            }
+            // Converte a linha final em OK
+            line.className = 'line ok';
+            tag.textContent = TAGS.ok;
+            body.textContent = `${label} ... done`;
+        }
+
+        /* ================================================================== */
+        /* Verificação LOCAL                                                   */
+        /* ================================================================== */
+        async function verifyLocal() {
+            const token = makeCancelToken();
+            setBusy(true, 'VERIFYING');
+            clearTerminal();
+            log('Initializing local file verification...', 'info');
+            await wait(200);
+
+            // Lista de checagens reais + algumas cosméticas
+            const checks = [
+                {
+                    name: 'Storage API',
+                    run: async () => {
+                        const test = '__nexo_test__';
+                        localStorage.setItem(test, '1');
+                        const ok = localStorage.getItem(test) === '1';
+                        localStorage.removeItem(test);
+                        if (!ok) throw new Error('localStorage not writable');
+                        return 'localStorage available';
+                    },
+                },
+                {
+                    name: 'Session storage',
+                    run: async () => {
+                        sessionStorage.setItem('__nexo_t', '1');
+                        sessionStorage.removeItem('__nexo_t');
+                        return 'sessionStorage available';
+                    },
+                },
+                {
+                    name: 'Cookies',
+                    run: async () => {
+                        if (navigator.cookieEnabled) return 'cookies enabled';
+                        throw new Error('cookies disabled');
+                    },
+                },
+                {
+                    name: 'sys_config.js',
+                    run: async () => {
+                        // Checa se o script definiu algo global esperado
+                        const keys = Object.keys(window).filter((k) =>
+                            /^(nexo|sys_|SYS_|NEXO)/.test(k)
+                        );
+                        if (keys.length === 0) {
+                            // Não falha: só avisa
+                            return 'loaded (no global config detected)';
+                        }
+                        return `loaded (${keys.length} global key(s))`;
+                    },
+                },
+                {
+                    name: 'Network APIs',
+                    run: async () => {
+                        if (typeof fetch !== 'function') throw new Error('fetch unavailable');
+                        if (typeof AbortController !== 'function') {
+                            throw new Error('AbortController unavailable');
+                        }
+                        return 'fetch + AbortController OK';
+                    },
+                },
+                {
+                    name: 'Storage usage',
+                    run: async () => {
+                        let total = 0;
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const k = localStorage.key(i);
+                            total += k.length + (localStorage.getItem(k) || '').length;
+                        }
+                        return `${localStorage.length} key(s), ~${total} bytes`;
+                    },
+                },
+                {
+                    name: 'App binaries (simulated)',
+                    run: async () => {
+                        // Não dá pra checar binários; simula com base no storage
+                        const missing = [];
+                        const required = ['unknown_sources', 'rapid_opt', 'adv_graphics'];
+                        for (const key of required) {
+                            if (localStorage.getItem(key) === null) missing.push(key);
+                        }
+                        if (missing.length > 0) {
+                            // Aviso, não falha
+                            return `some vars unset: ${missing.join(', ')}`;
+                        }
+                        return 'all config vars present';
+                    },
+                },
+            ];
+
+            const total = checks.length;
+            let okCount = 0;
+            let warnCount = 0;
+            let failCount = 0;
+
+            for (let i = 0; i < total; i++) {
+                throwIfCancelled(token);
+                const check = checks[i];
+                setProgress(i, total, `CHECK ${i + 1}/${total}`);
+                log(`Checking: ${check.name}...`, 'step');
+                await wait(280 + Math.random() * 200);
+
+                try {
+                    const msg = await check.run();
+                    // Heurística: se retornou "unset" ou "no global", vira WARN
+                    if (/unset|no global|some vars/i.test(msg)) {
+                        log(`  ${check.name}: ${msg}`, 'warn');
+                        warnCount++;
+                    } else {
+                        log(`  ${check.name}: ${msg}`, 'ok');
+                        okCount++;
+                    }
+                } catch (err) {
+                    if (err.name === 'CancelledError') throw err;
+                    log(`  ${check.name}: ${err.message}`, 'fail');
+                    failCount++;
+                }
+                setProgress(i + 1, total, `CHECK ${i + 1}/${total}`);
+            }
+
+            // Spinner cosmético de "drivers" — agora uma única linha animada
+            throwIfCancelled(token);
+            await spinner('Scanning system drivers', 16, token);
+
+            throwIfCancelled(token);
+            log('Finalizing verification...', 'info');
+            await wait(300);
+
+            // Resumo
+            log('────────────────────────────', 'info');
+            log(`RESULT: ${okCount} OK, ${warnCount} WARN, ${failCount} FAIL`, failCount > 0 ? 'fail' : (warnCount > 0 ? 'warn' : 'ok'));
+
+            if (failCount > 0) {
+                log('SYSTEM STATUS: DEGRADED', 'fail');
+            } else if (warnCount > 0) {
+                log('SYSTEM STATUS: STABLE (with warnings)', 'warn');
+            } else {
+                log('SYSTEM STATUS: STABLE', 'ok');
+            }
+
+            hideProgress();
+            setBusy(false, 'ONLINE');
+            currentCancelToken = null;
+        }
+
+        /* ================================================================== */
+        /* Verificação REMOTA                                                  */
+        /* ================================================================== */
+        async function verifySoftware() {
+            const token = makeCancelToken();
+            setBusy(true, 'CONNECTING');
+            clearTerminal();
+            log('Connecting to the integrity server...', 'info');
+
+            const url = 'https://raw.githubusercontent.com/pitocoofc/Vonnect/main/check.json';
+            const totalSteps = 3; // fetch + parse + listar binários
+            setProgress(0, totalSteps, 'CONNECT');
+
+            try {
+                // ---- Step 1: fetch com timeout ----
+                throwIfCancelled(token);
+                log('Opening connection...', 'step');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                const onEsc = () => { if (currentCancelToken) currentCancelToken.cancelled = true; };
+                // já tratado no listener global de ESC
+
+                let response;
+                try {
+                    response = await fetch(url, { signal: controller.signal });
+                } finally {
+                    clearTimeout(timeoutId);
+                }
+                throwIfCancelled(token);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status} ${response.statusText}`);
+                }
+                log(`Connected (HTTP ${response.status})`, 'ok');
+                setProgress(1, totalSteps, 'PARSE');
+
+                // ---- Step 2: parse JSON ----
+                throwIfCancelled(token);
+                log('Parsing server response...', 'step');
+                const data = await response.json();
+                if (!data || typeof data.status !== 'string' || !Array.isArray(data.binaries)) {
+                    throw new Error('Invalid response format (missing status/binaries)');
+                }
+                log(`Server status: ${String(data.status).toUpperCase()}`, 'ok');
+                log(`Version reported: ${data.version ?? '?'}`, 'info');
+                setProgress(2, totalSteps, 'BINARIES');
+
+                // ---- Step 3: listar binários ----
+                throwIfCancelled(token);
+                const total = data.binaries.length;
+                log(`Scanning ${total} binaries...`, 'step');
+                let okBins = 0, warnBins = 0;
+
+                for (let i = 0; i < total; i++) {
+                    throwIfCancelled(token);
+                    const app = data.binaries[i] || {};
+                    const name = String(app.name ?? '(unnamed)');
+                    const rawStatus = String(app.status ?? 'unknown').toLowerCase();
+
+                    // Atualiza progresso fino dentro do step 3
+                    const innerPct = Math.round(((i + 1) / total) * 100);
+                    progressStep.textContent = `BINARIES ${i + 1}/${total} (${innerPct}%)`;
+                    progressFill.style.width = `${Math.round(((2 + (i + 1) / total) / totalSteps) * 100)}%`;
+
+                    await wait(150 + Math.random() * 150);
+
+                    if (rawStatus === 'ok' || rawStatus === 'verified' || rawStatus === 'pass') {
+                        log(`  [OK]   ${name}`, 'ok');
+                        okBins++;
+                    } else if (rawStatus === 'warn' || rawStatus === 'outdated' || rawStatus === 'minor') {
+                        log(`  [WARN] ${name} (${rawStatus})`, 'warn');
+                        warnBins++;
+                    } else {
+                        log(`  [FAIL] ${name} (${rawStatus})`, 'fail');
+                    }
+                }
+
+                setProgress(totalSteps, totalSteps, 'DONE');
+                log('────────────────────────────', 'info');
+                log(`RESULT: ${okBins} verified, ${warnBins} warnings, ${total - okBins - warnBins} failed`,
+                    (total - okBins - warnBins) > 0 ? 'fail' : (warnBins > 0 ? 'warn' : 'ok'));
+                log('Sincronização concluída com sucesso.', 'ok');
+            } catch (err) {
+                if (err.name === 'CancelledError') {
+                    log('Verification cancelled by user.', 'warn');
+                } else if (err.name === 'AbortError') {
+                    log('ERROR: SERVER TIMEOUT (10s)', 'fail');
+                } else {
+                    log('ERROR: UNABLE TO CONTACT THE SERVER', 'fail');
+                    log(`DETAILS: ${err.message}`, 'fail');
+                }
+            } finally {
+                hideProgress();
+                setBusy(false, 'ONLINE');
+                currentCancelToken = null;
+            }
+        }
+
+        /* ================================================================== */
+        /* Hard reset                                                          */
+        /* ================================================================== */
+        function fullReset() {
+            if (!confirm('LIMPAR TODO O CACHE DO SISTEMA?')) return;
+
+            setBusy(true, 'RESETTING');
+            clearTerminal();
+            log('PURGING CACHE...', 'warn');
+            try {
+                localStorage.clear();
+                log('localStorage cleared', 'ok');
+            } catch (e) {
+                log(`Could not clear storage: ${e.message}`, 'fail');
+            }
+            log('CACHE PURGED. SYSTEM RESET.', 'ok');
+
+            setTimeout(() => {
+                try { window.top.location.href = 'login.html'; }
+                catch { window.location.href = 'login.html'; }
+            }, 1500);
+        }
+
+        /* ================================================================== */
+        /* Options modal                                                       */
+        /* ================================================================== */
+        const optionsModal = document.getElementById('options-modal');
+
+        function readOption(key) {
+            return localStorage.getItem(key) === 'on';
+        }
+
+        function syncOptionSwitches() {
+            document.querySelectorAll('.switch[data-key]').forEach((el) => {
+                el.setAttribute('aria-checked', String(readOption(el.dataset.key)));
+            });
+        }
 
         function openOptions() {
-
-            document.getElementById('sw-unknown').innerText = localStorage.getItem('unknown_sources') === 'on' ? 'X' : '';
-            document.getElementById('sw-graphics').innerText = localStorage.getItem('adv_graphics') === 'on' ? 'X' : '';
-            document.getElementById('options-modal').style.display = 'flex';
-        }
-
-        function toggleOption(key) {
-            const current = localStorage.getItem(key);
-            const newState = current === 'on' ? 'off' : 'on';
-            localStorage.setItem(key, newState);
-            
-
-            const id = key === 'unknown_sources' ? 'sw-unknown' : 'sw-graphics';
-            document.getElementById(id).innerText = newState === 'on' ? 'X' : '';
-            log(`VAR ${key} SET TO ${newState.toUpperCase()}`);
+            syncOptionSwitches();
+            optionsModal.classList.add('open');
+            const first = optionsModal.querySelector('.switch');
+            if (first) first.focus();
         }
 
         function closeOptions() {
-            document.getElementById('options-modal').style.display = 'none';
+            optionsModal.classList.remove('open');
         }
+
+        function toggleOption(key) {
+            const newState = readOption(key) ? 'off' : 'on';
+            localStorage.setItem(key, newState);
+            log(`VAR ${key} SET TO ${newState.toUpperCase()}`, 'info');
+        }
+
+        /* ================================================================== */
+        /* Wiring de eventos                                                   */
+        /* ================================================================== */
+        document.querySelectorAll('.nexo-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                switch (btn.dataset.action) {
+                    case 'verify-software': return verifySoftware();
+                    case 'open-options':    return openOptions();
+                    case 'hard-reset':      return fullReset();
+                    case 'verify-local':    return verifyLocal();
+                    case 'return-os':       return (window.location.href = 'os.html');
+                }
+            });
+        });
+
+        document.querySelectorAll('.switch[data-key]').forEach((sw) => {
+            sw.addEventListener('click', () => {
+                toggleOption(sw.dataset.key);
+                sw.setAttribute('aria-checked', String(readOption(sw.dataset.key)));
+            });
+            sw.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    sw.click();
+                }
+            });
+        });
+
+        document.getElementById('close-options').addEventListener('click', closeOptions);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (optionsModal.classList.contains('open')) {
+                    closeOptions();
+                } else if (currentCancelToken && !currentCancelToken.cancelled) {
+                    currentCancelToken.cancelled = true;
+                    log('Cancellation requested...', 'warn');
+                }
+            }
+        });
+
+        syncOptionSwitches();
+        log('SYSTEM READY...', 'ok');
+        log('WAITING FOR COMMAND_', 'info');
+    })();
     </script>
 </body>
 </html>
