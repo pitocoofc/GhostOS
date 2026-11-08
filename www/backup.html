@@ -1,510 +1,317 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GhostOS - Backup System</title>
-    <style>
-        :root {
-            --bg-color: #090d16;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --accent-cyan: #38bdf8;
-            --accent-green: #10b981;
-            --accent-red: #ef4444;
-            --text-main: #f8fafc;
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-color);
-            background-image: 
-                radial-gradient(at 20% 20%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
-                radial-gradient(at 80% 80%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
-            color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 28px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-            width: 100%;
-            max-width: 460px;
-            text-align: center;
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        h2 { 
-            margin: 0 0 8px 0; 
-            color: var(--accent-cyan);
-            font-size: 24px;
-            letter-spacing: 0.5px;
-        }
-
-        p.subtitle {
-            color: #94a3b8;
-            font-size: 13px;
-            margin-bottom: 20px;
-        }
-
-        .section {
-            margin: 16px 0;
-            padding: 16px;
-            background: rgba(15, 23, 42, 0.6);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: border-color 0.3s;
-        }
-
-        .section:hover {
-            border-color: rgba(56, 189, 248, 0.3);
-        }
-
-        textarea {
-            width: 100%;
-            height: 90px;
-            padding: 10px;
-            margin: 8px 0 12px 0;
-            border-radius: 8px;
-            border: 1px solid #334155;
-            background: #0f172a;
-            color: #38bdf8;
-            box-sizing: border-box;
-            outline: none;
-            font-family: monospace;
-            font-size: 11px;
-            resize: none;
-            word-break: break-all;
-        }
-
-        textarea:focus {
-            border-color: var(--accent-cyan);
-        }
-
-        button {
-            background: linear-gradient(135deg, #0284c7, #0369a1);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
-        }
-
-        button:hover { 
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.4);
-        }
-
-        button.decompress { 
-            background: linear-gradient(135deg, #059669, #047857);
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-        }
-
-        button.decompress:hover { 
-            box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4);
-        }
-
-        #status {
-            margin-top: 16px;
-            font-size: 13px;
-            font-weight: 500;
-            min-height: 20px;
-            transition: color 0.3s ease;
-        }
-
-        .pulse {
-            animation: pulseAnim 1.5s infinite;
-        }
-
-        @keyframes pulseAnim {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GhostOS Vault</title>
+<style>
+:root{--bg:#080c14;--panel:#0e1522;--panel2:#131c2d;--line:#223048;--text:#e8eef9;--dim:#8a9bb8;--cyan:#38bdf8;--green:#34d399;--red:#f87171;--amber:#fbbf24;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;justify-content:center;padding:24px 16px;
+background-image:radial-gradient(60% 40% at 15% 0,rgba(56,189,248,.12),transparent),radial-gradient(50% 40% at 90% 100%,rgba(52,211,153,.08),transparent)}
+main{width:100%;max-width:520px}
+header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.logo{width:44px;height:44px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);display:grid;place-items:center}
+.logo svg{width:24px;height:24px;stroke:var(--cyan);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+h1{font-size:22px;margin:0;font-weight:650;letter-spacing:.2px}
+header p{margin:2px 0 0;color:var(--dim);font-size:13px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--dim)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:14px}
+.tabs button{background:none;border:0;color:var(--dim);padding:10px;border-radius:9px;font:inherit;font-weight:600;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--panel2);color:var(--text);box-shadow:inset 0 0 0 1px var(--line)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+.card[hidden]{display:none}
+label{display:block;font-size:13px;color:var(--dim);margin:0 0 6px}
+textarea{width:100%;height:120px;resize:vertical;background:#0a101b;color:var(--cyan);border:1px solid var(--line);border-radius:10px;padding:10px;font:11px/1.4 ui-monospace,Consolas,monospace;word-break:break-all;margin-bottom:12px}
+textarea:focus-visible,button:focus-visible,.drop:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>*{flex:1 1 140px}
+button.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:12px 14px;border-radius:10px;font:inherit;font-weight:600;font-size:14px;cursor:pointer;transition:background .15s,transform .1s}
+button.btn:hover:not(:disabled){background:#1a2640}
+button.btn:active:not(:disabled){transform:scale(.98)}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--cyan);color:#04121c;border-color:transparent}
+button.primary:hover:not(:disabled){background:#67cdfa}
+button.go{background:var(--green);color:#03150e;border-color:transparent}
+button.go:hover:not(:disabled){background:#5fe0b3}
+.drop{display:block;border:1.5px dashed var(--line);border-radius:10px;padding:14px;text-align:center;color:var(--dim);font-size:13px;cursor:pointer;margin-bottom:12px;transition:border-color .15s,color .15s}
+.drop:hover,.drop.over{border-color:var(--cyan);color:var(--text)}
+.drop input{display:none}
+.chk{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--dim);margin:0 0 12px;cursor:pointer}
+.meta{font-size:12px;color:var(--dim);margin:-4px 0 12px;min-height:16px}
+#status{margin-top:14px;font-size:13px;min-height:20px;display:flex;gap:8px;align-items:flex-start}
+#status i{width:8px;height:8px;border-radius:50%;background:var(--dim);margin-top:5px;flex:none}
+#status.ok i{background:var(--green)}#status.err i{background:var(--red)}#status.busy i{background:var(--cyan);animation:p 1s infinite}
+#status.ok{color:var(--green)}#status.err{color:var(--red)}#status.busy{color:var(--cyan)}
+@keyframes p{50%{opacity:.3}}
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:20px;max-width:400px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(2,6,14,.75)}
+dialog h2{margin:0 0 8px;font-size:18px}
+dialog p{margin:0 0 10px;color:var(--dim);font-size:14px;line-height:1.5}
+dialog .warn{color:var(--amber)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
+<main>
+<header>
+  <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
+  <div><h1>GhostOS Vault</h1><p>Backup do LocalStorage, versão 2.0</p></div>
+</header>
 
-    <div class="card">
-        <h2>GhostOS Vault</h2>
-        <p class="subtitle">Backup 1.0</p>
-        
-        
-        <div class="section">
-            <button id="exportBtn">Gerar Código de Backup</button>
-            <textarea id="outputArea" readonly placeholder="Clique no botão acima para gerar o código..."></textarea>
-            <button id="copyBtn" style="display:none; background: #334155;">Copiar Código</button>
-        </div>
+<div class="stats">
+  <div class="stat"><b id="sKeys">0</b><span>chaves salvas neste navegador</span></div>
+  <div class="stat"><b id="sSize">0 KB</b><span>tamanho dos dados</span></div>
+</div>
 
-        
-        <div class="section">
-            <textarea id="inputArea" placeholder="Cole o código de backup aqui..."></textarea>
-            <button class="decompress" id="importBtn">Restaurar LocalStorage</button>
-        </div>
+<div class="tabs" role="tablist">
+  <button role="tab" id="tabE" aria-selected="true" aria-controls="pE">Criar backup</button>
+  <button role="tab" id="tabR" aria-selected="false" aria-controls="pR">Restaurar</button>
+</div>
 
-        <div id="status">Aguardando ação...</div>
-    </div>
+<section class="card" id="pE" role="tabpanel" aria-labelledby="tabE">
+  <button class="btn primary" id="exportBtn" style="width:100%;margin-bottom:12px">Gerar backup</button>
+  <label for="outputArea">Código do backup</label>
+  <textarea id="outputArea" readonly placeholder="O código aparece aqui depois de gerar o backup."></textarea>
+  <div class="meta" id="outMeta"></div>
+  <div class="row">
+    <button class="btn" id="copyBtn" disabled>Copiar código</button>
+    <button class="btn" id="downloadBtn" disabled>Baixar arquivo</button>
+  </div>
+</section>
 
-    <script>
-         
-        class BitWriter {
-            constructor() {
-                this.bytes = [];
-                this.currentByte = 0;
-                this.bitCount = 0;
-            }
-            writeBit(bit) {
-                if (bit) this.currentByte |= (1 << (7 - this.bitCount));
-                this.bitCount++;
-                if (this.bitCount === 8) {
-                    this.bytes.push(this.currentByte);
-                    this.currentByte = 0;
-                    this.bitCount = 0;
-                }
-            }
-            writeBits(strBits) {
-                for (let i = 0; i < strBits.length; i++) this.writeBit(strBits[i] === '1');
-            }
-            flush() {
-                if (this.bitCount > 0) this.bytes.push(this.currentByte);
-                return new Uint8Array(this.bytes);
-            }
-        }
+<section class="card" id="pR" role="tabpanel" aria-labelledby="tabR" hidden>
+  <label class="drop" id="drop" tabindex="0">Solte um arquivo .ghost aqui ou toque para escolher<input type="file" id="fileInput" accept=".ghost,.txt,text/plain"></label>
+  <label for="inputArea">Ou cole o código do backup</label>
+  <textarea id="inputArea" placeholder="GOS1:N:..."></textarea>
+  <label class="chk"><input type="checkbox" id="preBackup" checked> Baixar uma cópia do estado atual antes de restaurar</label>
+  <div class="row">
+    <button class="btn go" id="importBtn">Verificar e restaurar</button>
+    <button class="btn" id="undoBtn" disabled>Desfazer restauração</button>
+  </div>
+</section>
 
-        class BitReader {
-            constructor(uint8Array) {
-                this.data = uint8Array;
-                this.byteIndex = 0;
-                this.bitCount = 0;
-            }
-            readBit() {
-                if (this.byteIndex >= this.data.length) return 0;
-                const bit = (this.data[this.byteIndex] >> (7 - this.bitCount)) & 1;
-                this.bitCount++;
-                if (this.bitCount === 8) {
-                    this.bitCount = 0;
-                    this.byteIndex++;
-                }
-                return bit;
-            }
-        }
+<div id="status" role="status" aria-live="polite"><i></i><span>Pronto.</span></div>
+</main>
 
-        
-        function buildHuffmanTree(frequencies) {
-            const pq = [];
-            for (let symbol in frequencies) {
-                pq.push({ symbol: parseInt(symbol), freq: frequencies[symbol], left: null, right: null });
-            }
-            if (pq.length === 0) return null;
-            if (pq.length === 1) return { symbol: null, freq: pq[0].freq, left: pq[0], right: null };
+<dialog id="dlg">
+  <h2>Restaurar este backup?</h2>
+  <p id="dlgInfo"></p>
+  <p class="warn">Os dados atuais deste navegador serão substituídos.</p>
+  <div class="row" style="margin-top:14px">
+    <button class="btn" id="dlgNo">Cancelar</button>
+    <button class="btn go" id="dlgYes">Restaurar</button>
+  </div>
+</dialog>
 
-            while (pq.length > 1) {
-                pq.sort((a, b) => a.freq - b.freq);
-                const left = pq.shift();
-                const right = pq.shift();
-                pq.push({ symbol: null, freq: left.freq + right.freq, left, right });
-            }
-            return pq[0];
-        }
+<script>
+/* ---------- Fallback: LZ77 (hash) + Huffman (compatível com backups antigos) ---------- */
+class BitWriter{constructor(){this.b=[];this.c=0;this.n=0}
+ bit(v){if(v)this.c|=1<<(7-this.n);if(++this.n===8){this.b.push(this.c);this.c=0;this.n=0}}
+ bits(s){for(let i=0;i<s.length;i++)this.bit(s[i]==='1')}
+ flush(){if(this.n>0)this.b.push(this.c);return new Uint8Array(this.b)}}
+class BitReader{constructor(d){this.d=d;this.i=0;this.n=0}
+ bit(){if(this.i>=this.d.length)throw new Error('Dados truncados');const v=(this.d[this.i]>>(7-this.n))&1;if(++this.n===8){this.n=0;this.i++}return v}}
 
-        function generateCodes(node, currentCode = '', codes = {}) {
-            if (!node) return;
-            if (node.symbol !== null) {
-                codes[node.symbol] = currentCode || '0';
-                return;
-            }
-            generateCodes(node.left, currentCode + '0', codes);
-            generateCodes(node.right, currentCode + '1', codes);
-            return codes;
-        }
+function huffTree(freq){
+ const pq=[];for(const s in freq)pq.push({symbol:+s,freq:freq[s],left:null,right:null});
+ if(!pq.length)return null;
+ if(pq.length===1)return{symbol:null,freq:pq[0].freq,left:pq[0],right:null};
+ while(pq.length>1){pq.sort((a,b)=>a.freq-b.freq);const l=pq.shift(),r=pq.shift();pq.push({symbol:null,freq:l.freq+r.freq,left:l,right:r})}
+ return pq[0];
+}
+function huffCodes(node,code='',codes={}){
+ if(!node)return codes;
+ if(node.symbol!==null){codes[node.symbol]=code||'0';return codes}
+ huffCodes(node.left,code+'0',codes);huffCodes(node.right,code+'1',codes);
+ return codes;
+}
+function lzCompress(src){
+ const out=[],len=src.length,WIN=32768,MAXM=255,CHAIN=48,table=new Map();
+ let lit=[];
+ const flush=()=>{while(lit.length){const part=lit.splice(0,255);out.push(0xAE,part.length,...part)}};
+ const key=p=>(src[p]<<16)|(src[p+1]<<8)|src[p+2];
+ const add=p=>{if(p+2>=len)return;const k=key(p);let a=table.get(k);if(!a)table.set(k,a=[]);a.push(p);if(a.length>CHAIN)a.shift()};
+ let i=0;
+ while(i<len){
+  let bl=0,bd=0;
+  if(i+2<len){
+   const c=table.get(key(i));
+   if(c)for(let x=c.length-1;x>=0;x--){
+    const j=c[x];if(i-j>WIN)break;
+    let m=0;while(i+m<len&&m<MAXM&&src[j+m]===src[i+m])m++;
+    if(m>bl){bl=m;bd=i-j;if(m===MAXM)break}
+   }
+  }
+  if(bl>=4){flush();out.push(0xAF,(bd>>8)&255,bd&255,bl);for(let k=0;k<bl;k++)add(i+k);i+=bl}
+  else{lit.push(src[i]);add(i);i++}
+ }
+ flush();return new Uint8Array(out);
+}
+function lzDecompress(src){
+ const out=[];let i=0;
+ while(i<src.length){
+  const m=src[i++];
+  if(m===0xAE){const n=src[i++];for(let c=0;c<n;c++)out.push(src[i++])}
+  else if(m===0xAF){const d=(src[i++]<<8)|src[i++],n=src[i++],s=out.length-d;if(s<0)throw new Error('Dados corrompidos');for(let c=0;c<n;c++)out.push(out[s+c])}
+  else throw new Error('Dados corrompidos');
+ }
+ return new Uint8Array(out);
+}
+function fallbackCompress(src){
+ const lz=lzCompress(src),freq={};
+ for(let i=0;i<lz.length;i++)freq[lz[i]]=(freq[lz[i]]||0)+1;
+ const codes=huffCodes(huffTree(freq)),keys=Object.keys(freq),w=new BitWriter();
+ const head=[(keys.length>>8)&255,keys.length&255];
+ for(const s of keys){const f=freq[s];head.push(+s,(f>>>24)&255,(f>>>16)&255,(f>>>8)&255,f&255)}
+ for(let i=0;i<lz.length;i++)w.bits(codes[lz[i]]);
+ const body=w.flush(),res=new Uint8Array(head.length+body.length);
+ res.set(head,0);res.set(body,head.length);return res;
+}
+function fallbackDecompress(src){
+ let o=0;const n=(src[o]<<8)|src[o+1];o+=2;
+ const freq={};let total=0;
+ for(let i=0;i<n;i++){const s=src[o++];const f=((src[o]<<24)|(src[o+1]<<16)|(src[o+2]<<8)|src[o+3])>>>0;o+=4;freq[s]=f;total+=f}
+ const tree=huffTree(freq),rd=new BitReader(src.slice(o)),lz=new Uint8Array(total);
+ let node=tree,k=0;
+ while(k<total){
+  node=rd.bit()===0?node.left:node.right;
+  if(!node)throw new Error('Dados corrompidos');
+  if(node.symbol!==null){lz[k++]=node.symbol;node=tree}
+ }
+ return lzDecompress(lz);
+}
 
-        
-        function compressLZ77(uint8Array) {
-            const out = [];
-            let i = 0;
-            const len = uint8Array.length;
-            const windowSize = 8192; 
-            const maxMatchLength = 255;
+/* ---------- Utilidades ---------- */
+const CRC_T=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc32=b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC_T[(c^b[i])&255]^(c>>>8);return((c^0xFFFFFFFF)>>>0).toString(16).padStart(8,'0')};
+const toB64=b=>{let s='';for(let i=0;i<b.length;i+=0x8000)s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(s)};
+const fromB64=t=>{const s=atob(t),b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);return b};
+const $=id=>document.getElementById(id);
+const fmtKB=n=>n<1024?n+' B':(n/1024).toFixed(n<10240?1:0)+' KB';
+const stamp=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())};
 
-            while (i < len) {
-                let bestMatchDistance = 0;
-                let bestMatchLength = 0;
-                const searchStart = Math.max(0, i - windowSize);
-                
-                for (let j = searchStart; j < i; j++) {
-                    let matchLen = 0;
-                    while (i + matchLen < len && matchLen < maxMatchLength && uint8Array[j + matchLen] === uint8Array[i + matchLen]) {
-                        matchLen++;
-                    }
-                    if (matchLen > bestMatchLength) {
-                        bestMatchLength = matchLen;
-                        bestMatchDistance = i - j;
-                    }
-                }
+async function pipe(bytes,Stream){
+ const s=new Stream('deflate-raw'),w=s.writable.getWriter();
+ w.write(bytes);w.close();
+ return new Uint8Array(await new Response(s.readable).arrayBuffer());
+}
+async function pack(bytes){
+ let mode='N',data;
+ if('CompressionStream' in window){try{data=await pipe(bytes,CompressionStream)}catch(e){data=null}}
+ if(!data){mode='H';data=fallbackCompress(bytes)}
+ return 'GOS1:'+mode+':'+crc32(bytes)+':'+toB64(data);
+}
+async function unpack(code){
+ code=code.replace(/\s+/g,'');
+ let mode,crc=null,b64;
+ if(code.startsWith('GOS1:')){const p=code.split(':');if(p.length<4)throw new Error('Formato inválido');mode=p[1];crc=p[2];b64=p.slice(3).join(':')}
+ else if(code.startsWith('N:')||code.startsWith('H:')){mode=code[0];b64=code.slice(2)}
+ else throw new Error('Código não reconhecido. Ele deve começar com GOS1:');
+ let raw;
+ try{raw=fromB64(b64)}catch(e){throw new Error('Código incompleto ou com caracteres inválidos')}
+ let bytes;
+ if(mode==='N'){
+  if(!('DecompressionStream' in window))throw new Error('Este navegador não suporta o formato N. Gere o backup em um navegador mais novo.');
+  try{bytes=await pipe(raw,DecompressionStream)}catch(e){throw new Error('Código corrompido ou cortado')}
+ }else if(mode==='H'){try{bytes=fallbackDecompress(raw)}catch(e){throw new Error('Código corrompido ou cortado')}}
+ else throw new Error('Modo de compressão desconhecido');
+ if(crc&&crc32(bytes)!==crc)throw new Error('A verificação falhou: o código foi alterado ou copiado pela metade');
+ let data;
+ try{data=JSON.parse(new TextDecoder().decode(bytes))}catch(e){throw new Error('Os dados do backup não são válidos')}
+ if(!data||typeof data!=='object'||Array.isArray(data)||Object.values(data).some(v=>typeof v!=='string'))throw new Error('O conteúdo não parece um backup do LocalStorage');
+ return{data,bytes:bytes.length,legacy:!crc};
+}
+const snapshot=()=>{const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);o[k]=localStorage.getItem(k)}return o};
+const enc=o=>new TextEncoder().encode(JSON.stringify(o));
+function download(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function status(msg,type=''){const s=$('status');s.className=type;s.querySelector('span').textContent=msg}
+function refreshStats(){const s=snapshot();$('sKeys').textContent=Object.keys(s).length;$('sSize').textContent=fmtKB(enc(s).length)}
 
-                if (bestMatchLength >= 3) { // Reduzido threshold para 3 bytes
-                    out.push(0xAF, (bestMatchDistance >> 8) & 0xFF, bestMatchDistance & 0xFF, bestMatchLength);
-                    i += bestMatchLength;
-                } else {
-                    let literalBytes = [];
-                    let j = i;
-                    while (j < len && literalBytes.length < 255) {
-                        let lookAheadMatch = false;
-                        if (j + 3 < len) {
-                            const subStart = Math.max(0, j - windowSize);
-                            for (let sj = subStart; sj < j; sj++) {
-                                if (uint8Array[sj] === uint8Array[j] && uint8Array[sj+1] === uint8Array[j+1] && 
-                                    uint8Array[sj+2] === uint8Array[j+2]) {
-                                    lookAheadMatch = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (lookAheadMatch) break;
-                        literalBytes.push(uint8Array[j]);
-                        j++;
-                    }
-                    if (literalBytes.length === 0) {
-                        literalBytes.push(uint8Array[i]);
-                        j = i + 1;
-                    }
-                    out.push(0xAE, literalBytes.length, ...literalBytes);
-                    i = j;
-                }
-            }
-            return new Uint8Array(out);
-        }
+/* ---------- Abas ---------- */
+[['tabE','pE'],['tabR','pR']].forEach(([t,p])=>$(t).addEventListener('click',()=>{
+ ['tabE','tabR'].forEach(x=>$(x).setAttribute('aria-selected',x===t));
+ $('pE').hidden=p!=='pE';$('pR').hidden=p!=='pR';
+}));
 
-        function decompressLZ77(uint8Array) {
-            const out = [];
-            let i = 0;
-            const len = uint8Array.length;
+/* ---------- Exportar ---------- */
+$('exportBtn').addEventListener('click',async()=>{
+ try{
+  status('Gerando backup...','busy');
+  const snap=snapshot(),keys=Object.keys(snap).length;
+  if(!keys){status('Não há dados no LocalStorage para salvar.','err');return}
+  const raw=enc(snap),code=await pack(raw);
+  $('outputArea').value=code;
+  $('copyBtn').disabled=$('downloadBtn').disabled=false;
+  $('outMeta').textContent=keys+' chaves, '+fmtKB(raw.length)+' originais, '+fmtKB(code.length)+' no código ('+(100-code.length/raw.length*100).toFixed(0)+'% menor)';
+  status('Backup gerado. Copie o código ou baixe o arquivo.','ok');
+ }catch(e){console.error(e);status('Não foi possível gerar o backup.','err')}
+});
+$('copyBtn').addEventListener('click',async()=>{
+ const t=$('outputArea');
+ try{await navigator.clipboard.writeText(t.value)}catch(e){t.select();document.execCommand('copy')}
+ status('Código copiado.','ok');
+});
+$('downloadBtn').addEventListener('click',()=>{download('ghostos-backup-'+stamp()+'.ghost',$('outputArea').value);status('Arquivo baixado.','ok')});
 
-            while (i < len) {
-                const marker = uint8Array[i++];
-                if (i >= len) break;
+/* ---------- Importar ---------- */
+function readFile(f){
+ if(!f)return;
+ if(f.size>50*1024*1024){status('Arquivo grande demais.','err');return}
+ const r=new FileReader();
+ r.onload=()=>{$('inputArea').value=String(r.result).trim();status('Arquivo "'+f.name+'" carregado. Toque em Verificar e restaurar.','ok')};
+ r.onerror=()=>status('Não foi possível ler o arquivo.','err');
+ r.readAsText(f);
+}
+$('fileInput').addEventListener('change',e=>readFile(e.target.files[0]));
+const drop=$('drop');
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',e=>readFile(e.dataTransfer.files[0]));
+drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('fileInput').click()}});
 
-                if (marker === 0xAE) {
-                    const literalLen = uint8Array[i++];
-                    for (let c = 0; c < literalLen; c++) out.push(uint8Array[i++]);
-                } else if (marker === 0xAF) {
-                    const distance = (uint8Array[i++] << 8) | uint8Array[i++];
-                    const matchLength = uint8Array[i++];
-                    const startPos = out.length - distance;
-                    for (let c = 0; c < matchLength; c++) out.push(out[startPos + c]);
-                }
-            }
-            return new Uint8Array(out);
-        }
+let pending=null,undoSnap=null;
+$('importBtn').addEventListener('click',async()=>{
+ const code=$('inputArea').value.trim();
+ if(!code){status('Cole um código ou escolha um arquivo antes de restaurar.','err');return}
+ try{
+  status('Verificando backup...','busy');
+  pending=await unpack(code);
+  const n=Object.keys(pending.data).length;
+  $('dlgInfo').textContent=n+' chaves ('+fmtKB(pending.bytes)+'). '+(pending.legacy?'Backup no formato antigo, sem verificação de integridade.':'Integridade confirmada.');
+  status('Backup válido. Aguardando confirmação.','');
+  $('dlg').showModal();
+ }catch(e){pending=null;status(e.message,'err')}
+});
+$('dlgNo').addEventListener('click',()=>{$('dlg').close();status('Restauração cancelada.','')});
+$('dlgYes').addEventListener('click',async()=>{
+ $('dlg').close();
+ const before=snapshot();
+ try{
+  if($('preBackup').checked&&Object.keys(before).length)download('ghostos-antes-da-restauracao-'+stamp()+'.ghost',await pack(enc(before)));
+  localStorage.clear();
+  for(const k in pending.data)localStorage.setItem(k,pending.data[k]);
+  undoSnap=before;$('undoBtn').disabled=false;refreshStats();
+  status('GhostOS restaurado: '+Object.keys(pending.data).length+' chaves. Recarregue o sistema para aplicar.','ok');
+ }catch(e){
+  console.error(e);
+  try{localStorage.clear();for(const k in before)localStorage.setItem(k,before[k])}catch(_){}
+  refreshStats();
+  status(e&&e.name==='QuotaExceededError'?'O backup não cabe no espaço do navegador. Nada foi alterado.':'Falha ao restaurar. Os dados anteriores foram mantidos.','err');
+ }
+ pending=null;
+});
+$('undoBtn').addEventListener('click',()=>{
+ if(!undoSnap)return;
+ try{localStorage.clear();for(const k in undoSnap)localStorage.setItem(k,undoSnap[k]);undoSnap=null;$('undoBtn').disabled=true;refreshStats();status('Restauração desfeita.','ok')}
+ catch(e){status('Não foi possível desfazer.','err')}
+});
 
-        
-        function compressFull(uint8Array) {
-            const lz77Data = compressLZ77(uint8Array);
-            const freq = {};
-            for (let i = 0; i < lz77Data.length; i++) freq[lz77Data[i]] = (freq[lz77Data[i]] || 0) + 1;
-
-            const tree = buildHuffmanTree(freq);
-            const codes = generateCodes(tree);
-            const keys = Object.keys(freq);
-            const writer = new BitWriter();
-
-            const headerBytes = [(keys.length >> 8) & 0xFF, keys.length & 0xFF];
-            for (let sym of keys) {
-                const f = freq[sym];
-                headerBytes.push(parseInt(sym), (f >> 24) & 0xFF, (f >> 16) & 0xFF, (f >> 8) & 0xFF, f & 0xFF);
-            }
-
-            for (let i = 0; i < lz77Data.length; i++) writer.writeBits(codes[lz77Data[i]]);
-            const huffmanBytes = writer.flush();
-
-            const finalBuffer = new Uint8Array(headerBytes.length + huffmanBytes.length);
-            finalBuffer.set(headerBytes, 0);
-            finalBuffer.set(huffmanBytes, headerBytes.length);
-            return finalBuffer;
-        }
-
-        function decompressFull(uint8Array) {
-            let offset = 0;
-            const numSymbols = (uint8Array[offset] << 8) | uint8Array[offset+1];
-            offset += 2;
-
-            const freq = {};
-            for (let i = 0; i < numSymbols; i++) {
-                const sym = uint8Array[offset++];
-                const f = (uint8Array[offset] << 24) | (uint8Array[offset+1] << 16) | (uint8Array[offset+2] << 8) | uint8Array[offset+3];
-                offset += 4;
-                freq[sym] = f;
-            }
-
-            const tree = buildHuffmanTree(freq);
-            const reader = new BitReader(uint8Array.slice(offset));
-            const lz77Data = [];
-            let totalSymbols = 0;
-            for (let sym in freq) totalSymbols += freq[sym];
-
-            let currentNode = tree;
-            while (lz77Data.length < totalSymbols) {
-                const bit = reader.readBit();
-                currentNode = (bit === 0) ? currentNode.left : currentNode.right;
-                if (currentNode && currentNode.symbol !== null) {
-                    lz77Data.push(currentNode.symbol);
-                    currentNode = tree;
-                }
-            }
-            return decompressLZ77(new Uint8Array(lz77Data));
-        }
-
-        
-        async function tryNativeCompress(uint8) {
-            if ('CompressionStream' in window) {
-                try {
-                    const cs = new CompressionStream('deflate-raw');
-                    const writer = cs.writable.getWriter();
-                    writer.write(uint8);
-                    writer.close();
-                    const buf = await new Response(cs.readable).arrayBuffer();
-                    return { data: new Uint8Array(buf), isNative: true };
-                } catch (e) {}
-            }
-            return { data: compressFull(uint8), isNative: false };
-        }
-
-        async function tryNativeDecompress(uint8, isNative) {
-            if (isNative && 'DecompressionStream' in window) {
-                const ds = new DecompressionStream('deflate-raw');
-                const writer = ds.writable.getWriter();
-                writer.write(uint8);
-                writer.close();
-                const buf = await new Response(ds.readable).arrayBuffer();
-                return new Uint8Array(buf);
-            }
-            return decompressFull(uint8);
-        }
-
-        
-        function updateStatus(text, color = '#f8fafc', isPulse = false) {
-            const status = document.getElementById('status');
-            status.textContent = text;
-            status.style.color = color;
-            status.className = isPulse ? 'pulse' : '';
-        }
-
-        function uint8ToBase64(bytes) {
-            let binary = '';
-            const len = bytes.byteLength;
-            for (let i = 0; i < len; i++) {
-                binary += String.fromCharCode(bytes[i]);
-            }
-            return window.btoa(binary);
-        }
-
-        function base64ToUint8(base64) {
-            const binary = window.atob(base64.trim());
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-                bytes[i] = binary.charCodeAt(i);
-            }
-            return bytes;
-        }
-
-        document.getElementById('exportBtn').addEventListener('click', async () => {
-            try {
-                updateStatus('Lendo LocalStorage...', '#38bdf8', true);
-                const rawJSON = JSON.stringify(localStorage);
-                const rawBytes = new TextEncoder().encode(rawJSON);
-
-                updateStatus('Aplicando taxa máxima de compressão...', '#38bdf8', true);
-                
-                const { data: compressed, isNative } = await tryNativeCompress(rawBytes);
-
-                
-                const base64 = (isNative ? 'N:' : 'H:') + uint8ToBase64(compressed);
-
-                const outputArea = document.getElementById('outputArea');
-                const copyBtn = document.getElementById('copyBtn');
-                outputArea.value = base64;
-                copyBtn.style.display = 'block';
-
-                const taxa = ((1 - (base64.length / rawJSON.length)) * 100).toFixed(1);
-                updateStatus(`Backup gerado! Reduzido em ${taxa}%. Copie o código abaixo.`, '#10b981');
-            } catch (err) {
-                console.error(err);
-                updateStatus('Erro ao compactar dados.', '#ef4444');
-            }
-        });
-
-        document.getElementById('copyBtn').addEventListener('click', async () => {
-            const outputArea = document.getElementById('outputArea');
-            if (!outputArea.value) return;
-
-            try {
-                await navigator.clipboard.writeText(outputArea.value);
-                updateStatus('Código copiado para a área de transferência!', '#10b981');
-            } catch (err) {
-                outputArea.select();
-                document.execCommand('copy');
-                updateStatus('Código selecionado/copiado!', '#10b981');
-            }
-        });
-
-        document.getElementById('importBtn').addEventListener('click', async () => {
-            const inputArea = document.getElementById('inputArea');
-            const code = inputArea.value.trim();
-
-            if (!code) {
-                updateStatus('Cole o código de backup antes de restaurar!', '#ef4444');
-                return;
-            }
-
-            try {
-                updateStatus('Descompactando dados...', '#38bdf8', true);
-                
-                let isNative = false;
-                let cleanCode = code;
-
-                if (code.startsWith('N:')) {
-                    isNative = true;
-                    cleanCode = code.substring(2);
-                } else if (code.startsWith('H:')) {
-                    isNative = false;
-                    cleanCode = code.substring(2);
-                }
-
-                const compressedBytes = base64ToUint8(cleanCode);
-                const decompressedBytes = await tryNativeDecompress(compressedBytes, isNative);
-
-                const jsonString = new TextDecoder().decode(decompressedBytes);
-                const data = JSON.parse(jsonString);
-
-                localStorage.clear();
-                Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
-
-                updateStatus('GhostOS restaurado com sucesso!', '#10b981');
-            } catch (err) {
-                console.error(err);
-                updateStatus('Código inválido ou corrompido.', '#ef4444');
-            }
-        });
-    </script>
+refreshStats();
+</script>
 </body>
 </html>
