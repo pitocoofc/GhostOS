@@ -1,3 +1,86 @@
+# Update 7.5.0 (43)
+"What's New?"
+- Fixed CSS parsing bug caused by an HTML div tag accidentally placed inside the <style> block
+- Added the missing #gesture-bar div to the actual body (gesture indicator was invisible before)
+- Fixed toggleQuickPanel() to properly close the notifications panel when opening the control center
+- Fixed toggleNotifPanel() to properly close the control center when opening notifications
+- Fixed nRemove() to always re-render the notification list when it becomes empty
+- Fixed pointerup event on notification cards not firing outside the card area
+
+# Update 7.5.0 (42)
+"What's New?"
+- Reduced boot animation duration from 4300ms to 2800ms (1200ms when system animations are disabled)
+- Consolidated showNotification() to a single override (was being overwritten by 4 different layers)
+- Removed legacy #taskbar div from HTML to save DOM nodes
+- Removed redundant window.postMessage calls between toggleTile and listeners
+
+# Update 7.5.0 (41)
+"What's New?"
+- Replaced status bar emoji icons with SVG (WiFi, signal, airplane mode)
+- Redesigned battery indicator in CSS with rounded borders (HyperOS style)
+- Improved Quick Panel vertical sliders with softer white track
+- Increased blur intensity on notification cards
+- Status bar now uses SVG stroke instead of innerText emoji
+
+# Update 7.5.0 (40)
+"What's New?"
+- openApp() now uses requestAnimationFrame to eliminate the 1-frame flash
+- closeApp() now recalculates iconRect by app name (works after dragging icons)
+- closeApp() now animates even when the window is maximized
+- Added MiSans font with Inter fallback from Google Fonts (fixes font not loading)
+
+# Update 7.5.0 (39)
+"What's New?"
+- Added global wallpaper parallax using the device gyroscope (outside the screensaver)
+- Implemented lerp smoothing on parallax movement (0.08 interpolation per frame)
+- Parallax applies simultaneously to #main-desktop and #lock-screen
+- Optimized animation loop to run only when necessary
+
+# Update 7.5.0 (38)
+"What's New?"
+- Prepared the system architecture for version 8.0.0
+- Refactored ALL_APPS structure to support multiple instances
+- Created the base for the window stack system (real multitasking in 8.0)
+
+# Update 7.5.0 (37)
+"What's New?"
+- Optimized keyframesFrom() on openApp
+- Removed unnecessary getBoundingClientRect() recalculations
+- Cached icon positions during the animation
+
+# Update 7.5.0 (36)
+"What's New?"
+- Separated responsibilities between initStatusBar and the notifications system
+- Consolidated showNotification into a single control point
+- Removed redundant window.postMessage calls between toggleTile and listeners
+- Cleaner and more predictable code flow
+
+# Update 7.5.0 (35)
+"What's New?"
+- Recent apps changed from a 3-column grid to a horizontal carousel with scroll-snap
+- Recent app cards now use backdrop-filter with 28px borders
+- Smooth horizontal scrolling with -webkit-overflow-scrolling: touch
+- Snap centers aligned (iOS/HyperOS style)
+
+# Update 7.5.0 (34)
+"What's New?"
+- Dynamic wallpaper color: extracts the dominant color via canvas and applies it to --primary
+- Primary color applied to .qs-tile.on, .cc-card.on and .toast-title
+- URL validation in extractWallpaperColor (accepts http/https only)
+
+# Update 7.5.0 (33)
+"What's New?"
+- Global haptic feedback on taps for tiles, apps, cards and buttons
+- navigator.vibrate(6) on UI interactions
+- Reduced battery consumption (vibration only on interactive elements)
+
+# Update 7.5.0 (32)
+"What's New?"
+- Lock screen now supports swipe up to unlock (in addition to the button)
+- The large lock screen clock is now draggable vertically (iOS 16 / HyperOS 2 style)
+- Drag with dynamic scale as it moves away from center
+- Animated return when released
+
 # Update 7.5.0 (31)
 "What's New?"
 - optimization 
