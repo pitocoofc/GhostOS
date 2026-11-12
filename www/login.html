@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -100,6 +98,23 @@
             cursor: pointer; transition: background 0.1s, border-color 0.1s;
         }
         .knock-quadrant:active { background: #1d4ed8; border-color: #3b82f6; }
+
+/* ===== MÉTODOS EXTRAS ===== */
+.auth-modes{flex-wrap:wrap}
+.mode-btn{flex:1 1 30%}
+.xhint{font-size:10px;color:#666;margin:8px 0;text-align:center}
+.xrow{font-size:20px;letter-spacing:6px;min-height:30px;margin:8px 0;color:#3b82f6;text-align:center}
+.xgrid,.xarrows{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%}
+.xarrows{margin-top:10px}
+.xemo{background:#0a0a0a;border:1px solid #333;border-radius:6px;font-size:22px;padding:10px 0;cursor:pointer;color:#fff}
+.xemo:active{background:#1d4ed8;border-color:#3b82f6}
+.xpad{width:100%;height:150px;border:1px dashed #3b82f6;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#3b82f6;font-size:13px;cursor:pointer;touch-action:manipulation}
+.xpad.hit{background:#1d4ed8;color:#fff}
+.xsl-row{display:flex;align-items:center;gap:10px;width:100%}
+.xsl{flex:1;border:none;padding:0;margin-top:14px;accent-color:#3b82f6}
+.xsl-val{width:30px;font-size:14px;color:#3b82f6;margin-top:14px}
+.xsel{background:#111;color:#fff;border:1px solid #333;padding:10px;width:100%;font-family:monospace;margin-top:10px}
+
     </style>
 </head>
 <body>
@@ -156,6 +171,8 @@
             <button class="clear-pad-btn" id="btn-clear-draw" onclick="clearCanvas('login-canvas')">Limpar Traço</button>
             <button class="menu-btn" id="btn-val-draw" onclick="validateLoginDraw()" style="text-align:center; margin-top:15px;">[ ENVIAR VETOR ]</button>
         </div>
+
+        <div id="login-extra-container" class="pad-container"></div>
     </div>
 
     <div id="recovery-step1" class="screen">
@@ -222,6 +239,8 @@
                 <button class="menu-btn" onclick="saveRegisterDraw()" style="text-align:center; flex:1; border-color:#3b82f6;">[ CONCLUIR ]</button>
             </div>
         </div>
+
+        <div id="reg-extra-container" class="pad-container"></div>
     </div>
 
     <div id="phase3" class="screen">
@@ -325,7 +344,7 @@ if (localStorage.getItem('dev_skip_password') === 'true') {
             document.getElementById('fill1').style.width = p1 + "%";
             if(p1 >= 100) {
                 clearInterval(int1);
-                if (localStorage.getItem("os_user") && (localStorage.getItem("os_pass") || localStorage.getItem("os_draw") || localStorage.getItem("os_pattern") || localStorage.getItem("os_knock"))) {
+                if (localStorage.getItem("os_user") && hasAnyMethod()) {
                     changeScreen('os-menu');
                 } else {
                     changeScreen('phase2');
@@ -336,35 +355,26 @@ if (localStorage.getItem('dev_skip_password') === 'true') {
 
         /* --- INTERFACES DE LOGIN --- */
         function setLoginAuthMode(mode) {
-            if(cooldownActive) return;
-            document.getElementById('btn-login-mode-digit').classList.toggle('selected', mode === 'digit');
-            document.getElementById('btn-login-mode-knock').classList.toggle('selected', mode === 'knock');
-            document.getElementById('btn-login-mode-pattern').classList.toggle('selected', mode === 'pattern');
-            document.getElementById('btn-login-mode-draw').classList.toggle('selected', mode === 'draw');
-            
-            document.getElementById('login-digit-container').style.display = mode === 'digit' ? 'block' : 'none';
-            document.getElementById('login-knock-container').classList.toggle('visible', mode === 'knock');
-            document.getElementById('login-pattern-container').classList.toggle('visible', mode === 'pattern');
-            document.getElementById('login-draw-container').classList.toggle('visible', mode === 'draw');
-            
-            if(mode === 'knock') clearLoginKnocks();
-            if(mode === 'draw') setupCanvasHandlers('login-canvas');
-            if(mode === 'pattern') setupPatternHandlers('login-pattern-canvas');
-        }
+            if (cooldownActive) return;
+            if (curHandle && curHandle.destroy) curHandle.destroy();
+            curHandle = null; curExtra = null;
+            const extra = EXTRAS.find(m => m.id === mode);
 
-        function openLogin() {
-            changeScreen('menu-login');
-            if(localStorage.getItem("os_pass")) {
-                setLoginAuthMode('digit');
-            } else if(localStorage.getItem("os_knock")) {
-                setLoginAuthMode('knock');
-            } else if(localStorage.getItem("os_pattern")) {
-                setLoginAuthMode('pattern');
-            } else {
-                setLoginAuthMode('draw');
-                setupCanvasHandlers('login-canvas');
-            }
-            document.getElementById('login-user').focus();
+            ['digit', 'knock', 'pattern', 'draw'].forEach(k =>
+                byId('btn-login-mode-' + k).classList.toggle('selected', k === mode));
+            document.querySelectorAll('#login-modes-bar .xmode').forEach(b =>
+                b.classList.toggle('selected', b.dataset.id === mode));
+
+            byId('login-digit-container').style.display = mode === 'digit' ? 'block' : 'none';
+            byId('login-knock-container').classList.toggle('visible', mode === 'knock');
+            byId('login-pattern-container').classList.toggle('visible', mode === 'pattern');
+            byId('login-draw-container').classList.toggle('visible', mode === 'draw');
+            byId('login-extra-container').classList.toggle('visible', !!extra);
+
+            if (mode === 'knock') clearLoginKnocks();
+            if (mode === 'draw') setupCanvasHandlers('login-canvas');
+            if (mode === 'pattern') setupPatternHandlers('login-pattern-canvas');
+            if (extra) renderLoginExtra(extra);
         }
 
         /* --- COOLDOWN CONTROL (DELAY DE SENHA) --- */
@@ -416,6 +426,10 @@ if (localStorage.getItem('dev_skip_password') === 'true') {
             document.getElementById('btn-clear-draw').disabled = lock;
             
             document.querySelectorAll('#login-modes-bar .mode-btn').forEach(btn => btn.disabled = lock);
+
+            const ex = document.getElementById('login-extra-container');
+            ex.style.pointerEvents = lock ? 'none' : '';
+            ex.style.opacity = lock ? '0.4' : '';
         }
 
         /* --- ENGINE DO LOCK PATTERN --- */
@@ -556,29 +570,6 @@ if (localStorage.getItem('dev_skip_password') === 'true') {
             setupCanvasHandlers('reg-canvas');
         }
 
-        async function saveRegisterDraw() {
-            if(currentTrackedPoints.length < 6) {
-                alert("ASSINATURA INVÁLIDA:\nO traço estrutural foi muito curto. Desenhe uma assinatura clara no painel.");
-                return;
-            }
-            const normalized = normalizePoints(currentTrackedPoints);
-            const uName = localStorage.getItem('os_user');
-            const encDraw = await encryptData(uName, JSON.stringify(normalized));
-            localStorage.setItem("os_draw", encDraw);
-            validateFinalRegistration();
-        }
-
-        function skipRegisterDraw() { validateFinalRegistration(); }
-
-        function validateFinalRegistration() {
-            if(!localStorage.getItem('os_pass') && !localStorage.getItem('os_knock') && !localStorage.getItem('os_pattern') && !localStorage.getItem('os_draw')) {
-                alert("Erro de Segurança: Você precisa definir pelo menos um dos métodos!");
-                window.location.reload();
-                return;
-            }
-            startLogs();
-        }
-
         /* --- VALIDAÇÕES DE LOGIN COM DECRIPTAÇÃO ASSÍNCRONA --- */
         document.getElementById('login-pass').addEventListener('keypress', async function(e) {
             if(e.key === 'Enter') {
@@ -601,7 +592,7 @@ if (localStorage.getItem('dev_skip_password') === 'true') {
                 }
 
                 const decryptedPass = await decryptData(uInput, encryptedPass);
-                if(decryptedPass && this.value === decryptedPass) {
+                if(decryptedPass && this.value.trim() === decryptedPass) {
                     startLogs();
                 } else {
                     alert("FALHA NA AUTENTICAÇÃO:\nSenha/Passcode inválido para o operador '" + uInput + "'.");
@@ -872,7 +863,7 @@ if (localStorage.getItem('dev_skip_password') === 'true') {
             while(dateSet.size < 5) {
                 let randomDay = Math.floor(Math.random() * 28) + 1;
                 let randomMonth = Math.floor(Math.random() * 12) + 1;
-                let fakeDate = `${randomDay.toString().padStart(2, '0')}/${randomMonth.toString().padStart(2, '0')}/2026`;
+                let fakeDate = `${randomDay.toString().padStart(2, '0')}/${randomMonth.toString().padStart(2, '0')}/${correctDateString.split('/')[2] || 2026}`;
                 dateSet.add(fakeDate);
             }
 
@@ -946,6 +937,7 @@ if (localStorage.getItem('dev_skip_password') === 'true') {
         });
 
         function startLogs() {
+            if (byId('phase3').classList.contains('active') || byId('phase4').classList.contains('active')) return;
             changeScreen('phase3');
             const container = document.getElementById('log-container');
             container.innerHTML = "";
@@ -990,6 +982,298 @@ if (localStorage.getItem('dev_skip_password') === 'true') {
                 }
             }, 30);
         }
+
+/* ================= MÉTODOS EXTRAS + BIOMETRIA ================= */
+const byId = id => document.getElementById(id);
+const mk = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt !== undefined) e.textContent = txt; return e; };
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+const xKey = id => 'os_x_' + id;
+const BUILTIN = { digit: 'os_pass', knock: 'os_knock', pattern: 'os_pattern', draw: 'os_draw' };
+const hasAnyMethod = () => Object.values(BUILTIN).some(k => localStorage.getItem(k)) || EXTRAS.some(m => localStorage.getItem(xKey(m.id)));
+let curExtra = null, curHandle = null, regHandle = null, xi = -1;
+
+/* ---- Biometria (Capacitor) ---- */
+const capPlugins = () => (window.Capacitor && window.Capacitor.Plugins) || {};
+
+async function bioAvailable() {
+    const P = capPlugins();
+    try {
+        if (P.BiometricAuth) { const r = await P.BiometricAuth.checkBiometry(); return { ok: !!r.isAvailable, why: r.reason || 'nenhuma biometria cadastrada no aparelho' }; }
+        if (P.NativeBiometric) { const r = await P.NativeBiometric.isAvailable(); return { ok: !!r.isAvailable, why: 'nenhuma biometria cadastrada no aparelho' }; }
+    } catch (e) { return { ok: false, why: e.message || 'erro ao consultar o sensor' }; }
+    return { ok: false, why: 'plugin não encontrado (só funciona no app Capacitor)' };
+}
+
+async function bioVerify(reason) {
+    const P = capPlugins();
+    if (P.BiometricAuth) {
+        await P.BiometricAuth.authenticate({ reason, cancelTitle: 'Cancelar', allowDeviceCredential: false, androidTitle: 'GhostOS', androidSubtitle: reason });
+        return;
+    }
+    if (P.NativeBiometric) {
+        await P.NativeBiometric.verifyIdentity({ reason, title: 'GhostOS', subtitle: reason });
+        return;
+    }
+    throw new Error('plugin de biometria não encontrado');
+}
+
+/* ---- Catálogo de métodos ----
+   build(box, mode, submit) monta a interface e devolve { get(), reset(), destroy?() }
+   get() devolve texto (valor digitado) ou null se estiver incompleto
+   match(salvo, digitado) decide se confere */
+const EMOJIS = ['🔥','🌙','⭐','🍀','🐉','👻','🚀','💎','🎲','🦊','🌊','⚡','🎯','🔑','🍕','🎸'];
+const QUESTIONS = ['Nome do seu primeiro pet?', 'Cidade onde nasceu?', 'Comida favorita?', 'Rua onde cresceu?', 'Seu apelido de criança?', 'Filme favorito?'];
+
+const EXTRAS = [
+    { id: 'bio', label: 'Biometria', icon: '🧬', noUser: true,
+      hint: 'Digital ou reconhecimento facial do aparelho.',
+      build(box, mode, submit) {
+          let ok = false;
+          const info = mk('div', 'xhint', 'Verificando sensor...');
+          const b = mk('button', 'menu-btn', '[ USAR BIOMETRIA ]'); b.style.textAlign = 'center';
+          b.onclick = async () => {
+              try {
+                  await bioVerify(mode === 'reg' ? 'Ativar biometria no GhostOS' : 'Entrar no GhostOS');
+                  ok = true; info.textContent = '✅ Identidade confirmada';
+                  if (mode === 'login') submit();
+              } catch (e) { ok = false; info.textContent = '❌ ' + ((e && e.message) || 'Falha na verificação'); }
+          };
+          box.append(info, b);
+          bioAvailable().then(r => {
+              info.textContent = r.ok ? 'Sensor disponível' : '⚠️ ' + r.why;
+              b.disabled = !r.ok;
+              if (r.ok && mode === 'login') setTimeout(() => { if (box.isConnected && curHandle) b.click(); }, 300);
+          });
+          return { get: () => ok ? 'bio' : null, reset() { ok = false; } };
+      },
+      match: () => true },
+
+    { id: 'emoji', label: 'Emojis', icon: '🙂',
+      hint: 'Toque de 4 a 8 emojis em ordem.',
+      build(box, mode) {
+          let seq = [];
+          const row = mk('div', 'xrow', '—');
+          const paint = () => row.textContent = seq.map(() => '●').join(' ') || '—';
+          const grid = mk('div', 'xgrid');
+          const list = mode === 'login' ? [...EMOJIS].sort(() => Math.random() - 0.5) : EMOJIS;
+          list.forEach(e => {
+              const b = mk('button', 'xemo', e);
+              b.onclick = () => { if (seq.length < 8) { seq.push(e); paint(); } };
+              grid.append(b);
+          });
+          box.append(row, grid);
+          return { get: () => seq.length >= 4 ? JSON.stringify(seq) : null, reset() { seq = []; paint(); } };
+      },
+      match: (a, b) => a === b },
+
+    { id: 'rhythm', label: 'Ritmo', icon: '🥁',
+      hint: 'Toque um ritmo com pelo menos 4 toques.',
+      build(box) {
+          let t = [];
+          const pad = mk('div', 'xpad', 'TOQUE AQUI');
+          const info = mk('div', 'xhint', '0 toques');
+          pad.onpointerdown = () => {
+              t.push(performance.now());
+              info.textContent = t.length + ' toques';
+              pad.classList.add('hit'); setTimeout(() => pad.classList.remove('hit'), 90);
+          };
+          box.append(pad, info);
+          return {
+              get: () => t.length >= 4 ? JSON.stringify(t.slice(1).map((v, i) => Math.round(v - t[i]))) : null,
+              reset() { t = []; info.textContent = '0 toques'; }
+          };
+      },
+      match: (s, e) => {
+          const a = JSON.parse(s), b = JSON.parse(e);
+          return a.length === b.length && a.every((v, i) => Math.abs(v - b[i]) <= Math.max(150, v * 0.35));
+      } },
+
+    { id: 'combo', label: 'Combinação', icon: '🎚️',
+      hint: 'Ajuste os 3 controles na sua combinação secreta.',
+      build(box) {
+          const v = [50, 50, 50], t = [false, false, false], sliders = [];
+          [0, 1, 2].forEach(i => {
+              const row = mk('div', 'xsl-row'), lab = mk('span', 'xsl-val', '--');
+              const s = mk('input', 'xsl'); s.type = 'range'; s.min = 0; s.max = 99; s.value = 50;
+              s.oninput = () => { v[i] = +s.value; t[i] = true; lab.textContent = s.value; };
+              sliders.push(s); row.append(s, lab); box.append(row);
+          });
+          return {
+              get: () => t.every(Boolean) ? JSON.stringify(v) : null,
+              reset() { sliders.forEach((s, i) => { s.value = 50; v[i] = 50; t[i] = false; }); box.querySelectorAll('.xsl-val').forEach(l => l.textContent = '--'); }
+          };
+      },
+      match: (s, e) => { const a = JSON.parse(s), b = JSON.parse(e); return a.every((x, i) => Math.abs(x - b[i]) <= 3); } },
+
+    { id: 'tilt', label: 'Inclinação', icon: '📱',
+      hint: 'Ative o sensor e incline o aparelho (mín. 4 movimentos). No PC, use as setas.',
+      build(box) {
+          let seq = [], base = null, armed = true;
+          const row = mk('div', 'xrow', '—');
+          const paint = () => row.textContent = seq.map(() => '●').join(' ') || '—';
+          const push = d => { if (seq.length < 10) { seq.push(d); paint(); } };
+          const onO = e => {
+              if (e.gamma == null) return;
+              if (!base) base = { g: e.gamma, b: e.beta };
+              const dg = e.gamma - base.g, db = e.beta - base.b;
+              if (Math.abs(dg) < 12 && Math.abs(db) < 12) { armed = true; return; }
+              if (!armed) return;
+              let d = null;
+              if (Math.abs(dg) >= Math.abs(db)) { if (dg > 30) d = 'R'; else if (dg < -30) d = 'L'; }
+              else { if (db > 30) d = 'D'; else if (db < -30) d = 'U'; }
+              if (d) { armed = false; push(d); }
+          };
+          const sens = mk('button', 'menu-btn', '[ ATIVAR SENSOR ]'); sens.style.textAlign = 'center';
+          sens.onclick = async () => {
+              try {
+                  if (window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission) {
+                      const r = await DeviceOrientationEvent.requestPermission();
+                      if (r !== 'granted') throw new Error('negado');
+                  }
+                  base = null; window.addEventListener('deviceorientation', onO);
+                  sens.textContent = 'SENSOR ATIVO ✓';
+              } catch (e) { sens.textContent = 'SENSOR NEGADO'; }
+          };
+          const arrows = mk('div', 'xarrows');
+          [['⬅️', 'L'], ['⬆️', 'U'], ['⬇️', 'D'], ['➡️', 'R']].forEach(([txt, d]) => {
+              const b = mk('button', 'xemo', txt); b.onclick = () => push(d); arrows.append(b);
+          });
+          box.append(row, sens, arrows);
+          return {
+              get: () => seq.length >= 4 ? JSON.stringify(seq) : null,
+              reset() { seq = []; base = null; paint(); },
+              destroy() { window.removeEventListener('deviceorientation', onO); }
+          };
+      },
+      match: (a, b) => a === b },
+
+    { id: 'secret', label: 'Pergunta', icon: '❓',
+      hint: 'Responda à pergunta secreta.',
+      after: v => localStorage.setItem('os_x_secret_q', JSON.parse(v).q),
+      build(box, mode) {
+          let sel = null, qi = 0;
+          if (mode === 'reg') {
+              sel = mk('select', 'xsel');
+              QUESTIONS.forEach((q, i) => { const o = mk('option', '', q); o.value = i; sel.append(o); });
+              box.append(sel);
+          } else {
+              qi = +(localStorage.getItem('os_x_secret_q') || 0);
+              box.append(mk('div', 'xhint', QUESTIONS[qi]));
+          }
+          const inp = mk('input'); inp.type = 'password'; inp.placeholder = 'Resposta...'; inp.autocomplete = 'off';
+          box.append(inp);
+          return {
+              get: () => norm(inp.value).length >= 2 ? JSON.stringify({ q: sel ? +sel.value : qi, a: norm(inp.value) }) : null,
+              reset() { inp.value = ''; }
+          };
+      },
+      match: (s, e) => JSON.parse(s).a === JSON.parse(e).a }
+];
+
+/* ---- Barra de modos e abertura do login ---- */
+function buildModeBar() {
+    const bar = byId('login-modes-bar');
+    bar.querySelectorAll('.xmode').forEach(b => b.remove());
+    Object.keys(BUILTIN).forEach(k => { byId('btn-login-mode-' + k).style.display = localStorage.getItem(BUILTIN[k]) ? '' : 'none'; });
+    EXTRAS.forEach(m => {
+        if (!localStorage.getItem(xKey(m.id))) return;
+        const b = mk('button', 'mode-btn xmode', m.icon + ' ' + m.label.toUpperCase());
+        b.dataset.id = m.id; b.onclick = () => setLoginAuthMode(m.id);
+        bar.append(b);
+    });
+}
+
+function openLogin() {
+    changeScreen('menu-login');
+    buildModeBar();
+    const order = ['bio', 'digit', 'knock', 'pattern', 'draw'].concat(EXTRAS.map(m => m.id).filter(id => id !== 'bio'));
+    const first = order.find(id => localStorage.getItem(BUILTIN[id] || xKey(id)));
+    setLoginAuthMode(first || 'digit');
+    byId('login-user').focus();
+}
+
+function renderLoginExtra(m) {
+    const box = byId('login-extra-container'); box.innerHTML = '';
+    const area = mk('div'); area.style.width = '100%';
+    const clr = mk('button', 'clear-pad-btn', 'Limpar'); clr.onclick = () => curHandle.reset();
+    const go = mk('button', 'menu-btn', '[ ENTRAR ]'); go.style.cssText = 'text-align:center;margin-top:15px'; go.onclick = submitExtra;
+    box.append(mk('p', 'xhint', m.hint), area, clr, go);
+    curExtra = m;
+    curHandle = m.build(area, 'login', submitExtra);
+}
+
+async function submitExtra() {
+    if (cooldownActive || !curExtra) return;
+    const m = curExtra, saved = localStorage.getItem('os_user');
+    const uInput = byId('login-user').value.trim();
+    if (!m.noUser && uInput !== saved) {
+        alert("FALHA NA AUTENTICAÇÃO:\nOperador '" + (uInput || 'vazio') + "' não localizado no banco do sistema.");
+        triggerLoginError('login-extra-container'); checkLoginAttempts(); return;
+    }
+    const entered = curHandle.get();
+    if (entered === null) { alert('Entrada incompleta.'); return; }
+    const enc = localStorage.getItem(xKey(m.id));
+    const plain = enc ? await decryptData(saved, enc) : null;
+    if (plain !== null && m.match(plain, entered)) {
+        startLogs();
+    } else {
+        alert('FALHA NA AUTENTICAÇÃO:\n' + m.label + ' incorreto(a).');
+        triggerLoginError('login-extra-container'); checkLoginAttempts(); curHandle.reset();
+    }
+}
+
+/* ---- Cadastro: passos extras depois da assinatura ---- */
+async function saveRegisterDraw() {
+    if (currentTrackedPoints.length < 6) {
+        alert("ASSINATURA INVÁLIDA:\nO traço estrutural foi muito curto. Desenhe uma assinatura clara no painel.");
+        return;
+    }
+    const uName = localStorage.getItem('os_user');
+    localStorage.setItem('os_draw', await encryptData(uName, JSON.stringify(normalizePoints(currentTrackedPoints))));
+    startExtraSteps();
+}
+function skipRegisterDraw() { startExtraSteps(); }
+
+function startExtraSteps() {
+    byId('reg-digit-container').style.display = 'none';
+    ['knock', 'pattern', 'draw'].forEach(k => byId('reg-' + k + '-container').classList.remove('visible'));
+    byId('reg-extra-container').classList.add('visible');
+    xi = -1; nextExtra();
+}
+
+function nextExtra() {
+    if (regHandle && regHandle.destroy) regHandle.destroy();
+    regHandle = null; xi++;
+    if (xi >= EXTRAS.length) { byId('reg-extra-container').classList.remove('visible'); validateFinalRegistration(); return; }
+    const m = EXTRAS[xi];
+    byId('reg-title').innerText = m.label.toUpperCase() + ' (EXTRA ' + (xi + 1) + '/' + EXTRAS.length + '):';
+    const box = byId('reg-extra-container'); box.innerHTML = '';
+    const area = mk('div'); area.style.width = '100%';
+    const clr = mk('button', 'clear-pad-btn', 'Limpar'); clr.onclick = () => regHandle.reset();
+    const row = mk('div'); row.style.cssText = 'display:flex;gap:10px;width:100%;margin-top:15px';
+    const skip = mk('button', 'menu-btn', '[ PULAR ]'); skip.style.cssText = 'text-align:center;flex:1'; skip.onclick = nextExtra;
+    const save = mk('button', 'menu-btn', '[ SALVAR ]'); save.style.cssText = 'text-align:center;flex:1;border-color:#3b82f6'; save.onclick = saveExtra;
+    row.append(skip, save);
+    box.append(mk('p', 'xhint', m.hint), area, clr, row);
+    regHandle = m.build(area, 'reg', () => {});
+}
+
+async function saveExtra() {
+    const m = EXTRAS[xi], v = regHandle.get();
+    if (v === null) { alert('Entrada incompleta ou curta demais para "' + m.label + '".'); return; }
+    localStorage.setItem(xKey(m.id), await encryptData(localStorage.getItem('os_user'), v));
+    if (m.after) m.after(v);
+    nextExtra();
+}
+
+function validateFinalRegistration() {
+    if (!hasAnyMethod()) {
+        alert('Erro de Segurança: Você precisa definir pelo menos um dos métodos!');
+        window.location.reload();
+        return;
+    }
+    startLogs();
+}
     </script>
 </body>
 </html>
