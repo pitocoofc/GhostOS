@@ -27,6 +27,9 @@ jobs:
           # 2. Adiciona plataforma
           npx cap add android || true
 
+          # 2.1 CORREÇÃO: minSdk 23 (biometria exige; padrão do Cap 5 é 22)
+          sed -i 's/minSdkVersion = 22/minSdkVersion = 23/' android/variables.gradle
+
           # 3. GERAR ÍCONES (Procura por icon.png na raiz)
           # Se não houver icon.png, ele usa o padrão do Capacitor
           if [ -f "icon.png" ]; then
@@ -51,6 +54,8 @@ jobs:
           add_perm "android.permission.READ_MEDIA_IMAGES"
           add_perm "android.permission.READ_MEDIA_VIDEO"
           add_perm "android.permission.READ_EXTERNAL_STORAGE"
+          add_perm "android.permission.USE_BIOMETRIC"
+          add_perm "android.permission.USE_FINGERPRINT"
 
           # 5. Sincroniza arquivos
           npx cap sync
